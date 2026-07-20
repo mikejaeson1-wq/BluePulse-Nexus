@@ -5,12 +5,12 @@ import { BrowserRouter } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
-import "./styles/globals.css";
+import "./website/styles/globals.css";
 
 import App from "./App.jsx";
 
-import { AuthProvider } from "./features/auth/context/AuthContext";
-import { MediaProvider } from "./features/media/store/MediaStore.jsx";
+import { AuthProvider } from "@cms/modules/auth/context/AuthContext";
+import { MediaProvider } from "@cms/modules/media/store/MediaStore";
 
 import "@shared/styles/globals.css";
 

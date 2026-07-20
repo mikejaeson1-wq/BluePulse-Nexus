@@ -4,17 +4,15 @@
         "baseUrl": "src",
 
         "paths": {
-
             "@/*": ["*"],
 
-            "@core/*": ["core/*"],
+            "@assets/*": ["assets/*"],
 
-            "@modules/*": ["modules/*"],
+            "@cms/*": ["cms/*"],
 
-            "@shared/*": ["shared/*"],
+            "@website/*": ["website/*"],
 
-            "@rendering/*": ["rendering/*"]
-
+            "@shared/*": ["shared/*"]
         }
 
     },

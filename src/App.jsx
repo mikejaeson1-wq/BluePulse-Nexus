@@ -1,19 +1,19 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 
-import Home from "./pages/Home";
+import Home from "@website/pages/Home";
 
-import LoginPage from "./features/auth/pages/LoginPage";
+import LoginPage from "@cms/modules/auth/pages/LoginPage";
 
-import ProtectedRoute from "./features/auth/components/ProtectedRoute";
+import ProtectedRoute from "@cms/modules/auth/components/ProtectedRoute";
 
-import AdminLayout from "./features/admin/layouts/AdminLayout";
+import AdminLayout from "@cms/modules/dashboard/admin/layouts/AdminLayout";
 
-import Dashboard from "./features/admin/pages/Dashboard";
-import Pages from "./features/admin/pages/Pages";
-import PageEditor from "./features/admin/pages/PageEditor";
-import Media from "./features/admin/pages/Media";
-import Users from "./features/admin/pages/Users";
-import Settings from "./features/admin/pages/Settings";
+import Dashboard from "@cms/modules/dashboard/admin/pages/Dashboard";
+import Pages from "@cms/modules/dashboard/admin/pages/Pages";
+import PageEditor from "@cms/modules/dashboard/admin/pages/PageEditor";
+import Media from "@cms/modules/dashboard/admin/pages/Media";
+import Users from "@cms/modules/dashboard/admin/pages/Users";
+import Settings from "@cms/modules/dashboard/admin/pages/Settings";
 
 export default function App() {
 

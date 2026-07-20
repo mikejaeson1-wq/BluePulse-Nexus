@@ -13,19 +13,17 @@ export default defineConfig({
     resolve: {
 
         alias: {
-
             "@": path.resolve(__dirname, "./src"),
 
-            "@core": path.resolve(__dirname, "./src/core"),
+            "@assets": path.resolve(__dirname, "./src/assets"),
 
-            "@modules": path.resolve(__dirname, "./src/modules"),
+            "@cms": path.resolve(__dirname, "./src/cms"),
 
-            "@shared": path.resolve(__dirname, "./src/shared"),
+            "@website": path.resolve(__dirname, "./src/website"),
 
-            "@rendering": path.resolve(__dirname, "./src/rendering")
-
+            "@shared": path.resolve(__dirname, "./src/shared")
         }
 
     }
-
+        
 });
