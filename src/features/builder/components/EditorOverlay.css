@@ -1,0 +1,47 @@
+.bp-drag-handle{
+
+    position:absolute;
+
+    left:-18px;
+
+    top:16px;
+
+    width:30px;
+
+    height:30px;
+
+    border-radius:8px;
+
+    background:#0d6efd;
+
+    color:white;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    cursor:grab;
+
+    font-size:18px;
+
+    user-select:none;
+
+    z-index:20;
+
+    box-shadow:0 4px 12px rgba(0,0,0,.2);
+
+}
+
+.bp-drag-handle:active{
+
+    cursor:grabbing;
+
+}
+
+.bp-editor-overlay{
+
+    position:relative;
+
+}

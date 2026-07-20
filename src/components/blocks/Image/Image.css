@@ -1,0 +1,21 @@
+.bp-image{
+
+    padding:40px;
+
+    display:flex;
+
+    justify-content:center;
+
+}
+
+.bp-image-element{
+
+    max-width:100%;
+
+    height:auto;
+
+    border-radius:12px;
+
+    display:block;
+
+}

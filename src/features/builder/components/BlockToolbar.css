@@ -1,0 +1,35 @@
+.bp-block-toolbar{
+
+    display:flex;
+
+    gap:8px;
+
+    justify-content:flex-end;
+
+    margin-bottom:10px;
+
+}
+
+.bp-block-toolbar button{
+
+    border:none;
+
+    border-radius:8px;
+
+    padding:8px 10px;
+
+    cursor:pointer;
+
+    background:#1f2937;
+
+    color:white;
+
+    transition:.2s;
+
+}
+
+.bp-block-toolbar button:hover{
+
+    background:#2563eb;
+
+}

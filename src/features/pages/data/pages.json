@@ -1,0 +1,16 @@
+[
+    {
+        "id": "home",
+        "title": "Startseite",
+        "slug": "/",
+        "status": "draft",
+        "updatedAt": "2026-07-18"
+    },
+    {
+        "id": "about",
+        "title": "Über uns",
+        "slug": "/ueber-uns",
+        "status": "published",
+        "updatedAt": "2026-07-17"
+    }
+]

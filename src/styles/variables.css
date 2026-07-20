@@ -1,0 +1,48 @@
+:root{
+
+    /* Farben */
+
+    --color-primary:#26d0ff;
+    --color-primary-dark:#0099d6;
+
+    --color-background:#050b18;
+    --color-background-light:#0b1325;
+
+    --color-surface:rgba(255,255,255,.05);
+    --color-surface-hover:rgba(255,255,255,.08);
+
+    --color-border:rgba(255,255,255,.08);
+
+    --color-text:#ffffff;
+    --color-text-secondary:#cfd7df;
+
+    --color-success:#39d98a;
+    --color-warning:#ffb84d;
+    --color-danger:#ff5d73;
+
+    /* Schatten */
+
+    --shadow-primary:
+
+        0 0 30px rgba(38,208,255,.35);
+
+    --shadow-card:
+
+        0 20px 60px rgba(0,0,0,.25);
+
+    /* Radius */
+
+    --radius-sm:12px;
+    --radius-md:18px;
+    --radius-lg:28px;
+    --radius-pill:999px;
+
+    /* Layout */
+
+    --container:1500px;
+
+    /* Transition */
+
+    --transition:.35s ease;
+
+}

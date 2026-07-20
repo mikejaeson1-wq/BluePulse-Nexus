@@ -1,0 +1,41 @@
+.bp-page-card{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:20px;
+
+    border-radius:12px;
+
+    background:#172136;
+
+    border:1px solid #293552;
+
+    margin-bottom:15px;
+
+}
+
+.bp-page-card h3{
+
+    color:white;
+
+    margin:0;
+
+}
+
+.bp-page-card p{
+
+    color:#98a4c0;
+
+    margin:4px 0;
+
+}
+
+.bp-page-card small{
+
+    color:#6fa8ff;
+
+}

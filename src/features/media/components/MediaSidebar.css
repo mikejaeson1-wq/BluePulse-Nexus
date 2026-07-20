@@ -1,0 +1,59 @@
+.bp-media-sidebar{
+
+    width:220px;
+
+    border-right:1px solid #293552;
+
+    padding:16px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:8px;
+
+    background:#111b2e;
+
+}
+
+.bp-media-sidebar button{
+
+    background:none;
+
+    border:none;
+
+    color:#d4dbea;
+
+    text-align:left;
+
+    padding:10px 14px;
+
+    border-radius:8px;
+
+    cursor:pointer;
+
+    transition:.2s;
+
+}
+
+.bp-media-sidebar button:hover{
+
+    background:#24324d;
+
+}
+
+.bp-media-sidebar button.active{
+
+    background:#0d6efd;
+
+    color:white;
+
+}
+
+.bp-media-sidebar hr{
+
+    border-color:#2c3856;
+
+    width:100%;
+
+}

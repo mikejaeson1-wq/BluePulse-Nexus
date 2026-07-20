@@ -1,0 +1,163 @@
+.bp-layout{
+
+    display:flex;
+
+    min-height:100vh;
+
+    background:#0f172a;
+
+    color:white;
+
+}
+
+.bp-sidebar{
+
+    width:270px;
+
+    background:#111827;
+
+    border-right:1px solid rgba(255,255,255,.08);
+
+    display:flex;
+
+    flex-direction:column;
+
+}
+
+.bp-logo{
+
+    padding:32px;
+
+    border-bottom:1px solid rgba(255,255,255,.08);
+
+}
+
+.bp-logo h2{
+
+    margin:0;
+
+    font-size:24px;
+
+    font-weight:700;
+
+}
+
+.bp-logo span{
+
+    display:block;
+
+    margin-top:8px;
+
+    color:#94a3b8;
+
+    font-size:13px;
+
+}
+
+.bp-nav{
+
+    display:flex;
+
+    flex-direction:column;
+
+    padding:20px;
+
+    gap:8px;
+
+}
+
+.bp-nav a{
+
+    color:white;
+
+    text-decoration:none;
+
+    padding:14px 16px;
+
+    border-radius:10px;
+
+    transition:.2s;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+}
+
+.bp-nav a:hover{
+
+    background:#1e293b;
+
+}
+
+.bp-nav a.active{
+
+    background:#2563eb;
+
+}
+
+.bp-content{
+
+    flex:1;
+
+    padding:40px;
+
+    overflow:auto;
+
+}
+
+.bp-user{
+
+    margin-top:auto;
+
+    padding:20px;
+
+    border-top:1px solid rgba(255,255,255,.08);
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:8px;
+
+}
+
+.bp-user strong{
+
+    font-size:15px;
+
+}
+
+.bp-user small{
+
+    color:#94a3b8;
+
+}
+
+.bp-user button{
+
+    margin-top:12px;
+
+    padding:10px;
+
+    border:none;
+
+    border-radius:10px;
+
+    background:#dc2626;
+
+    color:white;
+
+    cursor:pointer;
+
+    transition:.2s;
+
+}
+
+.bp-user button:hover{
+
+    background:#b91c1c;
+
+}

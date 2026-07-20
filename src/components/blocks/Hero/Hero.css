@@ -1,0 +1,57 @@
+.bp-hero{
+
+    padding:100px 40px;
+
+    text-align:center;
+
+    background:#111827;
+
+    color:white;
+
+    border-radius:20px;
+
+}
+
+.bp-hero-container{
+
+    max-width:900px;
+
+    margin:auto;
+
+}
+
+.bp-hero h1{
+
+    font-size:54px;
+
+    margin:0;
+
+}
+
+.bp-hero p{
+
+    margin-top:20px;
+
+    font-size:22px;
+
+    color:#cbd5e1;
+
+}
+
+.bp-hero button{
+
+    margin-top:40px;
+
+    padding:16px 34px;
+
+    border:none;
+
+    border-radius:12px;
+
+    background:#2563eb;
+
+    color:white;
+
+    cursor:pointer;
+
+}

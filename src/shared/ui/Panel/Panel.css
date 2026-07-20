@@ -1,0 +1,41 @@
+.bp-panel{
+
+    background:#172136;
+
+    border:1px solid #293552;
+
+    border-radius:14px;
+
+    overflow:hidden;
+
+}
+
+.bp-panel-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:18px 22px;
+
+    border-bottom:1px solid #293552;
+
+}
+
+.bp-panel-header h2{
+
+    margin:0;
+
+    color:white;
+
+    font-size:20px;
+
+}
+
+.bp-panel-content{
+
+    padding:20px;
+
+}
