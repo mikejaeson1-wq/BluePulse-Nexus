@@ -1,6 +1,10 @@
 import "@cms/modules/dashboard/admin/layouts/AdminLayout.css";
 
 import {
+    useMemo
+} from "react";
+
+import {
     NavLink,
     Outlet
 } from "react-router-dom";
@@ -9,57 +13,109 @@ import {
     useAuth
 } from "@cms/modules/auth/context/AuthContext";
 
+const ADMINISTRATOR =
+    "administrator";
+
+const EDITOR =
+    "editor";
+
+const MEDIA_MANAGER =
+    "media_manager";
+
+const CONTENT_ROLES = [
+    ADMINISTRATOR,
+    EDITOR
+];
+
+const ALL_ROLES = [
+    ADMINISTRATOR,
+    EDITOR,
+    MEDIA_MANAGER
+];
+
 const NAVIGATION_ITEMS = [
     {
         to: "/admin",
         end: true,
         icon: "bi-speedometer2",
-        label: "Dashboard"
+        label: "Dashboard",
+        roles:
+            CONTENT_ROLES
     },
+
     {
         to: "/admin/pages",
         icon: "bi-file-earmark-text",
-        label: "Seiten"
+        label: "Seiten",
+        roles:
+            CONTENT_ROLES
     },
+
     {
         to: "/admin/home-layout",
         icon: "bi-grid-1x2",
-        label: "Startseiten-Layout"
+        label: "Startseiten-Layout",
+        roles:
+            CONTENT_ROLES
     },
+
     {
         to: "/admin/footer",
         icon: "bi-layout-text-window-reverse",
-        label: "Footer"
+        label: "Footer",
+        roles:
+            CONTENT_ROLES
     },
+
     {
         to: "/admin/media",
         icon: "bi-images",
-        label: "Medien"
+        label: "Medien",
+        roles:
+            ALL_ROLES
     },
+
     {
         to: "/admin/media-migration",
         icon: "bi-cloud-arrow-up",
-        label: "Medienmigration"
+        label: "Medienmigration",
+        roles: [
+            ADMINISTRATOR
+        ]
     },
+
     {
         to: "/admin/backups",
         icon: "bi-cloud-arrow-down",
-        label: "Sicherungen"
+        label: "Sicherungen",
+        roles:
+            CONTENT_ROLES
     },
+
     {
         to: "/admin/data-migration",
         icon: "bi-database-up",
-        label: "Datenmigration"
+        label: "Datenmigration",
+        roles: [
+            ADMINISTRATOR
+        ]
     },
+
     {
         to: "/admin/users",
         icon: "bi-people",
-        label: "Benutzer"
+        label: "Benutzer",
+        roles: [
+            ADMINISTRATOR
+        ]
     },
+
     {
         to: "/admin/settings",
         icon: "bi-gear",
-        label: "Einstellungen"
+        label: "Einstellungen",
+        roles:
+            CONTENT_ROLES
     }
 ];
 
@@ -68,7 +124,22 @@ export default function AdminLayout() {
         user,
         logout,
         loggingOut
-    } = useAuth();
+    } =
+        useAuth();
+
+    const visibleNavigationItems =
+        useMemo(
+            () =>
+                NAVIGATION_ITEMS.filter(
+                    (item) =>
+                        item.roles.includes(
+                            user?.role
+                        )
+                ),
+            [
+                user?.role
+            ]
+        );
 
     return (
         <div className="bp-layout">
@@ -97,7 +168,7 @@ export default function AdminLayout() {
                     aria-label="Nexus-Navigation"
                 >
                     {
-                        NAVIGATION_ITEMS.map(
+                        visibleNavigationItems.map(
                             (item) => (
                                 <NavLink
                                     key={
