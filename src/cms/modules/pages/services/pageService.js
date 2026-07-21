@@ -9,17 +9,29 @@ export function getPages() {
     const snapshot =
         repository.getSnapshot?.();
 
-    if (
-        snapshot !== null &&
-        snapshot !== undefined
-    ) {
-        return snapshot;
-    }
+    return Array.isArray(snapshot)
+        ? snapshot
+        : [];
+}
 
-    return repository.getAll();
+export function refreshPages(
+    options = {}
+) {
+    return repository.getAll(
+        options
+    );
 }
 
 export function getPage(id) {
+    if (
+        repository.mode ===
+        "api"
+    ) {
+        return repository.getById(
+            id
+        );
+    }
+
     const snapshot =
         repository
             .getByIdSnapshot?.(
@@ -45,6 +57,15 @@ export function getPageById(id) {
 export function getPageBySlug(
     slug
 ) {
+    if (
+        repository.mode ===
+        "api"
+    ) {
+        return repository.getBySlug(
+            slug
+        );
+    }
+
     const snapshot =
         repository
             .getBySlugSnapshot?.(
@@ -66,6 +87,16 @@ export function getPageBySlug(
 export function getPublishedPageBySlug(
     slug
 ) {
+    if (
+        repository.mode ===
+        "api"
+    ) {
+        return repository
+            .getPublishedBySlug(
+                slug
+            );
+    }
+
     const snapshot =
         repository
             .getPublishedBySlugSnapshot?.(
@@ -103,9 +134,7 @@ export function isSlugAvailable(
     );
 }
 
-export function createPage(
-    data
-) {
+export function createPage(data) {
     return repository.create(
         data
     );
@@ -167,17 +196,13 @@ export function duplicatePage(id) {
     );
 }
 
-export function getPageVersions(
-    id
-) {
+export function getPageVersions(id) {
     if (
         typeof repository
             .getVersions !==
         "function"
     ) {
-        return Promise.resolve(
-            []
-        );
+        return Promise.resolve([]);
     }
 
     return repository.getVersions(

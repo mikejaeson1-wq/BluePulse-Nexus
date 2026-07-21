@@ -1,5 +1,6 @@
 import adminSiteRoutes from "./adminSiteRoutes.js";
 import healthRoutes from "./healthRoutes.js";
+import mediaRoutes from "./mediaRoutes.js";
 import migrationRoutes from "./migrationRoutes.js";
 import pageRoutes from "./pageRoutes.js";
 import publicSiteRoutes from "./publicSiteRoutes.js";
@@ -35,5 +36,9 @@ export default async function apiRoutes(
 
     await fastify.register(
         pageRoutes
+    );
+
+    await fastify.register(
+        mediaRoutes
     );
 }

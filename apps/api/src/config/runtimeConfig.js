@@ -1,3 +1,5 @@
+import path from "node:path";
+
 function normalizeText(
     value,
     fallback
@@ -41,6 +43,15 @@ const nodeEnvironment =
     normalizeText(
         process.env.NODE_ENV,
         "development"
+    );
+
+const mediaStorageDirectory =
+    path.resolve(
+        normalizeText(
+            process.env
+                .MEDIA_STORAGE_DIR,
+            "./storage/media"
+        )
     );
 
 export const runtimeConfig =
@@ -127,6 +138,36 @@ export const runtimeConfig =
                         maximum: 300000
                     }
                 )
+        },
+
+        media: {
+            storageDirectory:
+                mediaStorageDirectory,
+
+            maximumFileSizeBytes:
+                normalizeInteger(
+                    process.env
+                        .MEDIA_MAX_FILE_SIZE_BYTES,
+                    15 * 1024 * 1024,
+                    {
+                        minimum:
+                            1024,
+
+                        maximum:
+                            100 * 1024 *
+                            1024
+                    }
+                ),
+
+            allowedMimeTypes:
+                Object.freeze([
+                    "image/jpeg",
+                    "image/png",
+                    "image/webp",
+                    "image/gif",
+                    "image/avif",
+                    "application/pdf"
+                ])
         }
     });
 

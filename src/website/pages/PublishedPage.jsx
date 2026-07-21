@@ -1,6 +1,6 @@
 import {
     useEffect,
-    useMemo
+    useState
 } from "react";
 
 import {
@@ -11,26 +11,93 @@ import {
 import WebsiteRenderer from "@cms/rendering/WebsiteRenderer";
 
 import {
-    getPageBySlug
+    getPublishedPageBySlug
 } from "@cms/modules/pages/services/pageService";
 
 export default function PublishedPage() {
-    const { slug } = useParams();
+    const {
+        slug
+    } = useParams();
 
-    const page = useMemo(
-        () => getPageBySlug(slug),
-        [slug]
-    );
+    const [
+        page,
+        setPage
+    ] = useState(null);
+
+    const [
+        loading,
+        setLoading
+    ] = useState(true);
+
+    const [
+        error,
+        setError
+    ] = useState("");
 
     useEffect(() => {
-        if (!page?.published) {
+        let active = true;
+
+        async function loadPage() {
+            setLoading(true);
+            setError("");
+
+            try {
+                const loadedPage =
+                    await Promise.resolve(
+                        getPublishedPageBySlug(
+                            slug
+                        )
+                    );
+
+                if (active) {
+                    setPage(
+                        loadedPage ??
+                        null
+                    );
+                }
+            } catch (loadError) {
+                if (!active) {
+                    return;
+                }
+
+                setPage(null);
+
+                if (
+                    loadError.status !==
+                    404
+                ) {
+                    setError(
+                        loadError.message ??
+                        "Die Seite konnte nicht geladen werden."
+                    );
+                }
+            } finally {
+                if (active) {
+                    setLoading(false);
+                }
+            }
+        }
+
+        loadPage();
+
+        return () => {
+            active = false;
+        };
+    }, [slug]);
+
+    useEffect(() => {
+        if (
+            page?.status !==
+            "published"
+        ) {
             return;
         }
 
         const previousTitle =
             document.title;
 
-        document.title = page.title;
+        document.title =
+            page.title;
 
         return () => {
             document.title =
@@ -38,10 +105,34 @@ export default function PublishedPage() {
         };
     }, [page]);
 
+    if (loading) {
+        return (
+            <main className="container py-5 text-light">
+                <div className="d-flex align-items-center gap-3">
+                    <div className="spinner-border text-info" />
+
+                    <span>
+                        Seite wird geladen …
+                    </span>
+                </div>
+            </main>
+        );
+    }
+
+    if (error) {
+        return (
+            <main className="container py-5 text-light">
+                <div className="alert alert-danger">
+                    {error}
+                </div>
+            </main>
+        );
+    }
+
     if (
         !page ||
-        !page.published ||
-        page.status !== "published"
+        page.status !==
+            "published"
     ) {
         return (
             <Navigate

@@ -1,4 +1,7 @@
-import { useEffect, useState } from "react";
+import {
+    useEffect,
+    useState
+} from "react";
 
 import Button from "@shared/ui/Button";
 
@@ -8,145 +11,231 @@ import {
 } from "../services/pageService";
 
 export default function PageForm({
-
     onSave
+}) {
+    const [
+        title,
+        setTitle
+    ] = useState("");
 
-}){
+    const [
+        slug,
+        setSlug
+    ] = useState("");
 
-    const [title,setTitle] = useState("");
+    const [
+        template,
+        setTemplate
+    ] = useState(
+        "default"
+    );
 
-    const [slug,setSlug] = useState("");
+    const [
+        slugEdited,
+        setSlugEdited
+    ] = useState(false);
 
-    const [template,setTemplate] = useState("default");
+    const [
+        saving,
+        setSaving
+    ] = useState(false);
 
-    useEffect(()=>{
+    const [
+        error,
+        setError
+    ] = useState("");
 
-        setSlug(
-
-            generateSlug(title)
-
-        );
-
-    },[title]);
-
-    function handleSubmit(e){
-
-        e.preventDefault();
-
-        if(!title.trim()){
-
+    useEffect(() => {
+        if (slugEdited) {
             return;
-
         }
 
-        createPage({
+        setSlug(
+            generateSlug(
+                title
+            )
+        );
+    }, [
+        title,
+        slugEdited
+    ]);
 
-            title,
+    async function handleSubmit(
+        event
+    ) {
+        event.preventDefault();
 
-            template
+        if (
+            !title.trim() ||
+            saving
+        ) {
+            return;
+        }
 
-        });
+        setSaving(true);
+        setError("");
 
-        setTitle("");
+        try {
+            const createdPage =
+                await Promise.resolve(
+                    createPage({
+                        title:
+                            title.trim(),
 
-        setSlug("");
+                        slug:
+                            generateSlug(
+                                slug ||
+                                title
+                            ),
 
-        setTemplate("default");
+                        template,
 
-        onSave();
+                        status:
+                            "draft",
 
+                        blocks: [],
+
+                        theme: {}
+                    })
+                );
+
+            setTitle("");
+            setSlug("");
+            setTemplate(
+                "default"
+            );
+            setSlugEdited(false);
+
+            await onSave?.(
+                createdPage
+            );
+        } catch (saveError) {
+            setError(
+                saveError.message ??
+                "Die Seite konnte nicht erstellt werden."
+            );
+        } finally {
+            setSaving(false);
+        }
     }
 
-    return(
-
-        <form onSubmit={handleSubmit}>
+    return (
+        <form
+            onSubmit={
+                handleSubmit
+            }
+        >
+            {
+                error && (
+                    <div className="alert alert-danger">
+                        {error}
+                    </div>
+                )
+            }
 
             <div className="mb-3">
-
-                <label className="form-label">
-
+                <label
+                    className="form-label"
+                    htmlFor="page-title"
+                >
                     Titel
-
                 </label>
 
                 <input
-
+                    id="page-title"
                     className="form-control"
-
                     value={title}
-
-                    onChange={(e)=>setTitle(e.target.value)}
-
+                    autoFocus
+                    disabled={saving}
+                    onChange={
+                        (event) =>
+                            setTitle(
+                                event.target.value
+                            )
+                    }
                 />
-
             </div>
 
             <div className="mb-3">
-
-                <label className="form-label">
-
+                <label
+                    className="form-label"
+                    htmlFor="page-slug"
+                >
                     Slug
-
                 </label>
 
-                <input
+                <div className="input-group">
+                    <span className="input-group-text">
+                        /
+                    </span>
 
-                    className="form-control"
+                    <input
+                        id="page-slug"
+                        className="form-control"
+                        value={slug}
+                        disabled={saving}
+                        onChange={
+                            (event) => {
+                                setSlugEdited(
+                                    true
+                                );
 
-                    value={slug}
-
-                    disabled
-
-                />
-
+                                setSlug(
+                                    generateSlug(
+                                        event
+                                            .target
+                                            .value
+                                    )
+                                );
+                            }
+                        }
+                    />
+                </div>
             </div>
 
             <div className="mb-4">
-
-                <label className="form-label">
-
+                <label
+                    className="form-label"
+                    htmlFor="page-template"
+                >
                     Template
-
                 </label>
 
                 <select
-
+                    id="page-template"
                     className="form-select"
-
                     value={template}
-
-                    onChange={(e)=>setTemplate(e.target.value)}
-
+                    disabled={saving}
+                    onChange={
+                        (event) =>
+                            setTemplate(
+                                event.target.value
+                            )
+                    }
                 >
-
                     <option value="default">
-
                         Standard
-
                     </option>
 
                     <option value="landing">
-
                         Landingpage
-
                     </option>
-
                 </select>
-
             </div>
 
             <Button
-
                 type="submit"
-
+                disabled={
+                    saving ||
+                    !title.trim()
+                }
             >
-
-                Seite erstellen
-
+                {
+                    saving
+                        ? "Seite wird erstellt …"
+                        : "Seite erstellen"
+                }
             </Button>
-
         </form>
-
     );
-
 }

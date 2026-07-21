@@ -1,4 +1,5 @@
 import Fastify from "fastify";
+import multipart from "@fastify/multipart";
 
 import runtimeConfig from "./config/runtimeConfig.js";
 
@@ -10,7 +11,10 @@ import apiRoutes from "./routes/index.js";
 
 export function buildApp({
     logger,
-    databasePool
+    databasePool,
+    mediaStorageDirectory =
+        runtimeConfig.media
+            .storageDirectory
 } = {}) {
     const fastify =
         Fastify({
@@ -34,6 +38,30 @@ export function buildApp({
     fastify.decorate(
         "database",
         database
+    );
+
+    fastify.decorate(
+        "mediaStorageDirectory",
+        mediaStorageDirectory
+    );
+
+    fastify.register(
+        multipart,
+        {
+            limits: {
+                files: 1,
+                fields: 20,
+                parts: 21,
+
+                fileSize:
+                    runtimeConfig
+                        .media
+                        .maximumFileSizeBytes
+            },
+
+            throwFileSizeLimit:
+                true
+        }
     );
 
     fastify.addHook(

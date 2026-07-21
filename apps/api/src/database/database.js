@@ -6,6 +6,242 @@ const {
     Pool
 } = pg;
 
+const JSON_QUERY_WRAPPED =
+    Symbol(
+        "bluepulse-json-query-wrapped"
+    );
+
+const JSON_PARAMETER_PATTERN =
+    /\$(\d+)\s*::\s*JSONB/gi;
+
+function normalizeJsonParameters(
+    queryText,
+    values
+) {
+    if (
+        typeof queryText !==
+            "string" ||
+        !Array.isArray(values) ||
+        values.length === 0
+    ) {
+        return values;
+    }
+
+    const jsonParameterIndexes =
+        new Set();
+
+    for (
+        const match
+        of queryText.matchAll(
+            JSON_PARAMETER_PATTERN
+        )
+    ) {
+        jsonParameterIndexes.add(
+            Number.parseInt(
+                match[1],
+                10
+            ) - 1
+        );
+    }
+
+    if (
+        jsonParameterIndexes.size ===
+        0
+    ) {
+        return values;
+    }
+
+    return values.map(
+        (
+            value,
+            index
+        ) => {
+            if (
+                !jsonParameterIndexes.has(
+                    index
+                )
+            ) {
+                return value;
+            }
+
+            if (
+                value === undefined
+            ) {
+                return null;
+            }
+
+            if (
+                typeof value ===
+                "string"
+            ) {
+                return value;
+            }
+
+            return JSON.stringify(
+                value
+            );
+        }
+    );
+}
+
+function wrapDatabaseQuery(
+    target
+) {
+    if (
+        !target ||
+        typeof target.query !==
+            "function" ||
+        target[
+            JSON_QUERY_WRAPPED
+        ]
+    ) {
+        return target;
+    }
+
+    const originalQuery =
+        target.query.bind(
+            target
+        );
+
+    target.query =
+        function jsonSafeQuery(
+            queryOrConfig,
+            values,
+            callback
+        ) {
+            if (
+                typeof queryOrConfig ===
+                "string"
+            ) {
+                if (
+                    arguments.length ===
+                    1
+                ) {
+                    return originalQuery(
+                        queryOrConfig
+                    );
+                }
+
+                if (
+                    typeof values ===
+                    "function"
+                ) {
+                    return originalQuery(
+                        queryOrConfig,
+                        values
+                    );
+                }
+
+                const normalizedValues =
+                    normalizeJsonParameters(
+                        queryOrConfig,
+                        values
+                    );
+
+                if (
+                    typeof callback ===
+                    "function"
+                ) {
+                    return originalQuery(
+                        queryOrConfig,
+                        normalizedValues,
+                        callback
+                    );
+                }
+
+                return originalQuery(
+                    queryOrConfig,
+                    normalizedValues
+                );
+            }
+
+            if (
+                queryOrConfig &&
+                typeof queryOrConfig ===
+                    "object" &&
+                typeof queryOrConfig.text ===
+                    "string"
+            ) {
+                const normalizedConfig = {
+                    ...queryOrConfig,
+
+                    values:
+                        normalizeJsonParameters(
+                            queryOrConfig.text,
+                            queryOrConfig
+                                .values
+                        )
+                };
+
+                if (
+                    typeof values ===
+                    "function"
+                ) {
+                    return originalQuery(
+                        normalizedConfig,
+                        values
+                    );
+                }
+
+                return originalQuery(
+                    normalizedConfig
+                );
+            }
+
+            return originalQuery(
+                queryOrConfig,
+                values,
+                callback
+            );
+        };
+
+    Object.defineProperty(
+        target,
+        JSON_QUERY_WRAPPED,
+        {
+            value: true,
+
+            enumerable: false,
+
+            configurable: false,
+
+            writable: false
+        }
+    );
+
+    return target;
+}
+
+function createJsonSafePool(
+    options
+) {
+    const pool =
+        wrapDatabaseQuery(
+            new Pool(options)
+        );
+
+    const originalConnect =
+        pool.connect.bind(
+            pool
+        );
+
+    pool.connect =
+        async function jsonSafeConnect(
+            ...argumentsList
+        ) {
+            const client =
+                await originalConnect(
+                    ...argumentsList
+                );
+
+            return wrapDatabaseQuery(
+                client
+            );
+        };
+
+    return pool;
+}
+
 export function createDatabasePool({
     connectionString =
         runtimeConfig.database.url,
@@ -22,7 +258,7 @@ export function createDatabasePool({
         runtimeConfig.database
             .idleTimeoutMilliseconds
 } = {}) {
-    return new Pool({
+    return createJsonSafePool({
         connectionString,
 
         max:

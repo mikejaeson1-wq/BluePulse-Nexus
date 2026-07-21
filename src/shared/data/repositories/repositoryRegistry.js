@@ -1,5 +1,6 @@
 import {
-    DATA_MODE
+    DATA_MODE,
+    PAGE_DATA_MODE
 } from "@shared/data/dataMode";
 
 import localSiteContentRepository from "./local/siteContentRepository";
@@ -14,46 +15,47 @@ import apiHomeLayoutRepository from "./api/homeLayoutRepository";
 import apiFooterRepository from "./api/footerRepository";
 import apiPageRepository from "./api/pageRepository";
 
-const localRepositories = {
-    siteContent:
-        localSiteContentRepository,
+const generalRepositories =
+    DATA_MODE === "api"
+        ? {
+            siteContent:
+                apiSiteContentRepository,
 
-    siteNavigation:
-        localSiteNavigationRepository,
+            siteNavigation:
+                apiSiteNavigationRepository,
 
-    homeLayout:
-        localHomeLayoutRepository,
+            homeLayout:
+                apiHomeLayoutRepository,
 
-    footer:
-        localFooterRepository,
+            footer:
+                apiFooterRepository
+        }
+        : {
+            siteContent:
+                localSiteContentRepository,
 
-    pages:
-        localPageRepository
-};
+            siteNavigation:
+                localSiteNavigationRepository,
 
-const apiRepositories = {
-    siteContent:
-        apiSiteContentRepository,
+            homeLayout:
+                localHomeLayoutRepository,
 
-    siteNavigation:
-        apiSiteNavigationRepository,
+            footer:
+                localFooterRepository
+        };
 
-    homeLayout:
-        apiHomeLayoutRepository,
-
-    footer:
-        apiFooterRepository,
-
-    pages:
-        apiPageRepository
-};
+const pageRepository =
+    PAGE_DATA_MODE === "api"
+        ? apiPageRepository
+        : localPageRepository;
 
 export const dataRepositories =
-    Object.freeze(
-        DATA_MODE === "api"
-            ? apiRepositories
-            : localRepositories
-    );
+    Object.freeze({
+        ...generalRepositories,
+
+        pages:
+            pageRepository
+    });
 
 export function getSiteContentRepository() {
     return dataRepositories
@@ -84,6 +86,9 @@ export function getRepositoryStatus() {
     return {
         mode:
             DATA_MODE,
+
+        pageMode:
+            PAGE_DATA_MODE,
 
         repositories:
             Object.entries(

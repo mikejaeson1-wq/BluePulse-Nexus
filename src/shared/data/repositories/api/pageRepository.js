@@ -5,6 +5,197 @@ import {
     apiPut
 } from "@shared/data/api/apiClient";
 
+const CACHE_KEY =
+    "bluepulse.api.pages.cache.v1";
+
+function cloneValue(value) {
+    if (
+        typeof globalThis.structuredClone ===
+        "function"
+    ) {
+        return globalThis.structuredClone(
+            value
+        );
+    }
+
+    return JSON.parse(
+        JSON.stringify(value)
+    );
+}
+
+function isPlainObject(value) {
+    return Boolean(
+        value &&
+        typeof value ===
+            "object" &&
+        !Array.isArray(value)
+    );
+}
+
+function normalizePage(page) {
+    if (
+        !page ||
+        typeof page !==
+            "object" ||
+        Array.isArray(page)
+    ) {
+        return null;
+    }
+
+    const status =
+        page.status ===
+            "published"
+            ? "published"
+            : "draft";
+
+    return {
+        ...page,
+
+        status,
+
+        published:
+            status ===
+            "published",
+
+        blocks:
+            Array.isArray(
+                page.blocks
+            )
+                ? page.blocks
+                : [],
+
+        theme:
+            isPlainObject(
+                page.theme
+            )
+                ? page.theme
+                : {}
+    };
+}
+
+function normalizePages(pages) {
+    if (!Array.isArray(pages)) {
+        return [];
+    }
+
+    return pages
+        .map(
+            normalizePage
+        )
+        .filter(Boolean);
+}
+
+function readStoredCache() {
+    if (
+        typeof globalThis.localStorage ===
+        "undefined"
+    ) {
+        return [];
+    }
+
+    try {
+        const storedValue =
+            globalThis.localStorage.getItem(
+                CACHE_KEY
+            );
+
+        if (!storedValue) {
+            return [];
+        }
+
+        return normalizePages(
+            JSON.parse(
+                storedValue
+            )
+        );
+    } catch {
+        return [];
+    }
+}
+
+let pageCache =
+    readStoredCache();
+
+function persistCache() {
+    if (
+        typeof globalThis.localStorage ===
+        "undefined"
+    ) {
+        return;
+    }
+
+    globalThis.localStorage.setItem(
+        CACHE_KEY,
+        JSON.stringify(
+            pageCache
+        )
+    );
+}
+
+function replaceCache(pages) {
+    pageCache =
+        normalizePages(
+            pages
+        );
+
+    persistCache();
+
+    return cloneValue(
+        pageCache
+    );
+}
+
+function upsertCachedPage(page) {
+    const normalizedPage =
+        normalizePage(
+            page
+        );
+
+    if (!normalizedPage?.id) {
+        return normalizedPage;
+    }
+
+    const existingIndex =
+        pageCache.findIndex(
+            (cachedPage) =>
+                cachedPage.id ===
+                normalizedPage.id
+        );
+
+    if (existingIndex === -1) {
+        pageCache = [
+            normalizedPage,
+            ...pageCache
+        ];
+    } else {
+        pageCache =
+            pageCache.map(
+                (cachedPage) =>
+                    cachedPage.id ===
+                    normalizedPage.id
+                        ? normalizedPage
+                        : cachedPage
+            );
+    }
+
+    persistCache();
+
+    return cloneValue(
+        normalizedPage
+    );
+}
+
+function removeCachedPage(pageId) {
+    pageCache =
+        pageCache.filter(
+            (page) =>
+                page.id !==
+                pageId
+        );
+
+    persistCache();
+}
+
 function encodeValue(value) {
     return encodeURIComponent(
         String(value ?? "")
@@ -31,29 +222,77 @@ export const apiPageRepository = {
     mode: "api",
 
     getSnapshot() {
-        return null;
+        return cloneValue(
+            pageCache
+        );
     },
 
-    getByIdSnapshot() {
-        return null;
+    getByIdSnapshot(pageId) {
+        const page =
+            pageCache.find(
+                (cachedPage) =>
+                    cachedPage.id ===
+                    pageId
+            );
+
+        return page
+            ? cloneValue(page)
+            : null;
     },
 
-    getBySlugSnapshot() {
-        return null;
+    getBySlugSnapshot(slug) {
+        const normalizedSlug =
+            generatePageSlug(
+                slug
+            );
+
+        const page =
+            pageCache.find(
+                (cachedPage) =>
+                    cachedPage.slug ===
+                    normalizedSlug
+            );
+
+        return page
+            ? cloneValue(page)
+            : null;
     },
 
-    getPublishedBySlugSnapshot() {
-        return null;
+    getPublishedBySlugSnapshot(
+        slug
+    ) {
+        const normalizedSlug =
+            generatePageSlug(
+                slug
+            );
+
+        const page =
+            pageCache.find(
+                (cachedPage) =>
+                    cachedPage.slug ===
+                        normalizedSlug &&
+                    cachedPage.status ===
+                        "published"
+            );
+
+        return page
+            ? cloneValue(page)
+            : null;
     },
 
     async getAll({
         signal
     } = {}) {
-        return apiGet(
-            "/admin/pages",
-            {
-                signal
-            }
+        const pages =
+            await apiGet(
+                "/admin/pages",
+                {
+                    signal
+                }
+            );
+
+        return replaceCache(
+            pages
         );
     },
 
@@ -63,13 +302,18 @@ export const apiPageRepository = {
             signal
         } = {}
     ) {
-        return apiGet(
-            `/admin/pages/${encodeValue(
-                pageId
-            )}`,
-            {
-                signal
-            }
+        const page =
+            await apiGet(
+                `/admin/pages/${encodeValue(
+                    pageId
+                )}`,
+                {
+                    signal
+                }
+            );
+
+        return upsertCachedPage(
+            page
         );
     },
 
@@ -79,13 +323,18 @@ export const apiPageRepository = {
             signal
         } = {}
     ) {
-        return apiGet(
-            `/admin/pages/by-slug/${encodeValue(
-                slug
-            )}`,
-            {
-                signal
-            }
+        const page =
+            await apiGet(
+                `/admin/pages/by-slug/${encodeValue(
+                    slug
+                )}`,
+                {
+                    signal
+                }
+            );
+
+        return upsertCachedPage(
+            page
         );
     },
 
@@ -95,20 +344,30 @@ export const apiPageRepository = {
             signal
         } = {}
     ) {
-        return apiGet(
-            `/public/pages/${encodeValue(
-                slug
-            )}`,
-            {
-                signal
-            }
+        const page =
+            await apiGet(
+                `/public/pages/${encodeValue(
+                    slug
+                )}`,
+                {
+                    signal
+                }
+            );
+
+        return upsertCachedPage(
+            page
         );
     },
 
     async create(data) {
-        return apiPost(
-            "/admin/pages",
-            data
+        const page =
+            await apiPost(
+                "/admin/pages",
+                data
+            );
+
+        return upsertCachedPage(
+            page
         );
     },
 
@@ -116,11 +375,16 @@ export const apiPageRepository = {
         pageId,
         data
     ) {
-        return apiPut(
-            `/admin/pages/${encodeValue(
-                pageId
-            )}`,
-            data
+        const page =
+            await apiPut(
+                `/admin/pages/${encodeValue(
+                    pageId
+                )}`,
+                data
+            );
+
+        return upsertCachedPage(
+            page
         );
     },
 
@@ -160,6 +424,10 @@ export const apiPageRepository = {
             )}`
         );
 
+        removeCachedPage(
+            pageId
+        );
+
         return true;
     },
 
@@ -167,11 +435,16 @@ export const apiPageRepository = {
         pageId,
         data = {}
     ) {
-        return apiPost(
-            `/admin/pages/${encodeValue(
-                pageId
-            )}/publish`,
-            data
+        const page =
+            await apiPost(
+                `/admin/pages/${encodeValue(
+                    pageId
+                )}/publish`,
+                data
+            );
+
+        return upsertCachedPage(
+            page
         );
     },
 
@@ -179,19 +452,29 @@ export const apiPageRepository = {
         pageId,
         data = {}
     ) {
-        return apiPost(
-            `/admin/pages/${encodeValue(
-                pageId
-            )}/unpublish`,
-            data
+        const page =
+            await apiPost(
+                `/admin/pages/${encodeValue(
+                    pageId
+                )}/unpublish`,
+                data
+            );
+
+        return upsertCachedPage(
+            page
         );
     },
 
     async duplicate(pageId) {
-        return apiPost(
-            `/admin/pages/${encodeValue(
-                pageId
-            )}/duplicate`
+        const page =
+            await apiPost(
+                `/admin/pages/${encodeValue(
+                    pageId
+                )}/duplicate`
+            );
+
+        return upsertCachedPage(
+            page
         );
     },
 
@@ -215,12 +498,17 @@ export const apiPageRepository = {
         pageId,
         versionNumber
     ) {
-        return apiPost(
-            `/admin/pages/${encodeValue(
-                pageId
-            )}/versions/${encodeValue(
-                versionNumber
-            )}/restore`
+        const page =
+            await apiPost(
+                `/admin/pages/${encodeValue(
+                    pageId
+                )}/versions/${encodeValue(
+                    versionNumber
+                )}/restore`
+            );
+
+        return upsertCachedPage(
+            page
         );
     },
 
