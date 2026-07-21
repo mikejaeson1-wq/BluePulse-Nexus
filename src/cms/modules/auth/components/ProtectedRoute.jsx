@@ -1,17 +1,64 @@
-import { Navigate } from "react-router-dom";
+import "./ProtectedRoute.css";
 
-import { useAuth } from "../context/AuthContext";
+import {
+    Navigate,
+    useLocation
+} from "react-router-dom";
 
-export default function ProtectedRoute({ children }) {
+import {
+    useAuth
+} from "../context/AuthContext";
 
-    const { user } = useAuth();
+export default function ProtectedRoute({
+    children
+}) {
+    const location =
+        useLocation();
+
+    const {
+        user,
+        loading
+    } = useAuth();
+
+    if (loading) {
+        return (
+            <div
+                className="auth-route-loading"
+                role="status"
+                aria-live="polite"
+            >
+                <div
+                    className="spinner-border text-info"
+                    aria-hidden="true"
+                />
+
+                <span>
+                    Nexus-Sitzung wird geprüft …
+                </span>
+            </div>
+        );
+    }
 
     if (!user) {
+        return (
+            <Navigate
+                to="/admin/login"
+                replace
+                state={{
+                    from: {
+                        pathname:
+                            location.pathname,
 
-        return <Navigate to="/admin/login" replace />;
+                        search:
+                            location.search,
 
+                        hash:
+                            location.hash
+                    }
+                }}
+            />
+        );
     }
 
     return children;
-
 }

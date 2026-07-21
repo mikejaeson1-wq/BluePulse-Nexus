@@ -1,0 +1,21 @@
+.auth-route-loading{
+    display:flex;
+    min-height:100vh;
+    align-items:center;
+    justify-content:center;
+    gap:16px;
+    padding:24px;
+    background:
+        radial-gradient(
+            circle at top,
+            rgba(36,215,255,.09),
+            transparent 42%
+        ),
+        #080f1d;
+    color:#cbd5e1;
+}
+
+.auth-route-loading span{
+    font-size:.94rem;
+    letter-spacing:.02em;
+}

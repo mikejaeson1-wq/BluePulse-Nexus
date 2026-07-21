@@ -1,7 +1,13 @@
 import Fastify from "fastify";
+
+import cookie from "@fastify/cookie";
 import multipart from "@fastify/multipart";
 
 import runtimeConfig from "./config/runtimeConfig.js";
+
+import {
+    registerAuthenticationGuard
+} from "./auth/authGuard.js";
 
 import {
     createDatabasePool
@@ -12,9 +18,18 @@ import apiRoutes from "./routes/index.js";
 export function buildApp({
     logger,
     databasePool,
+
     mediaStorageDirectory =
-        runtimeConfig.media
-            .storageDirectory
+        runtimeConfig
+            .media
+            .storageDirectory,
+
+    authenticationRequired =
+        databasePool
+            ? false
+            : runtimeConfig
+                .auth
+                .required
 } = {}) {
     const fastify =
         Fastify({
@@ -46,6 +61,10 @@ export function buildApp({
     );
 
     fastify.register(
+        cookie
+    );
+
+    fastify.register(
         multipart,
         {
             limits: {
@@ -61,6 +80,14 @@ export function buildApp({
 
             throwFileSizeLimit:
                 true
+        }
+    );
+
+    registerAuthenticationGuard(
+        fastify,
+        {
+            required:
+                authenticationRequired
         }
     );
 

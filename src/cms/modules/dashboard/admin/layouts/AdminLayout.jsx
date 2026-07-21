@@ -66,7 +66,8 @@ const NAVIGATION_ITEMS = [
 export default function AdminLayout() {
     const {
         user,
-        logout
+        logout,
+        loggingOut
     } = useAuth();
 
     return (
@@ -99,9 +100,15 @@ export default function AdminLayout() {
                         NAVIGATION_ITEMS.map(
                             (item) => (
                                 <NavLink
-                                    key={item.to}
-                                    to={item.to}
-                                    end={item.end}
+                                    key={
+                                        item.to
+                                    }
+                                    to={
+                                        item.to
+                                    }
+                                    end={
+                                        item.end
+                                    }
                                 >
                                     <i
                                         className={
@@ -111,7 +118,9 @@ export default function AdminLayout() {
                                     />
 
                                     <span>
-                                        {item.label}
+                                        {
+                                            item.label
+                                        }
                                     </span>
                                 </NavLink>
                             )
@@ -130,15 +139,18 @@ export default function AdminLayout() {
                     <div className="bp-user__information">
                         <strong>
                             {
+                                user?.displayName ??
                                 user?.name ??
-                                "Administrator"
+                                user?.username ??
+                                "Nexus-Benutzer"
                             }
                         </strong>
 
                         <small>
                             {
+                                user?.roleLabel ??
                                 user?.role ??
-                                "Administrator"
+                                "Benutzer"
                             }
                         </small>
                     </div>
@@ -146,14 +158,32 @@ export default function AdminLayout() {
                     <button
                         type="button"
                         className="bp-user__logout"
-                        onClick={logout}
+                        disabled={
+                            loggingOut
+                        }
+                        onClick={
+                            logout
+                        }
                         aria-label="Abmelden"
-                        title="Abmelden"
+                        title={
+                            loggingOut
+                                ? "Abmeldung läuft"
+                                : "Abmelden"
+                        }
                     >
-                        <i
-                            className="bi bi-box-arrow-right"
-                            aria-hidden="true"
-                        />
+                        {
+                            loggingOut ? (
+                                <span
+                                    className="spinner-border spinner-border-sm"
+                                    aria-hidden="true"
+                                />
+                            ) : (
+                                <i
+                                    className="bi bi-box-arrow-right"
+                                    aria-hidden="true"
+                                />
+                            )
+                        }
                     </button>
                 </div>
             </aside>

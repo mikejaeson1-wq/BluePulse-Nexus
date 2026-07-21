@@ -8,10 +8,13 @@
     "start": "node src/server.js",
     "test": "node --test",
     "db:migrate": "node --env-file=.env.local src/database/migrate.js",
-    "db:status": "node --env-file=.env.local src/database/migrate.js --status"
+    "db:status": "node --env-file=.env.local src/database/migrate.js --status",
+    "auth:create-admin": "node --env-file=.env.local src/auth/createInitialAdmin.js"
   },
   "dependencies": {
+    "@fastify/cookie": "^11.1.2",
     "@fastify/multipart": "^10.1.0",
+    "argon2": "^0.45.0",
     "fastify": "^5.10.0",
     "pg": "^8.22.0"
   }

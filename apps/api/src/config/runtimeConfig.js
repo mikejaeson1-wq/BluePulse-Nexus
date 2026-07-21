@@ -5,7 +5,9 @@ function normalizeText(
     fallback
 ) {
     const normalizedValue =
-        String(value ?? "").trim();
+        String(
+            value ?? ""
+        ).trim();
 
     return normalizedValue ||
         fallback;
@@ -22,7 +24,9 @@ function normalizeInteger(
 ) {
     const numericValue =
         Number.parseInt(
-            String(value ?? ""),
+            String(
+                value ?? ""
+            ),
             10
         );
 
@@ -39,11 +43,61 @@ function normalizeInteger(
     return numericValue;
 }
 
+function normalizeBoolean(
+    value,
+    fallback
+) {
+    if (
+        value === undefined ||
+        value === null ||
+        String(value).trim() === ""
+    ) {
+        return fallback;
+    }
+
+    const normalizedValue =
+        String(value)
+            .trim()
+            .toLowerCase();
+
+    if (
+        [
+            "1",
+            "true",
+            "yes",
+            "on"
+        ].includes(
+            normalizedValue
+        )
+    ) {
+        return true;
+    }
+
+    if (
+        [
+            "0",
+            "false",
+            "no",
+            "off"
+        ].includes(
+            normalizedValue
+        )
+    ) {
+        return false;
+    }
+
+    return fallback;
+}
+
 const nodeEnvironment =
     normalizeText(
         process.env.NODE_ENV,
         "development"
     );
+
+const production =
+    nodeEnvironment ===
+    "production";
 
 const mediaStorageDirectory =
     path.resolve(
@@ -58,9 +112,7 @@ export const runtimeConfig =
     Object.freeze({
         nodeEnvironment,
 
-        production:
-            nodeEnvironment ===
-            "production",
+        production,
 
         host:
             normalizeText(
@@ -93,8 +145,7 @@ export const runtimeConfig =
         logLevel:
             normalizeText(
                 process.env.LOG_LEVEL,
-                nodeEnvironment ===
-                    "production"
+                production
                     ? "info"
                     : "debug"
             ),
@@ -154,7 +205,8 @@ export const runtimeConfig =
                             1024,
 
                         maximum:
-                            100 * 1024 *
+                            100 *
+                            1024 *
                             1024
                     }
                 ),
@@ -168,6 +220,46 @@ export const runtimeConfig =
                     "image/avif",
                     "application/pdf"
                 ])
+        },
+
+        auth: {
+            required:
+                normalizeBoolean(
+                    process.env
+                        .AUTH_REQUIRED,
+                    true
+                ),
+
+            cookieName:
+                normalizeText(
+                    process.env
+                        .AUTH_COOKIE_NAME,
+                    "bluepulse_nexus_session"
+                ),
+
+            secureCookie:
+                normalizeBoolean(
+                    process.env
+                        .AUTH_COOKIE_SECURE,
+                    production
+                ),
+
+            sessionTtlSeconds:
+                normalizeInteger(
+                    process.env
+                        .AUTH_SESSION_TTL_SECONDS,
+                    7 * 24 * 60 * 60,
+                    {
+                        minimum:
+                            60 * 60,
+
+                        maximum:
+                            30 *
+                            24 *
+                            60 *
+                            60
+                    }
+                )
         }
     });
 
