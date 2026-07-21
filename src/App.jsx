@@ -20,6 +20,7 @@ import HomeLayout from "@cms/modules/dashboard/admin/pages/HomeLayout";
 import FooterSettings from "@cms/modules/dashboard/admin/pages/FooterSettings";
 import Media from "@cms/modules/dashboard/admin/pages/Media";
 import Backups from "@cms/modules/dashboard/admin/pages/Backups";
+import DataMigration from "@cms/modules/dashboard/admin/pages/DataMigration";
 import Users from "@cms/modules/dashboard/admin/pages/Users";
 import Settings from "@cms/modules/dashboard/admin/pages/Settings";
 
@@ -96,6 +97,11 @@ export default function App() {
                 <Route
                     path="backups"
                     element={<Backups />}
+                />
+
+                <Route
+                    path="data-migration"
+                    element={<DataMigration />}
                 />
 
                 <Route

@@ -42,6 +42,11 @@ const NAVIGATION_ITEMS = [
         label: "Sicherungen"
     },
     {
+        to: "/admin/data-migration",
+        icon: "bi-database-up",
+        label: "Datenmigration"
+    },
+    {
         to: "/admin/users",
         icon: "bi-people",
         label: "Benutzer"
@@ -76,7 +81,7 @@ export default function AdminLayout() {
                         </h2>
 
                         <span>
-                            Version 0.1 Alpha
+                            Version 0.3 Alpha
                         </span>
                     </div>
                 </div>

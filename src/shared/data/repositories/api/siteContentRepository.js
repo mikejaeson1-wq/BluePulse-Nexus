@@ -1,3 +1,5 @@
+import siteContentDefaults from "@shared/content/siteContentDefaults";
+
 import {
     apiGet,
     apiPost,
@@ -9,6 +11,19 @@ function encodeContentKey(
 ) {
     return encodeURIComponent(
         String(contentKey)
+    );
+}
+
+function cloneValue(value) {
+    if (
+        typeof globalThis.structuredClone ===
+        "function"
+    ) {
+        return globalThis.structuredClone(value);
+    }
+
+    return JSON.parse(
+        JSON.stringify(value)
     );
 }
 
@@ -65,10 +80,24 @@ export const apiSiteContentRepository = {
     async resetSection(
         contentKey
     ) {
+        const defaultContent =
+            siteContentDefaults[
+                contentKey
+            ];
+
+        if (!defaultContent) {
+            throw new Error(
+                `Für „${contentKey}“ existieren keine Standardinhalte.`
+            );
+        }
+
         return apiPost(
             `/admin/content/${encodeContentKey(
                 contentKey
-            )}/reset`
+            )}/reset`,
+            cloneValue(
+                defaultContent
+            )
         );
     },
 
