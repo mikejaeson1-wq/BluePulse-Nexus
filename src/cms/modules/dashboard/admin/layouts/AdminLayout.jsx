@@ -37,6 +37,11 @@ const NAVIGATION_ITEMS = [
         label: "Medien"
     },
     {
+        to: "/admin/media-migration",
+        icon: "bi-cloud-arrow-up",
+        label: "Medienmigration"
+    },
+    {
         to: "/admin/backups",
         icon: "bi-cloud-arrow-down",
         label: "Sicherungen"

@@ -19,6 +19,7 @@ import PageEditor from "@cms/modules/dashboard/admin/pages/PageEditor";
 import HomeLayout from "@cms/modules/dashboard/admin/pages/HomeLayout";
 import FooterSettings from "@cms/modules/dashboard/admin/pages/FooterSettings";
 import Media from "@cms/modules/dashboard/admin/pages/Media";
+import MediaMigration from "@cms/modules/dashboard/admin/pages/MediaMigration";
 import Backups from "@cms/modules/dashboard/admin/pages/Backups";
 import DataMigration from "@cms/modules/dashboard/admin/pages/DataMigration";
 import Users from "@cms/modules/dashboard/admin/pages/Users";
@@ -92,6 +93,11 @@ export default function App() {
                 <Route
                     path="media"
                     element={<Media />}
+                />
+
+                <Route
+                    path="media-migration"
+                    element={<MediaMigration />}
                 />
 
                 <Route

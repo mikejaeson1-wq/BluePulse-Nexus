@@ -47,6 +47,9 @@ const MIME_TYPE_EXTENSIONS =
             ".pdf"
     });
 
+const MEDIA_ASSET_ID_PATTERN =
+    /^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,179}$/;
+
 function createStorageError(
     message,
     statusCode = 400
@@ -142,6 +145,30 @@ export function assertSupportedMediaMimeType(
     return normalizedMimeType;
 }
 
+export function normalizeMediaAssetId(
+    value
+) {
+    const normalizedId =
+        String(value ?? "")
+            .trim();
+
+    if (!normalizedId) {
+        return randomUUID();
+    }
+
+    if (
+        !MEDIA_ASSET_ID_PATTERN.test(
+            normalizedId
+        )
+    ) {
+        throw createStorageError(
+            "Die übertragene Medien-ID ist ungültig."
+        );
+    }
+
+    return normalizedId;
+}
+
 export function getStoredMediaPath(
     storageDirectory,
     storageKey
@@ -178,6 +205,7 @@ export async function prepareMediaFileUpload({
     filename,
     mimetype,
     storageDirectory,
+    assetId = null,
     maximumFileSizeBytes =
         runtimeConfig.media
             .maximumFileSizeBytes
@@ -203,10 +231,17 @@ export async function prepareMediaFileUpload({
         ];
 
     const id =
-        randomUUID();
+        normalizeMediaAssetId(
+            assetId
+        );
 
+    /*
+     * Die öffentliche Medien-ID und der interne Dateiname
+     * werden bewusst getrennt. Dadurch kann eine alte
+     * Browser-ID sicher übernommen werden.
+     */
     const storageKey =
-        `${id}${extension}`;
+        `${randomUUID()}${extension}`;
 
     const originalName =
         sanitizeMediaFileName(

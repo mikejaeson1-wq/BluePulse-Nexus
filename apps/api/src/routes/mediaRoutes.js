@@ -107,7 +107,10 @@ function sendMediaNotFound(
 
 async function readUpload(
     request,
-    storageDirectory
+    storageDirectory,
+    {
+        assetId = null
+    } = {}
 ) {
     const metadata = {};
 
@@ -142,7 +145,9 @@ async function readUpload(
                         mimetype:
                             part.mimetype,
 
-                        storageDirectory
+                        storageDirectory,
+
+                        assetId
                     });
 
                 continue;
@@ -185,6 +190,64 @@ async function readUpload(
     }
 }
 
+async function saveUploadedAsset({
+    request,
+    reply,
+    fastify,
+    assetId = null
+}) {
+    const {
+        preparedUpload,
+        metadata
+    } =
+        await readUpload(
+            request,
+            fastify
+                .mediaStorageDirectory,
+            {
+                assetId
+            }
+        );
+
+    try {
+        const asset =
+            await createMediaAsset(
+                fastify.database,
+                preparedUpload,
+                metadata,
+                fastify
+                    .mediaStorageDirectory
+            );
+
+        return reply
+            .status(201)
+            .send(asset);
+    } catch (error) {
+        await discardPreparedMediaFile(
+            preparedUpload
+        );
+
+        if (
+            error?.code ===
+            "23505"
+        ) {
+            return reply
+                .status(409)
+                .send({
+                    statusCode: 409,
+
+                    error:
+                        "Conflict",
+
+                    message:
+                        "Eine Mediendatei mit dieser ID ist bereits auf dem Server vorhanden."
+                });
+        }
+
+        throw error;
+    }
+}
+
 export default async function mediaRoutes(
     fastify
 ) {
@@ -215,36 +278,40 @@ export default async function mediaRoutes(
             request,
             reply
         ) => {
-            const {
-                preparedUpload,
-                metadata
-            } =
-                await readUpload(
-                    request,
-                    fastify
-                        .mediaStorageDirectory
-                );
+            return saveUploadedAsset({
+                request,
+                reply,
+                fastify
+            });
+        }
+    );
 
-            try {
-                const asset =
-                    await createMediaAsset(
-                        fastify.database,
-                        preparedUpload,
-                        metadata,
-                        fastify
-                            .mediaStorageDirectory
-                    );
-
-                return reply
-                    .status(201)
-                    .send(asset);
-            } catch (error) {
-                await discardPreparedMediaFile(
-                    preparedUpload
-                );
-
-                throw error;
+    /*
+     * Wird ausschließlich für die Übernahme bestehender
+     * IndexedDB-Medien verwendet. Die ID aus dem Browser
+     * wird dabei unverändert übernommen.
+     */
+    fastify.post(
+        "/admin/media/import/:assetId",
+        {
+            schema: {
+                params:
+                    assetIdParametersSchema
             }
+        },
+        async (
+            request,
+            reply
+        ) => {
+            return saveUploadedAsset({
+                request,
+                reply,
+                fastify,
+
+                assetId:
+                    request.params
+                        .assetId
+            });
         }
     );
 
