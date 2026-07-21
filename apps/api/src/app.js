@@ -1,0 +1,147 @@
+import Fastify from "fastify";
+
+import runtimeConfig from "./config/runtimeConfig.js";
+
+import {
+    createDatabasePool
+} from "./database/database.js";
+
+import apiRoutes from "./routes/index.js";
+
+export function buildApp({
+    logger,
+    databasePool
+} = {}) {
+    const fastify =
+        Fastify({
+            logger:
+                logger !== undefined
+                    ? logger
+                    : {
+                        level:
+                            runtimeConfig
+                                .logLevel
+                    }
+        });
+
+    const database =
+        databasePool ??
+        createDatabasePool();
+
+    const ownsDatabase =
+        !databasePool;
+
+    fastify.decorate(
+        "database",
+        database
+    );
+
+    fastify.addHook(
+        "onClose",
+        async () => {
+            if (
+                ownsDatabase &&
+                typeof database.end ===
+                    "function"
+            ) {
+                await database.end();
+            }
+        }
+    );
+
+    fastify.get(
+        "/",
+        async () => ({
+            name:
+                runtimeConfig
+                    .applicationName,
+
+            version:
+                runtimeConfig
+                    .applicationVersion,
+
+            status:
+                "running"
+        })
+    );
+
+    fastify.register(
+        apiRoutes,
+        {
+            prefix: "/api"
+        }
+    );
+
+    fastify.setNotFoundHandler(
+        async (
+            request,
+            reply
+        ) => {
+            return reply
+                .status(404)
+                .send({
+                    statusCode: 404,
+
+                    error:
+                        "Not Found",
+
+                    message:
+                        `Die API-Route „${request.method} ${request.url}“ wurde nicht gefunden.`
+                });
+        }
+    );
+
+    fastify.setErrorHandler(
+        async (
+            error,
+            request,
+            reply
+        ) => {
+            request.log.error(
+                {
+                    error
+                },
+                "API-Anfrage fehlgeschlagen."
+            );
+
+            const requestedStatusCode =
+                Number(
+                    error.statusCode
+                );
+
+            const statusCode =
+                Number.isInteger(
+                    requestedStatusCode
+                ) &&
+                requestedStatusCode >=
+                    400 &&
+                requestedStatusCode <=
+                    599
+                    ? requestedStatusCode
+                    : 500;
+
+            return reply
+                .status(statusCode)
+                .send({
+                    statusCode,
+
+                    error:
+                        statusCode >= 500
+                            ? "Internal Server Error"
+                            : error.name ||
+                                "Request Error",
+
+                    message:
+                        statusCode >= 500 &&
+                        runtimeConfig
+                            .production
+                            ? "Ein interner Serverfehler ist aufgetreten."
+                            : error.message
+                });
+        }
+    );
+
+    return fastify;
+}
+
+export default buildApp;

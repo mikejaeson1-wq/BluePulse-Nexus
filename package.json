@@ -1,13 +1,24 @@
 {
-  "name": "bluepulse-homepage",
+  "name": "bluepulse-nexus",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.3.0-alpha.0",
   "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev": "vite",
+    "dev:web": "vite",
+    "dev:api": "npm run dev --workspace=@bluepulse/api",
+    "start:api": "npm run start --workspace=@bluepulse/api",
+    "test:api": "npm run test --workspace=@bluepulse/api",
     "build": "vite build",
+    "build:web": "vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "db:migrate": "npm run db:migrate --workspace=@bluepulse/api",
+    "db:status": "npm run db:status --workspace=@bluepulse/api"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

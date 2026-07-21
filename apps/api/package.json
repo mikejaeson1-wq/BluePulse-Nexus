@@ -1,0 +1,17 @@
+{
+  "name": "@bluepulse/api",
+  "private": true,
+  "version": "0.3.0-alpha.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch --env-file=.env.local src/server.js",
+    "start": "node src/server.js",
+    "test": "node --test",
+    "db:migrate": "node --env-file=.env.local src/database/migrate.js",
+    "db:status": "node --env-file=.env.local src/database/migrate.js --status"
+  },
+  "dependencies": {
+    "fastify": "^5.10.0",
+    "pg": "^8.22.0"
+  }
+}
