@@ -11,6 +11,15 @@ import LoginPage from "@cms/modules/auth/pages/LoginPage";
 
 import ProtectedRoute from "@cms/modules/auth/components/ProtectedRoute";
 
+import RoleRoute, {
+    CMS_ROLES,
+    getDefaultAdminRoute
+} from "@cms/modules/auth/components/RoleRoute";
+
+import {
+    useAuth
+} from "@cms/modules/auth/context/AuthContext";
+
 import AdminLayout from "@cms/modules/dashboard/admin/layouts/AdminLayout";
 
 import Dashboard from "@cms/modules/dashboard/admin/pages/Dashboard";
@@ -28,24 +37,67 @@ import Settings from "@cms/modules/dashboard/admin/pages/Settings";
 import PagePreview from "@cms/modules/pages/pages/PagePreview";
 import WebsiteSectionEditor from "@cms/modules/pages/pages/WebsiteSectionEditor";
 
+const CONTENT_ROLES = [
+    CMS_ROLES.ADMINISTRATOR,
+    CMS_ROLES.EDITOR
+];
+
+const ALL_CMS_ROLES = [
+    CMS_ROLES.ADMINISTRATOR,
+    CMS_ROLES.EDITOR,
+    CMS_ROLES.MEDIA_MANAGER
+];
+
+const ADMINISTRATOR_ROLES = [
+    CMS_ROLES.ADMINISTRATOR
+];
+
+function AdminFallback() {
+    const {
+        user
+    } =
+        useAuth();
+
+    return (
+        <Navigate
+            to={
+                getDefaultAdminRoute(
+                    user?.role
+                )
+            }
+            replace
+        />
+    );
+}
+
 export default function App() {
     return (
         <Routes>
             <Route
                 path="/"
-                element={<Home />}
+                element={
+                    <Home />
+                }
             />
 
             <Route
                 path="/admin/login"
-                element={<LoginPage />}
+                element={
+                    <LoginPage />
+                }
             />
 
             <Route
                 path="/admin/preview/:id"
                 element={
                     <ProtectedRoute>
-                        <PagePreview />
+                        <RoleRoute
+                            roles={
+                                CONTENT_ROLES
+                            }
+                        >
+                            <PagePreview />
+                        </RoleRoute>
                     </ProtectedRoute>
                 }
             />
@@ -60,70 +112,173 @@ export default function App() {
             >
                 <Route
                     index
-                    element={<Dashboard />}
+                    element={
+                        <RoleRoute
+                            roles={
+                                CONTENT_ROLES
+                            }
+                        >
+                            <Dashboard />
+                        </RoleRoute>
+                    }
                 />
 
                 <Route
                     path="pages"
-                    element={<Pages />}
+                    element={
+                        <RoleRoute
+                            roles={
+                                CONTENT_ROLES
+                            }
+                        >
+                            <Pages />
+                        </RoleRoute>
+                    }
                 />
 
                 <Route
                     path="pages/:id"
-                    element={<PageEditor />}
+                    element={
+                        <RoleRoute
+                            roles={
+                                CONTENT_ROLES
+                            }
+                        >
+                            <PageEditor />
+                        </RoleRoute>
+                    }
                 />
 
                 <Route
                     path="website/:sectionId"
                     element={
-                        <WebsiteSectionEditor />
+                        <RoleRoute
+                            roles={
+                                CONTENT_ROLES
+                            }
+                        >
+                            <WebsiteSectionEditor />
+                        </RoleRoute>
                     }
                 />
 
                 <Route
                     path="home-layout"
-                    element={<HomeLayout />}
+                    element={
+                        <RoleRoute
+                            roles={
+                                CONTENT_ROLES
+                            }
+                        >
+                            <HomeLayout />
+                        </RoleRoute>
+                    }
                 />
 
                 <Route
                     path="footer"
-                    element={<FooterSettings />}
+                    element={
+                        <RoleRoute
+                            roles={
+                                CONTENT_ROLES
+                            }
+                        >
+                            <FooterSettings />
+                        </RoleRoute>
+                    }
                 />
 
                 <Route
                     path="media"
-                    element={<Media />}
+                    element={
+                        <RoleRoute
+                            roles={
+                                ALL_CMS_ROLES
+                            }
+                        >
+                            <Media />
+                        </RoleRoute>
+                    }
                 />
 
                 <Route
                     path="media-migration"
-                    element={<MediaMigration />}
+                    element={
+                        <RoleRoute
+                            roles={
+                                ADMINISTRATOR_ROLES
+                            }
+                        >
+                            <MediaMigration />
+                        </RoleRoute>
+                    }
                 />
 
                 <Route
                     path="backups"
-                    element={<Backups />}
+                    element={
+                        <RoleRoute
+                            roles={
+                                CONTENT_ROLES
+                            }
+                        >
+                            <Backups />
+                        </RoleRoute>
+                    }
                 />
 
                 <Route
                     path="data-migration"
-                    element={<DataMigration />}
+                    element={
+                        <RoleRoute
+                            roles={
+                                ADMINISTRATOR_ROLES
+                            }
+                        >
+                            <DataMigration />
+                        </RoleRoute>
+                    }
                 />
 
                 <Route
                     path="users"
-                    element={<Users />}
+                    element={
+                        <RoleRoute
+                            roles={
+                                ADMINISTRATOR_ROLES
+                            }
+                        >
+                            <Users />
+                        </RoleRoute>
+                    }
                 />
 
                 <Route
                     path="settings"
-                    element={<Settings />}
+                    element={
+                        <RoleRoute
+                            roles={
+                                CONTENT_ROLES
+                            }
+                        >
+                            <Settings />
+                        </RoleRoute>
+                    }
+                />
+
+                <Route
+                    path="*"
+                    element={
+                        <AdminFallback />
+                    }
                 />
             </Route>
 
             <Route
                 path="/:slug"
-                element={<PublishedPage />}
+                element={
+                    <PublishedPage />
+                }
             />
 
             <Route
