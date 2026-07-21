@@ -7,7 +7,7 @@ import {
     getMediaAsset,
     getMediaIdFromReference,
     subscribeToMediaLibrary
-} from "@shared/media/mediaService";
+} from "@shared/media/mediaDataService";
 
 export default function useMediaAsset(
     reference
@@ -43,8 +43,23 @@ export default function useMediaAsset(
         let active = true;
         let objectUrl = "";
 
+        function revokeObjectUrl() {
+            if (!objectUrl) {
+                return;
+            }
+
+            globalThis.URL
+                .revokeObjectURL(
+                    objectUrl
+                );
+
+            objectUrl = "";
+        }
+
         async function loadAsset() {
             if (!assetId) {
+                revokeObjectUrl();
+
                 setAsset(null);
                 setUrl("");
                 setLoading(false);
@@ -66,17 +81,12 @@ export default function useMediaAsset(
                     return;
                 }
 
-                if (objectUrl) {
-                    globalThis.URL.revokeObjectURL(
-                        objectUrl
-                    );
-
-                    objectUrl = "";
-                }
+                revokeObjectUrl();
 
                 if (!loadedAsset) {
                     setAsset(null);
                     setUrl("");
+
                     setError(
                         "Die Mediendatei wurde nicht gefunden."
                     );
@@ -84,11 +94,36 @@ export default function useMediaAsset(
                     return;
                 }
 
-                if (loadedAsset.blob) {
+                let resolvedUrl =
+                    loadedAsset.url ??
+                    "";
+
+                if (
+                    !resolvedUrl &&
+                    loadedAsset.blob
+                ) {
                     objectUrl =
-                        globalThis.URL.createObjectURL(
-                            loadedAsset.blob
-                        );
+                        globalThis.URL
+                            .createObjectURL(
+                                loadedAsset.blob
+                            );
+
+                    resolvedUrl =
+                        objectUrl;
+                }
+
+                if (!resolvedUrl) {
+                    setAsset(
+                        loadedAsset
+                    );
+
+                    setUrl("");
+
+                    setError(
+                        "Für die Mediendatei ist keine Datei-URL verfügbar."
+                    );
+
+                    return;
                 }
 
                 setAsset(
@@ -96,12 +131,14 @@ export default function useMediaAsset(
                 );
 
                 setUrl(
-                    objectUrl
+                    resolvedUrl
                 );
             } catch (loadError) {
                 if (!active) {
                     return;
                 }
+
+                revokeObjectUrl();
 
                 setAsset(null);
                 setUrl("");
@@ -125,7 +162,7 @@ export default function useMediaAsset(
                     if (
                         changedAssetId &&
                         changedAssetId !==
-                        assetId
+                            assetId
                     ) {
                         return;
                     }
@@ -138,14 +175,11 @@ export default function useMediaAsset(
             active = false;
 
             unsubscribe();
-
-            if (objectUrl) {
-                globalThis.URL.revokeObjectURL(
-                    objectUrl
-                );
-            }
+            revokeObjectUrl();
         };
-    }, [assetId]);
+    }, [
+        assetId
+    ]);
 
     return {
         assetId,

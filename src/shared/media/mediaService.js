@@ -16,8 +16,12 @@ const CHANGE_EVENT =
     "bluepulse:media-library-change";
 
 function createId() {
-    if (globalThis.crypto?.randomUUID) {
-        return globalThis.crypto.randomUUID();
+    if (
+        globalThis.crypto
+            ?.randomUUID
+    ) {
+        return globalThis.crypto
+            .randomUUID();
     }
 
     return `media-${Date.now()}-${Math.random()
@@ -25,21 +29,30 @@ function createId() {
         .slice(2)}`;
 }
 
-function requestToPromise(request) {
+function requestToPromise(
+    request
+) {
     return new Promise(
-        (resolve, reject) => {
-            request.onsuccess = () => {
-                resolve(request.result);
-            };
+        (
+            resolve,
+            reject
+        ) => {
+            request.onsuccess =
+                () => {
+                    resolve(
+                        request.result
+                    );
+                };
 
-            request.onerror = () => {
-                reject(
-                    request.error ??
-                    new Error(
-                        "IndexedDB-Anfrage fehlgeschlagen."
-                    )
-                );
-            };
+            request.onerror =
+                () => {
+                    reject(
+                        request.error ??
+                        new Error(
+                            "IndexedDB-Anfrage fehlgeschlagen."
+                        )
+                    );
+                };
         }
     );
 }
@@ -48,35 +61,47 @@ function transactionToPromise(
     transaction
 ) {
     return new Promise(
-        (resolve, reject) => {
+        (
+            resolve,
+            reject
+        ) => {
             transaction.oncomplete =
-                () => resolve();
+                () =>
+                    resolve();
 
-            transaction.onerror = () => {
-                reject(
-                    transaction.error ??
-                    new Error(
-                        "IndexedDB-Transaktion fehlgeschlagen."
-                    )
-                );
-            };
+            transaction.onerror =
+                () => {
+                    reject(
+                        transaction.error ??
+                        new Error(
+                            "IndexedDB-Transaktion fehlgeschlagen."
+                        )
+                    );
+                };
 
-            transaction.onabort = () => {
-                reject(
-                    transaction.error ??
-                    new Error(
-                        "IndexedDB-Transaktion wurde abgebrochen."
-                    )
-                );
-            };
+            transaction.onabort =
+                () => {
+                    reject(
+                        transaction.error ??
+                        new Error(
+                            "IndexedDB-Transaktion wurde abgebrochen."
+                        )
+                    );
+                };
         }
     );
 }
 
 function openDatabase() {
     return new Promise(
-        (resolve, reject) => {
-            if (!globalThis.indexedDB) {
+        (
+            resolve,
+            reject
+        ) => {
+            if (
+                !globalThis
+                    .indexedDB
+            ) {
                 reject(
                     new Error(
                         "Dieser Browser unterstützt keine IndexedDB-Medienbibliothek."
@@ -87,10 +112,12 @@ function openDatabase() {
             }
 
             const request =
-                globalThis.indexedDB.open(
-                    DATABASE_NAME,
-                    DATABASE_VERSION
-                );
+                globalThis
+                    .indexedDB
+                    .open(
+                        DATABASE_NAME,
+                        DATABASE_VERSION
+                    );
 
             request.onupgradeneeded =
                 () => {
@@ -98,7 +125,8 @@ function openDatabase() {
                         request.result;
 
                     if (
-                        database.objectStoreNames
+                        database
+                            .objectStoreNames
                             .contains(
                                 STORE_NAME
                             )
@@ -107,18 +135,21 @@ function openDatabase() {
                     }
 
                     const store =
-                        database.createObjectStore(
-                            STORE_NAME,
-                            {
-                                keyPath: "id"
-                            }
-                        );
+                        database
+                            .createObjectStore(
+                                STORE_NAME,
+                                {
+                                    keyPath:
+                                        "id"
+                                }
+                            );
 
                     store.createIndex(
                         "createdAt",
                         "createdAt",
                         {
-                            unique: false
+                            unique:
+                                false
                         }
                     );
 
@@ -126,55 +157,68 @@ function openDatabase() {
                         "type",
                         "type",
                         {
-                            unique: false
+                            unique:
+                                false
                         }
                     );
                 };
 
-            request.onsuccess = () => {
-                resolve(request.result);
-            };
+            request.onsuccess =
+                () => {
+                    resolve(
+                        request.result
+                    );
+                };
 
-            request.onerror = () => {
-                reject(
-                    request.error ??
-                    new Error(
-                        "Medien-Datenbank konnte nicht geöffnet werden."
-                    )
-                );
-            };
+            request.onerror =
+                () => {
+                    reject(
+                        request.error ??
+                        new Error(
+                            "Medien-Datenbank konnte nicht geöffnet werden."
+                        )
+                    );
+                };
         }
     );
 }
 
-function emitMediaChange(assetId = null) {
+function emitMediaChange(
+    assetId = null
+) {
     if (
-        typeof globalThis.window ===
+        typeof globalThis
+            .window ===
         "undefined"
     ) {
         return;
     }
 
-    globalThis.window.dispatchEvent(
-        new CustomEvent(
-            CHANGE_EVENT,
-            {
-                detail: {
-                    assetId
+    globalThis.window
+        .dispatchEvent(
+            new CustomEvent(
+                CHANGE_EVENT,
+                {
+                    detail: {
+                        assetId
+                    }
                 }
-            }
-        )
-    );
+            )
+        );
 }
 
-function removeFileExtension(name) {
+function removeFileExtension(
+    name
+) {
     return name.replace(
         /\.[^/.]+$/,
         ""
     );
 }
 
-function isSupportedFile(file) {
+function isSupportedFile(
+    file
+) {
     return (
         file.type.startsWith(
             "image/"
@@ -185,21 +229,32 @@ function isSupportedFile(file) {
     );
 }
 
-function validateFile(file) {
-    if (!isSupportedFile(file)) {
+function validateFile(
+    file
+) {
+    if (
+        !isSupportedFile(
+            file
+        )
+    ) {
         throw new Error(
             `„${file.name}“ wird nicht unterstützt. Erlaubt sind Bilder und PDF-Dateien.`
         );
     }
 
-    if (file.size > MAX_FILE_SIZE) {
+    if (
+        file.size >
+        MAX_FILE_SIZE
+    ) {
         throw new Error(
             `„${file.name}“ ist größer als 15 MB.`
         );
     }
 }
 
-function getImageDimensions(file) {
+function getImageDimensions(
+    file
+) {
     if (
         !file.type.startsWith(
             "image/"
@@ -214,38 +269,46 @@ function getImageDimensions(file) {
     return new Promise(
         (resolve) => {
             const objectUrl =
-                globalThis.URL.createObjectURL(
-                    file
-                );
+                globalThis.URL
+                    .createObjectURL(
+                        file
+                    );
 
             const image =
-                new globalThis.Image();
+                new globalThis
+                    .Image();
 
-            image.onload = () => {
-                resolve({
-                    width:
-                        image.naturalWidth,
-                    height:
-                        image.naturalHeight
-                });
+            image.onload =
+                () => {
+                    resolve({
+                        width:
+                            image.naturalWidth,
 
-                globalThis.URL.revokeObjectURL(
-                    objectUrl
-                );
-            };
+                        height:
+                            image.naturalHeight
+                    });
 
-            image.onerror = () => {
-                resolve({
-                    width: null,
-                    height: null
-                });
+                    globalThis.URL
+                        .revokeObjectURL(
+                            objectUrl
+                        );
+                };
 
-                globalThis.URL.revokeObjectURL(
-                    objectUrl
-                );
-            };
+            image.onerror =
+                () => {
+                    resolve({
+                        width: null,
+                        height: null
+                    });
 
-            image.src = objectUrl;
+                    globalThis.URL
+                        .revokeObjectURL(
+                            objectUrl
+                        );
+                };
+
+            image.src =
+                objectUrl;
         }
     );
 }
@@ -253,7 +316,9 @@ function getImageDimensions(file) {
 async function createAssetFromFile(
     file
 ) {
-    validateFile(file);
+    validateFile(
+        file
+    );
 
     const dimensions =
         await getImageDimensions(
@@ -261,22 +326,31 @@ async function createAssetFromFile(
         );
 
     const now =
-        new Date().toISOString();
+        new Date()
+            .toISOString();
 
     return {
-        id: createId(),
+        id:
+            createId(),
 
-        name: file.name,
-        originalName: file.name,
+        name:
+            file.name,
+
+        originalName:
+            file.name,
 
         type:
             file.type ||
             "application/octet-stream",
 
-        size: file.size,
+        size:
+            file.size,
 
-        width: dimensions.width,
-        height: dimensions.height,
+        width:
+            dimensions.width,
+
+        height:
+            dimensions.height,
 
         altText:
             file.type.startsWith(
@@ -289,10 +363,14 @@ async function createAssetFromFile(
 
         caption: "",
 
-        createdAt: now,
-        updatedAt: now,
+        createdAt:
+            now,
 
-        blob: file
+        updatedAt:
+            now,
+
+        blob:
+            file
     };
 }
 
@@ -330,10 +408,12 @@ export async function getMediaAssets() {
                 secondAsset
             ) =>
                 new Date(
-                    secondAsset.createdAt
+                    secondAsset
+                        .createdAt
                 ).getTime() -
                 new Date(
-                    firstAsset.createdAt
+                    firstAsset
+                        .createdAt
                 ).getTime()
         );
     } finally {
@@ -370,7 +450,9 @@ export async function getMediaAsset(
 
         const asset =
             await requestToPromise(
-                store.get(assetId)
+                store.get(
+                    assetId
+                )
             );
 
         await transactionDone;
@@ -385,21 +467,31 @@ export async function addMediaFiles(
     files
 ) {
     const fileList =
-        Array.from(files ?? []);
+        Array.from(
+            files ?? []
+        );
 
-    if (fileList.length === 0) {
+    if (
+        fileList.length ===
+        0
+    ) {
         return [];
     }
 
     const assets = [];
 
-    for (const file of fileList) {
+    for (
+        const file
+        of fileList
+    ) {
         const asset =
             await createAssetFromFile(
                 file
             );
 
-        assets.push(asset);
+        assets.push(
+            asset
+        );
     }
 
     const database =
@@ -422,17 +514,23 @@ export async function addMediaFiles(
                 STORE_NAME
             );
 
-        assets.forEach((asset) => {
-            store.put(asset);
-        });
+        assets.forEach(
+            (asset) => {
+                store.put(
+                    asset
+                );
+            }
+        );
 
         await transactionDone;
 
-        assets.forEach((asset) => {
-            emitMediaChange(
-                asset.id
-            );
-        });
+        assets.forEach(
+            (asset) => {
+                emitMediaChange(
+                    asset.id
+                );
+            }
+        );
 
         return assets;
     } finally {
@@ -445,7 +543,9 @@ export async function updateMediaAsset(
     changes
 ) {
     const currentAsset =
-        await getMediaAsset(assetId);
+        await getMediaAsset(
+            assetId
+        );
 
     if (!currentAsset) {
         throw new Error(
@@ -457,11 +557,15 @@ export async function updateMediaAsset(
         ...currentAsset,
         ...changes,
 
-        id: currentAsset.id,
-        blob: currentAsset.blob,
+        id:
+            currentAsset.id,
+
+        blob:
+            currentAsset.blob,
 
         updatedAt:
-            new Date().toISOString()
+            new Date()
+                .toISOString()
     };
 
     const database =
@@ -484,11 +588,15 @@ export async function updateMediaAsset(
                 STORE_NAME
             );
 
-        store.put(updatedAsset);
+        store.put(
+            updatedAsset
+        );
 
         await transactionDone;
 
-        emitMediaChange(assetId);
+        emitMediaChange(
+            assetId
+        );
 
         return updatedAsset;
     } finally {
@@ -519,11 +627,15 @@ export async function deleteMediaAsset(
                 STORE_NAME
             );
 
-        store.delete(assetId);
+        store.delete(
+            assetId
+        );
 
         await transactionDone;
 
-        emitMediaChange(assetId);
+        emitMediaChange(
+            assetId
+        );
 
         return true;
     } finally {
@@ -541,7 +653,8 @@ export function getMediaIdFromReference(
     reference
 ) {
     if (
-        typeof reference !== "string" ||
+        typeof reference !==
+            "string" ||
         !reference.startsWith(
             "media://"
         )
@@ -564,7 +677,9 @@ export function isMediaReference(
     );
 }
 
-export function isImageAsset(asset) {
+export function isImageAsset(
+    asset
+) {
     return Boolean(
         asset?.type?.startsWith(
             "image/"
@@ -572,7 +687,9 @@ export function isImageAsset(asset) {
     );
 }
 
-export function isPdfAsset(asset) {
+export function isPdfAsset(
+    asset
+) {
     return (
         asset?.type ===
         "application/pdf"
@@ -583,37 +700,50 @@ export function subscribeToMediaLibrary(
     listener
 ) {
     if (
-        typeof globalThis.window ===
+        typeof globalThis
+            .window ===
         "undefined"
     ) {
         return () => {};
     }
 
-    function handleChange(event) {
+    function handleChange(
+        event
+    ) {
         listener(
-            event.detail?.assetId ??
+            event.detail
+                ?.assetId ??
             null
         );
     }
 
-    globalThis.window.addEventListener(
-        CHANGE_EVENT,
-        handleChange
-    );
-
-    return () => {
-        globalThis.window.removeEventListener(
+    globalThis.window
+        .addEventListener(
             CHANGE_EVENT,
             handleChange
         );
+
+    return () => {
+        globalThis.window
+            .removeEventListener(
+                CHANGE_EVENT,
+                handleChange
+            );
     };
 }
 
-export function formatFileSize(bytes) {
+export function formatFileSize(
+    bytes
+) {
     const numericBytes =
-        Number(bytes) || 0;
+        Number(
+            bytes
+        ) || 0;
 
-    if (numericBytes === 0) {
+    if (
+        numericBytes ===
+        0
+    ) {
         return "0 B";
     }
 
@@ -630,7 +760,9 @@ export function formatFileSize(bytes) {
                 Math.log(
                     numericBytes
                 ) /
-                Math.log(1024)
+                Math.log(
+                    1024
+                )
             ),
             units.length - 1
         );

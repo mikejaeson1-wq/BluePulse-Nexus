@@ -38,50 +38,84 @@ export default function useMediaLibrary() {
         setError
     ] = useState("");
 
-    const previewUrlsRef =
-        useRef({});
+    const objectUrlsRef =
+        useRef(
+            new Set()
+        );
 
     const mountedRef =
         useRef(true);
 
+    const revokeObjectUrls =
+        useCallback(
+            () => {
+                objectUrlsRef.current
+                    .forEach(
+                        (url) => {
+                            globalThis.URL
+                                .revokeObjectURL(
+                                    url
+                                );
+                        }
+                    );
+
+                objectUrlsRef.current
+                    .clear();
+            },
+            []
+        );
+
     const replacePreviewUrls =
         useCallback(
             (nextAssets) => {
-                Object.values(
-                    previewUrlsRef.current
-                ).forEach((url) => {
-                    URL.revokeObjectURL(
-                        url
-                    );
-                });
+                revokeObjectUrls();
 
                 const nextPreviewUrls = {};
 
                 nextAssets.forEach(
                     (asset) => {
+                        if (asset.url) {
+                            nextPreviewUrls[
+                                asset.id
+                            ] =
+                                asset.url;
+
+                            return;
+                        }
+
                         if (!asset.blob) {
                             return;
                         }
 
+                        const objectUrl =
+                            globalThis.URL
+                                .createObjectURL(
+                                    asset.blob
+                                );
+
+                        objectUrlsRef.current
+                            .add(
+                                objectUrl
+                            );
+
                         nextPreviewUrls[
                             asset.id
                         ] =
-                            URL.createObjectURL(
-                                asset.blob
-                            );
+                            objectUrl;
                     }
                 );
 
-                previewUrlsRef.current =
-                    nextPreviewUrls;
-
-                if (mountedRef.current) {
+                if (
+                    mountedRef.current
+                ) {
                     setPreviewUrls(
                         nextPreviewUrls
                     );
                 }
             },
-            []
+            [
+                revokeObjectUrls
+            ]
         );
 
     const refresh =
@@ -100,12 +134,19 @@ export default function useMediaLibrary() {
                         return;
                     }
 
+                    const normalizedAssets =
+                        Array.isArray(
+                            nextAssets
+                        )
+                            ? nextAssets
+                            : [];
+
                     setAssets(
-                        nextAssets
+                        normalizedAssets
                     );
 
                     replacePreviewUrls(
-                        nextAssets
+                        normalizedAssets
                     );
                 } catch (
                     refreshError
@@ -128,7 +169,9 @@ export default function useMediaLibrary() {
                     }
                 }
             },
-            [replacePreviewUrls]
+            [
+                replacePreviewUrls
+            ]
         );
 
     useEffect(() => {
@@ -140,15 +183,12 @@ export default function useMediaLibrary() {
             mountedRef.current =
                 false;
 
-            Object.values(
-                previewUrlsRef.current
-            ).forEach((url) => {
-                URL.revokeObjectURL(
-                    url
-                );
-            });
+            revokeObjectUrls();
         };
-    }, [refresh]);
+    }, [
+        refresh,
+        revokeObjectUrls
+    ]);
 
     async function upload(files) {
         setUploading(true);
