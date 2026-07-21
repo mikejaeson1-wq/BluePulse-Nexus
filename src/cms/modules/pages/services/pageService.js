@@ -9,8 +9,10 @@ export function getPages() {
     const snapshot =
         repository.getSnapshot?.();
 
-    if (snapshot !== null &&
-        snapshot !== undefined) {
+    if (
+        snapshot !== null &&
+        snapshot !== undefined
+    ) {
         return snapshot;
     }
 
@@ -19,12 +21,15 @@ export function getPages() {
 
 export function getPage(id) {
     const snapshot =
-        repository.getByIdSnapshot?.(
-            id
-        );
+        repository
+            .getByIdSnapshot?.(
+                id
+            );
 
-    if (snapshot !== null &&
-        snapshot !== undefined) {
+    if (
+        snapshot !== null &&
+        snapshot !== undefined
+    ) {
         return snapshot;
     }
 
@@ -41,12 +46,15 @@ export function getPageBySlug(
     slug
 ) {
     const snapshot =
-        repository.getBySlugSnapshot?.(
-            slug
-        );
+        repository
+            .getBySlugSnapshot?.(
+                slug
+            );
 
-    if (snapshot !== null &&
-        snapshot !== undefined) {
+    if (
+        snapshot !== null &&
+        snapshot !== undefined
+    ) {
         return snapshot;
     }
 
@@ -64,8 +72,10 @@ export function getPublishedPageBySlug(
                 slug
             );
 
-    if (snapshot !== null &&
-        snapshot !== undefined) {
+    if (
+        snapshot !== null &&
+        snapshot !== undefined
+    ) {
         return snapshot;
     }
 
@@ -154,6 +164,46 @@ export function unpublishPage(
 export function duplicatePage(id) {
     return repository.duplicate(
         id
+    );
+}
+
+export function getPageVersions(
+    id
+) {
+    if (
+        typeof repository
+            .getVersions !==
+        "function"
+    ) {
+        return Promise.resolve(
+            []
+        );
+    }
+
+    return repository.getVersions(
+        id
+    );
+}
+
+export function restorePageVersion(
+    id,
+    versionNumber
+) {
+    if (
+        typeof repository
+            .restoreVersion !==
+        "function"
+    ) {
+        return Promise.reject(
+            new Error(
+                "Die Versionswiederherstellung ist nur im API-Modus verfügbar."
+            )
+        );
+    }
+
+    return repository.restoreVersion(
+        id,
+        versionNumber
     );
 }
 

@@ -23,7 +23,8 @@ function generatePageSlug(value) {
             .replace(/[^a-z0-9]+/g, "-")
             .replace(/^-+|-+$/g, "");
 
-    return slug || "neue-seite";
+    return slug ||
+        "neue-seite";
 }
 
 export const apiPageRepository = {
@@ -123,7 +124,10 @@ export const apiPageRepository = {
         );
     },
 
-    async save(pageOrId, data) {
+    async save(
+        pageOrId,
+        data
+    ) {
         if (
             typeof pageOrId ===
             "string"
@@ -188,6 +192,35 @@ export const apiPageRepository = {
             `/admin/pages/${encodeValue(
                 pageId
             )}/duplicate`
+        );
+    },
+
+    async getVersions(
+        pageId,
+        {
+            signal
+        } = {}
+    ) {
+        return apiGet(
+            `/admin/pages/${encodeValue(
+                pageId
+            )}/versions`,
+            {
+                signal
+            }
+        );
+    },
+
+    async restoreVersion(
+        pageId,
+        versionNumber
+    ) {
+        return apiPost(
+            `/admin/pages/${encodeValue(
+                pageId
+            )}/versions/${encodeValue(
+                versionNumber
+            )}/restore`
         );
     },
 
