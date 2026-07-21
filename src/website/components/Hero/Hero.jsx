@@ -6,69 +6,80 @@ import Button from "../ui/Button/Button";
 
 import useReveal from "../../hooks/useReveal";
 
-export default function Hero() {
+import useSiteContentSection from "@shared/hooks/useSiteContentSection";
 
+export default function Hero() {
     const contentRef = useRef();
+
+    const content =
+        useSiteContentSection("hero");
 
     useReveal(contentRef);
 
+    if (!content) {
+        return null;
+    }
+
     return (
-
-        <section className="hero">
-
+        <section
+            id="start"
+            className="hero"
+        >
             <div className="hero__backgroundGlow" />
 
             <div
                 ref={contentRef}
                 className="hero__content"
             >
-
                 <span className="hero__subtitle">
-
-                    GEMEINNÜTZIGER TIERSCHUTZVEREIN
-
+                    {content.subtitle}
                 </span>
 
                 <h1>
+                    {content.titleLine1}
 
-                    Every Life
                     <br />
-                    Matters
 
+                    {content.titleLine2}
                 </h1>
 
                 <p>
-
-                    Gemeinsam schützen wir Tiere,
-                    Meere und Natur.
-                    Jede Stimme zählt.
-                    Jede Spende hilft.
-                    Jedes Leben ist wertvoll.
-
+                    {content.description}
                 </p>
 
                 <div className="hero__buttons">
+                    {
+                        content.primaryButtonLabel && (
+                            <Button
+                                href={
+                                    content.primaryButtonHref
+                                }
+                            >
+                                {
+                                    content.primaryButtonLabel
+                                }
+                            </Button>
+                        )
+                    }
 
-                    <Button>
-
-                        Mitglied werden
-
-                    </Button>
-
-                    <Button variant="secondary">
-
-                        Mehr erfahren
-
-                    </Button>
-
+                    {
+                        content.secondaryButtonLabel && (
+                            <Button
+                                variant="secondary"
+                                href={
+                                    content.secondaryButtonHref
+                                }
+                            >
+                                {
+                                    content.secondaryButtonLabel
+                                }
+                            </Button>
+                        )
+                    }
                 </div>
-
             </div>
 
             <div className="hero__earth" />
-
         </section>
-
     );
-
 }

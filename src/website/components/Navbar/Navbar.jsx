@@ -1,39 +1,493 @@
 import "./Navbar.css";
 
-export default function Navbar() {
+import {
+    useEffect,
+    useMemo,
+    useRef,
+    useState
+} from "react";
+
+import {
+    useLocation
+} from "react-router-dom";
+
+import useSiteNavigation from "@shared/hooks/useSiteNavigation";
+
+function getChildren(
+    items,
+    parentId
+) {
+    return items
+        .filter(
+            (item) =>
+                item.parentId === parentId
+        )
+        .sort(
+            (
+                firstItem,
+                secondItem
+            ) =>
+                firstItem.order -
+                secondItem.order
+        );
+}
+
+function buildNavigationTree(
+    items,
+    parentId = null,
+    visited = new Set()
+) {
+    return getChildren(
+        items,
+        parentId
+    ).map((item) => {
+        if (visited.has(item.id)) {
+            return {
+                ...item,
+                children: []
+            };
+        }
+
+        const nextVisited =
+            new Set(visited);
+
+        nextVisited.add(item.id);
+
+        return {
+            ...item,
+
+            children:
+                buildNavigationTree(
+                    items,
+                    item.id,
+                    nextVisited
+                )
+        };
+    });
+}
+
+function isExternalLink(href) {
+    return /^https?:\/\//i.test(
+        href ?? ""
+    );
+}
+
+function getRel(
+    target,
+    href
+) {
+    return (
+        target === "_blank" ||
+        isExternalLink(href)
+    )
+        ? "noopener noreferrer"
+        : undefined;
+}
+
+function NavigationItem({
+    item,
+    depth,
+    openMenus,
+    toggleMenu,
+    closeNavigation
+}) {
+    const hasChildren =
+        item.children.length > 0;
+
+    const menuOpen =
+        openMenus.has(item.id);
+
+    function handleMouseEnter() {
+        if (
+            globalThis.window.matchMedia(
+                "(min-width: 951px)"
+            ).matches
+        ) {
+            toggleMenu(
+                item.id,
+                true
+            );
+        }
+    }
+
+    function handleMouseLeave() {
+        if (
+            globalThis.window.matchMedia(
+                "(min-width: 951px)"
+            ).matches
+        ) {
+            toggleMenu(
+                item.id,
+                false
+            );
+        }
+    }
 
     return (
+        <li
+            className={[
+                "navbar__item",
+                hasChildren
+                    ? "navbar__item--hasChildren"
+                    : "",
+                menuOpen
+                    ? "navbar__item--open"
+                    : "",
+                depth > 0
+                    ? "navbar__item--nested"
+                    : ""
+            ]
+                .filter(Boolean)
+                .join(" ")}
+            onMouseEnter={
+                handleMouseEnter
+            }
+            onMouseLeave={
+                handleMouseLeave
+            }
+        >
+            <div className="navbar__linkRow">
+                {
+                    item.href ? (
+                        <a
+                            className="navbar__link"
+                            href={item.href}
+                            target={item.target}
+                            rel={
+                                getRel(
+                                    item.target,
+                                    item.href
+                                )
+                            }
+                            onClick={
+                                closeNavigation
+                            }
+                        >
+                            {item.label}
+                        </a>
+                    ) : (
+                        <button
+                            type="button"
+                            className="navbar__link navbar__link--button"
+                            onClick={() =>
+                                toggleMenu(
+                                    item.id
+                                )
+                            }
+                        >
+                            {item.label}
+                        </button>
+                    )
+                }
 
-        <header className="navbar">
+                {
+                    hasChildren && (
+                        <button
+                            type="button"
+                            className="navbar__submenuToggle"
+                            aria-label={
+                                `${item.label} Untermenü öffnen`
+                            }
+                            aria-expanded={
+                                menuOpen
+                            }
+                            onClick={(event) => {
+                                event.stopPropagation();
 
-            <div className="navbar__logo">
-
-                <span className="logo-blue">Blue</span>Pulse
-
+                                toggleMenu(
+                                    item.id
+                                );
+                            }}
+                        >
+                            <i
+                                className="bi bi-chevron-down"
+                                aria-hidden="true"
+                            />
+                        </button>
+                    )
+                }
             </div>
 
-            <nav>
+            {
+                hasChildren && (
+                    <ul
+                        className="navbar__submenu"
+                        aria-hidden={
+                            !menuOpen
+                        }
+                    >
+                        {
+                            item.children.map(
+                                (child) => (
+                                    <NavigationItem
+                                        key={
+                                            child.id
+                                        }
+                                        item={
+                                            child
+                                        }
+                                        depth={
+                                            depth + 1
+                                        }
+                                        openMenus={
+                                            openMenus
+                                        }
+                                        toggleMenu={
+                                            toggleMenu
+                                        }
+                                        closeNavigation={
+                                            closeNavigation
+                                        }
+                                    />
+                                )
+                            )
+                        }
+                    </ul>
+                )
+            }
+        </li>
+    );
+}
 
-                <a href="#">Start</a>
+export default function Navbar() {
+    const navigation =
+        useSiteNavigation();
 
-                <a href="#">Über uns</a>
+    const location =
+        useLocation();
 
-                <a href="#">Projekte</a>
+    const navbarRef =
+        useRef(null);
 
-                <a href="#">Mitmachen</a>
+    const [
+        mobileOpen,
+        setMobileOpen
+    ] = useState(false);
 
-                <a href="#">Kontakt</a>
-
-            </nav>
-
-            <button className="navbar__button">
-
-                Spenden
-
-            </button>
-
-        </header>
-
+    const [
+        openMenus,
+        setOpenMenus
+    ] = useState(
+        () => new Set()
     );
 
+    const visibleItems =
+        useMemo(
+            () =>
+                navigation.items.filter(
+                    (item) =>
+                        item.enabled
+                ),
+            [navigation.items]
+        );
+
+    const navigationTree =
+        useMemo(
+            () =>
+                buildNavigationTree(
+                    visibleItems
+                ),
+            [visibleItems]
+        );
+
+    const cta =
+        navigation.cta;
+
+    function toggleMenu(
+        itemId,
+        forcedState
+    ) {
+        setOpenMenus(
+            (currentMenus) => {
+                const nextMenus =
+                    new Set(
+                        currentMenus
+                    );
+
+                const shouldOpen =
+                    forcedState !==
+                    undefined
+                        ? forcedState
+                        : !nextMenus.has(
+                            itemId
+                        );
+
+                if (shouldOpen) {
+                    nextMenus.add(
+                        itemId
+                    );
+                } else {
+                    nextMenus.delete(
+                        itemId
+                    );
+                }
+
+                return nextMenus;
+            }
+        );
+    }
+
+    function closeNavigation() {
+        setMobileOpen(false);
+        setOpenMenus(
+            new Set()
+        );
+    }
+
+    useEffect(() => {
+        closeNavigation();
+    }, [
+        location.pathname,
+        location.hash
+    ]);
+
+    useEffect(() => {
+        function handleOutsideClick(
+            event
+        ) {
+            if (
+                navbarRef.current &&
+                !navbarRef.current.contains(
+                    event.target
+                )
+            ) {
+                closeNavigation();
+            }
+        }
+
+        function handleEscape(event) {
+            if (
+                event.key === "Escape"
+            ) {
+                closeNavigation();
+            }
+        }
+
+        globalThis.document.addEventListener(
+            "mousedown",
+            handleOutsideClick
+        );
+
+        globalThis.document.addEventListener(
+            "keydown",
+            handleEscape
+        );
+
+        return () => {
+            globalThis.document.removeEventListener(
+                "mousedown",
+                handleOutsideClick
+            );
+
+            globalThis.document.removeEventListener(
+                "keydown",
+                handleEscape
+            );
+        };
+    }, []);
+
+    return (
+        <header
+            ref={navbarRef}
+            className={
+                mobileOpen
+                    ? "navbar navbar--open"
+                    : "navbar"
+            }
+        >
+            <a
+                className="navbar__logo"
+                href="/"
+                aria-label="BluePulse Startseite"
+                onClick={
+                    closeNavigation
+                }
+            >
+                <span className="logo-blue">
+                    Blue
+                </span>
+
+                Pulse
+            </a>
+
+            <button
+                type="button"
+                className="navbar__mobileToggle"
+                aria-label={
+                    mobileOpen
+                        ? "Navigation schließen"
+                        : "Navigation öffnen"
+                }
+                aria-expanded={
+                    mobileOpen
+                }
+                onClick={() =>
+                    setMobileOpen(
+                        (currentValue) =>
+                            !currentValue
+                    )
+                }
+            >
+                <span />
+                <span />
+                <span />
+            </button>
+
+            <div className="navbar__navigationWrapper">
+                <nav
+                    className="navbar__navigation"
+                    aria-label="Hauptnavigation"
+                >
+                    <ul className="navbar__list">
+                        {
+                            navigationTree.map(
+                                (item) => (
+                                    <NavigationItem
+                                        key={
+                                            item.id
+                                        }
+                                        item={
+                                            item
+                                        }
+                                        depth={0}
+                                        openMenus={
+                                            openMenus
+                                        }
+                                        toggleMenu={
+                                            toggleMenu
+                                        }
+                                        closeNavigation={
+                                            closeNavigation
+                                        }
+                                    />
+                                )
+                            )
+                        }
+                    </ul>
+                </nav>
+
+                {
+                    cta.enabled &&
+                    cta.href && (
+                        <a
+                            className="navbar__button"
+                            href={cta.href}
+                            target={cta.target}
+                            rel={
+                                getRel(
+                                    cta.target,
+                                    cta.href
+                                )
+                            }
+                            onClick={
+                                closeNavigation
+                            }
+                        >
+                            {cta.label}
+                        </a>
+                    )
+                }
+            </div>
+        </header>
+    );
 }

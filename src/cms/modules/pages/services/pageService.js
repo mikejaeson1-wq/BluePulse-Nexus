@@ -1,55 +1,166 @@
-let pages = [];
+import {
+    getPageRepository
+} from "@shared/data/repositories";
+
+const repository =
+    getPageRepository();
 
 export function getPages() {
-    return [...pages];
+    const snapshot =
+        repository.getSnapshot?.();
+
+    if (snapshot !== null &&
+        snapshot !== undefined) {
+        return snapshot;
+    }
+
+    return repository.getAll();
 }
 
 export function getPage(id) {
-    return pages.find((page) => page.id === id);
+    const snapshot =
+        repository.getByIdSnapshot?.(
+            id
+        );
+
+    if (snapshot !== null &&
+        snapshot !== undefined) {
+        return snapshot;
+    }
+
+    return repository.getById(
+        id
+    );
 }
 
-export function generateSlug(title) {
-    return title
-        .toLowerCase()
-        .trim()
-        .replace(/ä/g, "ae")
-        .replace(/ö/g, "oe")
-        .replace(/ü/g, "ue")
-        .replace(/ß/g, "ss")
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "");
+export function getPageById(id) {
+    return getPage(id);
 }
 
-export function createPage(data) {
-    const page = {
-        id: crypto.randomUUID(),
-        title: data.title,
-        slug: generateSlug(data.title),
-        template: data.template,
-        status: "Entwurf",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-    };
+export function getPageBySlug(
+    slug
+) {
+    const snapshot =
+        repository.getBySlugSnapshot?.(
+            slug
+        );
 
-    pages.push(page);
+    if (snapshot !== null &&
+        snapshot !== undefined) {
+        return snapshot;
+    }
 
-    return page;
+    return repository.getBySlug(
+        slug
+    );
 }
 
-export function updatePage(id, data) {
-    pages = pages.map((page) => {
-        if (page.id !== id) {
-            return page;
-        }
+export function getPublishedPageBySlug(
+    slug
+) {
+    const snapshot =
+        repository
+            .getPublishedBySlugSnapshot?.(
+                slug
+            );
 
-        return {
-            ...page,
-            ...data,
-            updatedAt: new Date(),
-        };
-    });
+    if (snapshot !== null &&
+        snapshot !== undefined) {
+        return snapshot;
+    }
+
+    return repository
+        .getPublishedBySlug(
+            slug
+        );
+}
+
+export function generateSlug(
+    value
+) {
+    return repository.generateSlug(
+        value
+    );
+}
+
+export function isSlugAvailable(
+    slug,
+    excludedPageId = null
+) {
+    return repository.isSlugAvailable(
+        slug,
+        excludedPageId
+    );
+}
+
+export function createPage(
+    data
+) {
+    return repository.create(
+        data
+    );
+}
+
+export function updatePage(
+    id,
+    data
+) {
+    return repository.update(
+        id,
+        data
+    );
+}
+
+export function savePage(
+    pageOrId,
+    data
+) {
+    return repository.save(
+        pageOrId,
+        data
+    );
 }
 
 export function deletePage(id) {
-    pages = pages.filter((page) => page.id !== id);
+    return repository.remove(
+        id
+    );
+}
+
+export function removePage(id) {
+    return deletePage(id);
+}
+
+export function publishPage(
+    id,
+    data = {}
+) {
+    return repository.publish(
+        id,
+        data
+    );
+}
+
+export function unpublishPage(
+    id,
+    data = {}
+) {
+    return repository.unpublish(
+        id,
+        data
+    );
+}
+
+export function duplicatePage(id) {
+    return repository.duplicate(
+        id
+    );
+}
+
+export function subscribeToPages(
+    listener
+) {
+    return repository.subscribe(
+        listener
+    );
 }

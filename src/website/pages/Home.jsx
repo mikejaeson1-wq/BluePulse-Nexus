@@ -1,33 +1,22 @@
 import Navbar from "../components/Navbar/Navbar";
+import Footer from "../components/Footer/Footer";
 
-import Hero from "../components/Hero/Hero";
-import Mission from "../components/Mission/Mission";
-import Impact from "../components/Impact/Impact";
+import HomeSections from "../components/HomeSections/HomeSections";
 
 import EarthCanvas from "../components/Earth/EarthCanvas";
 
 export default function Home() {
-
     return (
-
         <>
-
             <EarthCanvas />
 
             <Navbar />
 
             <main>
-
-                <Hero />
-
-                <Mission />
-
-                <Impact />
-
+                <HomeSections />
             </main>
 
+            <Footer />
         </>
-
     );
-
 }

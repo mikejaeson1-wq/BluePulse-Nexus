@@ -1,73 +1,82 @@
 import "./PageHeader.css";
 
 export default function PageHeader({
-
     page,
-
     onSave,
-
     onPublish,
-
     onPreview,
-
     onUndo,
-
-    onRedo
-
+    onRedo,
+    canUndo = false,
+    canRedo = false,
+    isSaving = false,
+    isPublishing = false
 }) {
+    const statusLabel =
+        page.status === "published"
+            ? "Veröffentlicht"
+            : "Entwurf";
 
     return (
-
         <header className="bp-page-header">
-
             <div className="bp-page-header-left">
-
-                <h1>{page.title}</h1>
+                <h1>
+                    {page.title}
+                </h1>
 
                 <small>
-
-                    Status: {page.status}
-
+                    Status: {statusLabel}
                 </small>
-
             </div>
 
             <div className="bp-page-header-right">
-
-                <button onClick={onUndo}>
-
+                <button
+                    type="button"
+                    onClick={onUndo}
+                    disabled={!canUndo}
+                >
                     ↶ Rückgängig
-
                 </button>
 
-                <button onClick={onRedo}>
-
+                <button
+                    type="button"
+                    onClick={onRedo}
+                    disabled={!canRedo}
+                >
                     ↷ Wiederholen
-
                 </button>
 
-                <button onClick={onPreview}>
-
+                <button
+                    type="button"
+                    onClick={onPreview}
+                >
                     Vorschau
-
                 </button>
 
-                <button onClick={onSave}>
-
-                    Speichern
-
+                <button
+                    type="button"
+                    onClick={onSave}
+                    disabled={isSaving}
+                >
+                    {
+                        isSaving
+                            ? "Speichert …"
+                            : "Speichern"
+                    }
                 </button>
 
-                <button onClick={onPublish}>
-
-                    Veröffentlichen
-
+                <button
+                    type="button"
+                    onClick={onPublish}
+                    disabled={isPublishing}
+                >
+                    {
+                        isPublishing
+                            ? "Veröffentlicht …"
+                            : "Veröffentlichen"
+                    }
                 </button>
-
             </div>
-
         </header>
-
     );
-
 }

@@ -1,45 +1,40 @@
-import ThemeContext from "../theme/ThemeContext";
+import "@cms/modules/builder/registry/registerBlocks";
 
-import defaultTheme from "../theme/defaultTheme";
+import ThemeContext from "@website/theme/ThemeContext";
+import defaultTheme from "@website/theme/defaultTheme";
 
 import BlockRenderer from "./BlockRenderer";
 
 export default function WebsiteRenderer({
-
     page,
+    mode = "website"
+}) {
+    if (!page) {
+        return null;
+    }
 
-    mode="website"
+    const blocks = Array.isArray(
+        page.blocks
+    )
+        ? page.blocks
+        : [];
 
-}){
-
-    return(
-
+    return (
         <ThemeContext.Provider
-
-            value={page.theme || defaultTheme}
-
-        >
-
-            {
-
-                page.blocks.map(block=>(
-
-                    <BlockRenderer
-
-                        key={block.id}
-
-                        block={block}
-
-                        mode={mode}
-
-                    />
-
-                ))
-
+            value={
+                page.theme ??
+                defaultTheme
             }
-
+        >
+            {
+                blocks.map(block => (
+                    <BlockRenderer
+                        key={block.id}
+                        block={block}
+                        mode={mode}
+                    />
+                ))
+            }
         </ThemeContext.Provider>
-
     );
-
 }

@@ -1,97 +1,156 @@
-import "./AdminLayout.css";
+import "@cms/modules/dashboard/admin/layouts/AdminLayout.css";
 
-import { Outlet, NavLink } from "react-router-dom";
+import {
+    NavLink,
+    Outlet
+} from "react-router-dom";
 
-import { useAuth } from "@cms/modules/auth/context/AuthContext";
+import {
+    useAuth
+} from "@cms/modules/auth/context/AuthContext";
+
+const NAVIGATION_ITEMS = [
+    {
+        to: "/admin",
+        end: true,
+        icon: "bi-speedometer2",
+        label: "Dashboard"
+    },
+    {
+        to: "/admin/pages",
+        icon: "bi-file-earmark-text",
+        label: "Seiten"
+    },
+    {
+        to: "/admin/home-layout",
+        icon: "bi-grid-1x2",
+        label: "Startseiten-Layout"
+    },
+    {
+        to: "/admin/footer",
+        icon: "bi-layout-text-window-reverse",
+        label: "Footer"
+    },
+    {
+        to: "/admin/media",
+        icon: "bi-images",
+        label: "Medien"
+    },
+    {
+        to: "/admin/backups",
+        icon: "bi-cloud-arrow-down",
+        label: "Sicherungen"
+    },
+    {
+        to: "/admin/users",
+        icon: "bi-people",
+        label: "Benutzer"
+    },
+    {
+        to: "/admin/settings",
+        icon: "bi-gear",
+        label: "Einstellungen"
+    }
+];
 
 export default function AdminLayout() {
-
-    const { user, logout } = useAuth();
+    const {
+        user,
+        logout
+    } = useAuth();
 
     return (
-
         <div className="bp-layout">
-
             <aside className="bp-sidebar">
-
                 <div className="bp-logo">
+                    <div className="bp-logo__mark">
+                        <i
+                            className="bi bi-water"
+                            aria-hidden="true"
+                        />
+                    </div>
 
-                    <h2>BluePulse Nexus</h2>
+                    <div>
+                        <h2>
+                            BluePulse Nexus
+                        </h2>
 
-                    <span>Version 0.1 Alpha</span>
-
+                        <span>
+                            Version 0.1 Alpha
+                        </span>
+                    </div>
                 </div>
 
-                <nav className="bp-nav">
+                <nav
+                    className="bp-nav"
+                    aria-label="Nexus-Navigation"
+                >
+                    {
+                        NAVIGATION_ITEMS.map(
+                            (item) => (
+                                <NavLink
+                                    key={item.to}
+                                    to={item.to}
+                                    end={item.end}
+                                >
+                                    <i
+                                        className={
+                                            `bi ${item.icon}`
+                                        }
+                                        aria-hidden="true"
+                                    />
 
-                    <NavLink
-                        to="/admin"
-                        end
-                    >
-                        🏠 Dashboard
-                    </NavLink>
-
-                    <NavLink to="/admin/pages">
-
-                        📄 Seiten
-
-                    </NavLink>
-
-                    <NavLink to="/admin/media">
-
-                        🖼 Medien
-
-                    </NavLink>
-
-                    <NavLink to="/admin/users">
-
-                        👥 Benutzer
-
-                    </NavLink>
-
-                    <NavLink to="/admin/settings">
-
-                        ⚙ Einstellungen
-
-                    </NavLink>
-
+                                    <span>
+                                        {item.label}
+                                    </span>
+                                </NavLink>
+                            )
+                        )
+                    }
                 </nav>
 
                 <div className="bp-user">
+                    <div className="bp-user__avatar">
+                        <i
+                            className="bi bi-person"
+                            aria-hidden="true"
+                        />
+                    </div>
 
-                    <strong>
+                    <div className="bp-user__information">
+                        <strong>
+                            {
+                                user?.name ??
+                                "Administrator"
+                            }
+                        </strong>
 
-                        {user?.name}
-
-                    </strong>
-
-                    <small>
-
-                        {user?.role}
-
-                    </small>
+                        <small>
+                            {
+                                user?.role ??
+                                "Administrator"
+                            }
+                        </small>
+                    </div>
 
                     <button
                         type="button"
+                        className="bp-user__logout"
                         onClick={logout}
+                        aria-label="Abmelden"
+                        title="Abmelden"
                     >
-
-                        Logout
-
+                        <i
+                            className="bi bi-box-arrow-right"
+                            aria-hidden="true"
+                        />
                     </button>
-
                 </div>
-
             </aside>
 
             <main className="bp-content">
-
                 <Outlet />
-
             </main>
-
         </div>
-
     );
-
 }
