@@ -1,0 +1,515 @@
+.bp-rendered-block {
+    position: relative;
+
+    display: block;
+
+    width:
+        var(
+            --bp-block-desktop-width,
+            100%
+        );
+
+    max-width:
+        var(
+            --bp-block-desktop-max-width,
+            none
+        );
+
+    min-width: 0;
+
+    margin-top:
+        var(
+            --bp-block-desktop-margin-top,
+            0
+        );
+
+    margin-right:
+        var(
+            --bp-block-desktop-margin-right,
+            auto
+        );
+
+    margin-bottom:
+        var(
+            --bp-block-desktop-margin-bottom,
+            0
+        );
+
+    margin-left:
+        var(
+            --bp-block-desktop-margin-left,
+            auto
+        );
+
+    padding-top:
+        var(
+            --bp-block-desktop-padding-top,
+            0
+        );
+
+    padding-right:
+        var(
+            --bp-block-desktop-padding-right,
+            0
+        );
+
+    padding-bottom:
+        var(
+            --bp-block-desktop-padding-bottom,
+            0
+        );
+
+    padding-left:
+        var(
+            --bp-block-desktop-padding-left,
+            0
+        );
+
+    background:
+        var(
+            --bp-block-background,
+            transparent
+        );
+
+    border-width:
+        var(
+            --bp-block-border-width,
+            0
+        );
+
+    border-style:
+        var(
+            --bp-block-border-style,
+            solid
+        );
+
+    border-color:
+        var(
+            --bp-block-border-color,
+            transparent
+        );
+
+    border-radius:
+        var(
+            --bp-block-border-radius,
+            0
+        );
+
+    box-sizing:
+        border-box;
+}
+
+.bp-rendered-block--overflow-visible {
+    overflow: visible;
+}
+
+.bp-rendered-block--overflow-hidden {
+    overflow: hidden;
+}
+
+.bp-rendered-block--shadow-none {
+    box-shadow: none;
+}
+
+.bp-rendered-block--shadow-small {
+    box-shadow:
+        0 8px 22px
+        rgba(2, 6, 23, .16);
+}
+
+.bp-rendered-block--shadow-medium {
+    box-shadow:
+        0 18px 45px
+        rgba(2, 6, 23, .24);
+}
+
+.bp-rendered-block--shadow-large {
+    box-shadow:
+        0 28px 75px
+        rgba(2, 6, 23, .34);
+}
+
+/*
+ * Simulierte Tablet- und Mobilansicht im Editor.
+ * Die Auswahl im Builder funktioniert unabhängig von der
+ * tatsächlichen Breite des Browserfensters.
+ */
+
+.bp-builder-viewport__frame[data-viewport="tablet"]
+.bp-rendered-block--editor {
+    width:
+        var(
+            --bp-block-tablet-width,
+            100%
+        );
+
+    max-width:
+        var(
+            --bp-block-tablet-max-width,
+            none
+        );
+
+    margin-top:
+        var(
+            --bp-block-tablet-margin-top,
+            0
+        );
+
+    margin-right:
+        var(
+            --bp-block-tablet-margin-right,
+            auto
+        );
+
+    margin-bottom:
+        var(
+            --bp-block-tablet-margin-bottom,
+            0
+        );
+
+    margin-left:
+        var(
+            --bp-block-tablet-margin-left,
+            auto
+        );
+
+    padding-top:
+        var(
+            --bp-block-tablet-padding-top,
+            0
+        );
+
+    padding-right:
+        var(
+            --bp-block-tablet-padding-right,
+            0
+        );
+
+    padding-bottom:
+        var(
+            --bp-block-tablet-padding-bottom,
+            0
+        );
+
+    padding-left:
+        var(
+            --bp-block-tablet-padding-left,
+            0
+        );
+}
+
+.bp-builder-viewport__frame[data-viewport="mobile"]
+.bp-rendered-block--editor {
+    width:
+        var(
+            --bp-block-mobile-width,
+            100%
+        );
+
+    max-width:
+        var(
+            --bp-block-mobile-max-width,
+            none
+        );
+
+    margin-top:
+        var(
+            --bp-block-mobile-margin-top,
+            0
+        );
+
+    margin-right:
+        var(
+            --bp-block-mobile-margin-right,
+            auto
+        );
+
+    margin-bottom:
+        var(
+            --bp-block-mobile-margin-bottom,
+            0
+        );
+
+    margin-left:
+        var(
+            --bp-block-mobile-margin-left,
+            auto
+        );
+
+    padding-top:
+        var(
+            --bp-block-mobile-padding-top,
+            0
+        );
+
+    padding-right:
+        var(
+            --bp-block-mobile-padding-right,
+            0
+        );
+
+    padding-bottom:
+        var(
+            --bp-block-mobile-padding-bottom,
+            0
+        );
+
+    padding-left:
+        var(
+            --bp-block-mobile-padding-left,
+            0
+        );
+}
+
+/*
+ * Responsive Darstellung auf der echten Website und
+ * innerhalb der iframe-basierten Vorschau.
+ */
+
+@media (
+    min-width: 768px
+) and (
+    max-width: 1199.98px
+) {
+    .bp-rendered-block:not(
+        .bp-rendered-block--editor
+    ) {
+        width:
+            var(
+                --bp-block-tablet-width,
+                100%
+            );
+
+        max-width:
+            var(
+                --bp-block-tablet-max-width,
+                none
+            );
+
+        margin-top:
+            var(
+                --bp-block-tablet-margin-top,
+                0
+            );
+
+        margin-right:
+            var(
+                --bp-block-tablet-margin-right,
+                auto
+            );
+
+        margin-bottom:
+            var(
+                --bp-block-tablet-margin-bottom,
+                0
+            );
+
+        margin-left:
+            var(
+                --bp-block-tablet-margin-left,
+                auto
+            );
+
+        padding-top:
+            var(
+                --bp-block-tablet-padding-top,
+                0
+            );
+
+        padding-right:
+            var(
+                --bp-block-tablet-padding-right,
+                0
+            );
+
+        padding-bottom:
+            var(
+                --bp-block-tablet-padding-bottom,
+                0
+            );
+
+        padding-left:
+            var(
+                --bp-block-tablet-padding-left,
+                0
+            );
+    }
+}
+
+@media (
+    max-width: 767.98px
+) {
+    .bp-rendered-block:not(
+        .bp-rendered-block--editor
+    ) {
+        width:
+            var(
+                --bp-block-mobile-width,
+                100%
+            );
+
+        max-width:
+            var(
+                --bp-block-mobile-max-width,
+                none
+            );
+
+        margin-top:
+            var(
+                --bp-block-mobile-margin-top,
+                0
+            );
+
+        margin-right:
+            var(
+                --bp-block-mobile-margin-right,
+                auto
+            );
+
+        margin-bottom:
+            var(
+                --bp-block-mobile-margin-bottom,
+                0
+            );
+
+        margin-left:
+            var(
+                --bp-block-mobile-margin-left,
+                auto
+            );
+
+        padding-top:
+            var(
+                --bp-block-mobile-padding-top,
+                0
+            );
+
+        padding-right:
+            var(
+                --bp-block-mobile-padding-right,
+                0
+            );
+
+        padding-bottom:
+            var(
+                --bp-block-mobile-padding-bottom,
+                0
+            );
+
+        padding-left:
+            var(
+                --bp-block-mobile-padding-left,
+                0
+            );
+    }
+}
+
+/*
+ * Im Editor bleiben ausgeblendete Blöcke sichtbar.
+ */
+
+.bp-builder-viewport__frame[data-viewport="desktop"]
+.bp-rendered-block--hide-desktop.bp-rendered-block--editor,
+.bp-builder-viewport__frame[data-viewport="tablet"]
+.bp-rendered-block--hide-tablet.bp-rendered-block--editor,
+.bp-builder-viewport__frame[data-viewport="mobile"]
+.bp-rendered-block--hide-mobile.bp-rendered-block--editor {
+    opacity: .52;
+
+    outline:
+        2px dashed
+        rgba(245, 158, 11, .58);
+
+    outline-offset: -2px;
+}
+
+/*
+ * Auf Website und Vorschau werden verborgene Blöcke
+ * vollständig entfernt.
+ */
+
+@media (
+    min-width: 1200px
+) {
+    .bp-rendered-block--hide-desktop:not(
+        .bp-rendered-block--editor
+    ) {
+        display: none !important;
+    }
+}
+
+@media (
+    min-width: 768px
+) and (
+    max-width: 1199.98px
+) {
+    .bp-rendered-block--hide-tablet:not(
+        .bp-rendered-block--editor
+    ) {
+        display: none !important;
+    }
+}
+
+@media (
+    max-width: 767.98px
+) {
+    .bp-rendered-block--hide-mobile:not(
+        .bp-rendered-block--editor
+    ) {
+        display: none !important;
+    }
+}
+
+.bp-rendered-block__unknown {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+
+    margin:
+        20px;
+
+    padding:
+        18px;
+
+    color: #991b1b;
+
+    background: #fff1f2;
+
+    border:
+        1px solid
+        #fecaca;
+
+    border-radius: 12px;
+}
+
+.bp-rendered-block__unknown
+> i {
+    color: #dc2626;
+
+    font-size: 20px;
+}
+
+.bp-rendered-block__unknown strong,
+.bp-rendered-block__unknown span {
+    display: block;
+}
+
+.bp-rendered-block__unknown strong {
+    font-size: 14px;
+}
+
+.bp-rendered-block__unknown span {
+    margin-top: 4px;
+
+    color: #b91c1c;
+
+    font-size: 12px;
+}
+
+@media (
+    prefers-reduced-motion: reduce
+) {
+    .bp-rendered-block {
+        scroll-behavior: auto;
+    }
+}

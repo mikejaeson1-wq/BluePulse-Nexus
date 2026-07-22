@@ -25,6 +25,10 @@ import {
 import ThemeContext from "@website/theme/ThemeContext";
 import defaultTheme from "@website/theme/defaultTheme";
 
+import {
+    useBuilderViewport
+} from "../context/BuilderViewportContext";
+
 import BuilderLivePreview from "./BuilderLivePreview";
 import BuilderViewportToolbar from "./BuilderViewportToolbar";
 import SortableBlock from "./SortableBlock";
@@ -149,6 +153,16 @@ const DEFAULT_PREFERENCES = {
     }
 };
 
+function isValidViewport(
+    viewportId
+) {
+    return VIEWPORTS.some(
+        (viewport) =>
+            viewport.id ===
+            viewportId
+    );
+}
+
 function clampZoom(
     value
 ) {
@@ -214,10 +228,8 @@ function normalizePreferences(
     value
 ) {
     const activeViewport =
-        VIEWPORTS.some(
-            (viewport) =>
-                viewport.id ===
-                value?.activeViewport
+        isValidViewport(
+            value?.activeViewport
         )
             ? value.activeViewport
             : DEFAULT_PREFERENCES
@@ -415,6 +427,15 @@ export default function Canvas({
     const viewportRef =
         useRef(null);
 
+    const {
+        activeViewport:
+            synchronizedViewport,
+
+        setActiveViewport:
+            setSynchronizedViewport
+    } =
+        useBuilderViewport();
+
     const [
         preferences,
         setPreferences
@@ -454,19 +475,25 @@ export default function Canvas({
             )
         );
 
+    const resolvedViewportId =
+        isValidViewport(
+            synchronizedViewport
+        )
+            ? synchronizedViewport
+            : preferences
+                .activeViewport;
+
     const currentViewport =
         useMemo(
             () =>
                 VIEWPORTS.find(
                     (viewport) =>
                         viewport.id ===
-                        preferences
-                            .activeViewport
+                        resolvedViewportId
                 ) ??
                 VIEWPORTS[0],
             [
-                preferences
-                    .activeViewport
+                resolvedViewportId
             ]
         );
 
@@ -556,6 +583,48 @@ export default function Canvas({
             },
             []
         );
+
+    useEffect(() => {
+        if (
+            synchronizedViewport
+        ) {
+            return;
+        }
+
+        setSynchronizedViewport(
+            preferences.activeViewport
+        );
+    }, [
+        preferences.activeViewport,
+        setSynchronizedViewport,
+        synchronizedViewport
+    ]);
+
+    useEffect(() => {
+        if (
+            !isValidViewport(
+                synchronizedViewport
+            ) ||
+            synchronizedViewport ===
+                preferences.activeViewport
+        ) {
+            return;
+        }
+
+        setPreferences(
+            (
+                currentPreferences
+            ) => ({
+                ...currentPreferences,
+
+                activeViewport:
+                    synchronizedViewport
+            })
+        );
+    }, [
+        preferences.activeViewport,
+        synchronizedViewport
+    ]);
 
     useEffect(() => {
         savePreferences(
@@ -709,6 +778,18 @@ export default function Canvas({
     function changeViewport(
         viewportId
     ) {
+        if (
+            !isValidViewport(
+                viewportId
+            )
+        ) {
+            return;
+        }
+
+        setSynchronizedViewport(
+            viewportId
+        );
+
         setPreferences(
             (
                 currentPreferences
@@ -756,8 +837,7 @@ export default function Canvas({
                         .zoomLevels,
 
                     [
-                        currentPreferences
-                            .activeViewport
+                        currentViewport.id
                     ]:
                         clampZoom(
                             nextZoom
@@ -850,7 +930,7 @@ export default function Canvas({
             await canvasRef.current
                 ?.requestFullscreen();
         } catch (
-            error
+        error
         ) {
             console.error(
                 "Der Vollbildmodus konnte nicht geändert werden.",

@@ -8,6 +8,10 @@ import {
 import "../registry/registerBlocks";
 
 import {
+    BuilderViewportProvider
+} from "../context/BuilderViewportContext";
+
+import {
     getBlock
 } from "../registry/blockRegistry";
 
@@ -80,7 +84,7 @@ function getSelectedBlockLabel(
     return `${blockName} · ${blockType}`;
 }
 
-export default function Builder({
+function BuilderContent({
     initialPage,
     onSave,
     onPublish,
@@ -387,6 +391,15 @@ export default function Builder({
                             block={
                                 builder.selectedBlock
                             }
+                            blocks={
+                                builder.blocks
+                            }
+                            selectedId={
+                                builder.selectedId
+                            }
+                            onSelect={
+                                builder.setSelectedId
+                            }
                             onChange={
                                 builder.updateBlock
                             }
@@ -454,5 +467,19 @@ export default function Builder({
                 }
             />
         </>
+    );
+}
+
+export default function Builder(
+    props
+) {
+    return (
+        <BuilderViewportProvider>
+            <BuilderContent
+                {
+                    ...props
+                }
+            />
+        </BuilderViewportProvider>
     );
 }

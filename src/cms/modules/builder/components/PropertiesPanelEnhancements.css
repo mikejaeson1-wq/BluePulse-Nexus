@@ -1,0 +1,232 @@
+.builder-block-inspector__sticky {
+    position: sticky;
+    top: 0;
+    z-index: 28;
+
+    background:
+        rgba(15, 23, 42, .985);
+
+    border-radius:
+        15px 15px 0 0;
+
+    box-shadow:
+        0 12px 30px
+        rgba(2, 6, 23, .18);
+
+    backdrop-filter:
+        blur(15px);
+}
+
+.builder-block-inspector__sticky
+.builder-block-inspector__tabs {
+    position: relative;
+    top: auto;
+}
+
+.builder-block-inspector__status-bar {
+    min-height: 43px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+
+    padding:
+        7px 9px;
+
+    background:
+        rgba(2, 6, 23, .34);
+
+    border-bottom:
+        1px solid
+        rgba(148, 163, 184, .08);
+}
+
+.builder-block-inspector__status-facts {
+    min-width: 0;
+
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.builder-block-inspector__status-chip {
+    min-width: 0;
+    height: 25px;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+
+    padding:
+        0 7px;
+
+    overflow: hidden;
+
+    color: #94a3b8;
+
+    background:
+        rgba(15, 23, 42, .66);
+
+    border:
+        1px solid
+        rgba(148, 163, 184, .1);
+
+    border-radius: 7px;
+
+    font-size: 8px;
+    font-weight: 750;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+}
+
+.builder-block-inspector__status-chip i {
+    flex: 0 0 auto;
+
+    color: #38bdf8;
+}
+
+.builder-block-inspector__status-chip--visible {
+    color: #86efac;
+
+    background:
+        rgba(34, 197, 94, .07);
+
+    border-color:
+        rgba(74, 222, 128, .13);
+}
+
+.builder-block-inspector__status-chip--visible i {
+    color: #4ade80;
+}
+
+.builder-block-inspector__status-chip--warning {
+    color: #fcd34d;
+
+    background:
+        rgba(245, 158, 11, .08);
+
+    border-color:
+        rgba(251, 191, 36, .15);
+}
+
+.builder-block-inspector__status-chip--warning i {
+    color: #f59e0b;
+}
+
+.builder-block-inspector__status-navigation {
+    flex: 0 0 auto;
+
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.builder-block-inspector__status-navigation button {
+    width: 28px;
+    height: 28px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+
+    color: #94a3b8;
+
+    background:
+        rgba(148, 163, 184, .06);
+
+    border:
+        1px solid
+        rgba(148, 163, 184, .1);
+
+    border-radius: 8px;
+
+    font: inherit;
+
+    cursor: pointer;
+
+    transition:
+        color .15s ease,
+        background .15s ease,
+        border-color .15s ease,
+        transform .15s ease;
+}
+
+.builder-block-inspector__status-navigation button:hover:not(:disabled) {
+    color: #e0f2fe;
+
+    background:
+        rgba(14, 165, 233, .13);
+
+    border-color:
+        rgba(56, 189, 248, .25);
+
+    transform:
+        translateY(-1px);
+}
+
+.builder-block-inspector__status-navigation button:focus-visible {
+    outline:
+        2px solid
+        #38bdf8;
+
+    outline-offset: 1px;
+}
+
+.builder-block-inspector__status-navigation button:disabled {
+    color: #334155;
+
+    background:
+        rgba(15, 23, 42, .34);
+
+    cursor: not-allowed;
+}
+
+.builder-block-inspector__panel {
+    position: relative;
+    z-index: 1;
+}
+
+@media (
+    max-width: 1450px
+) {
+    .builder-block-inspector__status-bar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .builder-block-inspector__status-navigation {
+        align-self: flex-end;
+    }
+}
+
+@media (
+    max-width: 1180px
+) {
+    .builder-block-inspector__status-bar {
+        align-items: center;
+        flex-direction: row;
+    }
+
+    .builder-block-inspector__status-navigation {
+        align-self: auto;
+    }
+}
+
+@media (
+    max-width: 500px
+) {
+    .builder-block-inspector__status-bar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .builder-block-inspector__status-navigation {
+        align-self: flex-end;
+    }
+}

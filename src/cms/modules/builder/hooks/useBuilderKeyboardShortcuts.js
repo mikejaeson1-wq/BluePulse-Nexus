@@ -2,7 +2,7 @@ import {
     useEffect
 } from "react";
 
-function isEditableTarget(
+function isInteractiveTarget(
     target
 ) {
     if (
@@ -19,9 +19,14 @@ function isEditableTarget(
                 "input",
                 "textarea",
                 "select",
+                "button",
+                "a[href]",
                 "[contenteditable='true']",
                 "[contenteditable='']",
-                "[role='textbox']"
+                "[role='textbox']",
+                "[role='tab']",
+                "[role='button']",
+                "[role='dialog']"
             ].join(
                 ","
             )
@@ -71,7 +76,7 @@ export default function useBuilderKeyboardShortcuts({
         ) {
             if (
                 event.defaultPrevented ||
-                isEditableTarget(
+                isInteractiveTarget(
                     event.target
                 )
             ) {
