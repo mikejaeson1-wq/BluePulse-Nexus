@@ -1,0 +1,101 @@
+.bp-divider {
+    width:
+        var(
+            --bp-divider-width,
+            100%
+        );
+
+    margin-inline: auto;
+
+    padding-top:
+        var(
+            --bp-divider-spacing-top,
+            36px
+        );
+
+    padding-bottom:
+        var(
+            --bp-divider-spacing-bottom,
+            36px
+        );
+}
+
+.bp-divider__line {
+    display: block;
+
+    width: 100%;
+
+    border-top-width:
+        var(
+            --bp-divider-thickness,
+            1px
+        );
+
+    border-top-color:
+        var(
+            --bp-divider-color,
+            #334155
+        );
+
+    border-top-style: solid;
+}
+
+.bp-divider--dashed
+.bp-divider__line {
+    border-top-style: dashed;
+}
+
+.bp-divider--dotted
+.bp-divider__line {
+    border-top-style: dotted;
+}
+
+.bp-divider--gradient
+.bp-divider__line {
+    height:
+        var(
+            --bp-divider-thickness,
+            1px
+        );
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            var(
+                --bp-divider-color,
+                #334155
+            ),
+            transparent
+        );
+
+    border: 0;
+}
+
+.bp-divider__labeled {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.bp-divider__labeled
+.bp-divider__line {
+    flex: 1;
+}
+
+.bp-divider__label {
+    flex: 0 0 auto;
+
+    color:
+        var(
+            --bp-divider-color,
+            #334155
+        );
+
+    font-size: 11px;
+    font-weight: 800;
+
+    letter-spacing: .12em;
+
+    text-transform: uppercase;
+}
