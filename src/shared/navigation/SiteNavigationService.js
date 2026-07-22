@@ -6,27 +6,42 @@ const STORAGE_KEY =
 const CHANGE_EVENT =
     "bluepulse:site-navigation-change";
 
-const DEFAULT_ITEM_IDS = new Set(
-    siteNavigationDefaults.items.map(
-        (item) => item.id
-    )
-);
+const DEFAULT_ITEM_IDS =
+    new Set(
+        siteNavigationDefaults.items.map(
+            (item) =>
+                item.id
+        )
+    );
 
-function cloneValue(value) {
+function cloneValue(
+    value
+) {
     if (
-        typeof globalThis.structuredClone ===
+        typeof globalThis
+            .structuredClone ===
         "function"
     ) {
-        return globalThis.structuredClone(value);
+        return globalThis
+            .structuredClone(
+                value
+            );
     }
 
     return JSON.parse(
-        JSON.stringify(value)
+        JSON.stringify(
+            value
+        )
     );
 }
 
-function createId(prefix = "navigation") {
-    if (globalThis.crypto?.randomUUID) {
+function createId(
+    prefix = "navigation"
+) {
+    if (
+        globalThis.crypto
+            ?.randomUUID
+    ) {
         return `${prefix}-${globalThis.crypto.randomUUID()}`;
     }
 
@@ -35,8 +50,11 @@ function createId(prefix = "navigation") {
         .slice(2)}`;
 }
 
-function normalizeTarget(target) {
-    return target === "_blank"
+function normalizeTarget(
+    target
+) {
+    return target ===
+        "_blank"
         ? "_blank"
         : "_self";
 }
@@ -45,7 +63,10 @@ function normalizeText(
     value,
     fallback = ""
 ) {
-    if (typeof value !== "string") {
+    if (
+        typeof value !==
+        "string"
+    ) {
         return fallback;
     }
 
@@ -61,10 +82,13 @@ function normalizeItem(
         normalizeText(
             item?.id,
             fallback.id
-        ) || createId();
+        ) ||
+        createId();
 
     const numericOrder =
-        Number(item?.order);
+        Number(
+            item?.order
+        );
 
     return {
         id,
@@ -73,17 +97,25 @@ function normalizeItem(
             normalizeText(
                 item?.label,
                 fallback.label
-            ) || "Unbenannter Link",
+            ) ||
+            "Unbenannter Link",
 
         href:
-            typeof item?.href === "string"
+            typeof item?.href ===
+                "string"
                 ? item.href.trim()
-                : fallback.href ?? "",
+                : fallback.href ??
+                    "",
 
         enabled:
-            item?.enabled !== undefined
-                ? Boolean(item.enabled)
-                : Boolean(fallback.enabled),
+            item?.enabled !==
+                undefined
+                ? Boolean(
+                    item.enabled
+                )
+                : Boolean(
+                    fallback.enabled
+                ),
 
         target:
             normalizeTarget(
@@ -92,37 +124,62 @@ function normalizeItem(
             ),
 
         order:
-            Number.isFinite(numericOrder)
+            Number.isFinite(
+                numericOrder
+            )
                 ? numericOrder
                 : fallback.order ??
-                    (index + 1) * 10,
+                    (
+                        index +
+                        1
+                    ) *
+                    10,
 
         parentId:
             normalizeText(
                 item?.parentId,
                 fallback.parentId
-            ) || null,
+            ) ||
+            null,
 
         source:
             normalizeText(
                 item?.source,
                 fallback.source
-            ) || "custom",
+            ) ||
+            "custom",
 
         sourceId:
             normalizeText(
                 item?.sourceId,
                 fallback.sourceId
-            ) || null,
+            ) ||
+            null,
 
         removable:
-            item?.removable !== undefined
-                ? Boolean(item.removable)
-                : fallback.removable !== undefined
+            item?.removable !==
+                undefined
+                ? Boolean(
+                    item.removable
+                )
+                : fallback.removable !==
+                    undefined
                     ? Boolean(
                         fallback.removable
                     )
-                    : !DEFAULT_ITEM_IDS.has(id)
+                    : !DEFAULT_ITEM_IDS.has(
+                        id
+                    ),
+
+        highlighted:
+            item?.highlighted !==
+                undefined
+                ? Boolean(
+                    item.highlighted
+                )
+                : Boolean(
+                    fallback.highlighted
+                )
     };
 }
 
@@ -135,17 +192,27 @@ function wouldCreateCycle(
     }
 
     const visited =
-        new Set([item.id]);
+        new Set([
+            item.id
+        ]);
 
     let currentParentId =
         item.parentId;
 
-    while (currentParentId) {
-        if (visited.has(currentParentId)) {
+    while (
+        currentParentId
+    ) {
+        if (
+            visited.has(
+                currentParentId
+            )
+        ) {
             return true;
         }
 
-        visited.add(currentParentId);
+        visited.add(
+            currentParentId
+        );
 
         const parent =
             itemMap.get(
@@ -163,53 +230,82 @@ function wouldCreateCycle(
     return false;
 }
 
-function normalizeOrders(items) {
+function normalizeOrders(
+    items
+) {
     const groups =
         new Map();
 
-    items.forEach((item) => {
-        const groupKey =
-            item.parentId ?? "__root__";
+    items.forEach(
+        (item) => {
+            const groupKey =
+                item.parentId ??
+                "__root__";
 
-        if (!groups.has(groupKey)) {
-            groups.set(
-                groupKey,
-                []
-            );
+            if (
+                !groups.has(
+                    groupKey
+                )
+            ) {
+                groups.set(
+                    groupKey,
+                    []
+                );
+            }
+
+            groups
+                .get(
+                    groupKey
+                )
+                .push(
+                    item
+                );
         }
+    );
 
-        groups.get(groupKey).push(item);
-    });
-
-    groups.forEach((groupItems) => {
-        groupItems
-            .sort(
-                (
-                    firstItem,
-                    secondItem
-                ) =>
-                    firstItem.order -
-                    secondItem.order
-            )
-            .forEach(
-                (item, index) => {
-                    item.order =
-                        (index + 1) * 10;
-                }
-            );
-    });
+    groups.forEach(
+        (groupItems) => {
+            groupItems
+                .sort(
+                    (
+                        firstItem,
+                        secondItem
+                    ) =>
+                        firstItem.order -
+                        secondItem.order
+                )
+                .forEach(
+                    (
+                        item,
+                        index
+                    ) => {
+                        item.order =
+                            (
+                                index +
+                                1
+                            ) *
+                            10;
+                    }
+                );
+        }
+    );
 
     return items;
 }
 
-function normalizeNavigation(value = {}) {
+function normalizeNavigation(
+    value = {}
+) {
     const storedItems =
-        Array.isArray(value.items)
+        Array.isArray(
+            value.items
+        )
             ? value.items
             : [];
 
     const defaultItems =
-        siteNavigationDefaults.items;
+        siteNavigationDefaults
+            .items;
 
     const normalizedDefaults =
         defaultItems.map(
@@ -241,7 +337,10 @@ function normalizeNavigation(value = {}) {
                     )
             )
             .map(
-                (item, index) =>
+                (
+                    item,
+                    index
+                ) =>
                     normalizeItem(
                         item,
                         {},
@@ -258,26 +357,33 @@ function normalizeNavigation(value = {}) {
     const itemIds =
         new Set(
             items.map(
-                (item) => item.id
+                (item) =>
+                    item.id
             )
         );
 
-    items = items.map((item) => {
-        if (
-            !item.parentId ||
-            !itemIds.has(
-                item.parentId
-            ) ||
-            item.parentId === item.id
-        ) {
-            return {
-                ...item,
-                parentId: null
-            };
-        }
+    items =
+        items.map(
+            (item) => {
+                if (
+                    !item.parentId ||
+                    !itemIds.has(
+                        item.parentId
+                    ) ||
+                    item.parentId ===
+                        item.id
+                ) {
+                    return {
+                        ...item,
 
-        return item;
-    });
+                        parentId:
+                            null
+                    };
+                }
+
+                return item;
+            }
+        );
 
     const itemMap =
         new Map(
@@ -289,25 +395,31 @@ function normalizeNavigation(value = {}) {
             )
         );
 
-    items = items.map((item) => {
-        if (
-            wouldCreateCycle(
-                item,
-                itemMap
-            )
-        ) {
-            return {
-                ...item,
-                parentId: null
-            };
-        }
+    items =
+        items.map(
+            (item) => {
+                if (
+                    wouldCreateCycle(
+                        item,
+                        itemMap
+                    )
+                ) {
+                    return {
+                        ...item,
 
-        return item;
-    });
+                        parentId:
+                            null
+                    };
+                }
 
-    items = normalizeOrders(
-        items
-    );
+                return item;
+            }
+        );
+
+    items =
+        normalizeOrders(
+            items
+        );
 
     const cta =
         normalizeItem(
@@ -318,19 +430,30 @@ function normalizeNavigation(value = {}) {
 
     return {
         items,
+
         cta: {
-            id: cta.id,
-            label: cta.label,
-            href: cta.href,
-            enabled: cta.enabled,
-            target: cta.target
+            id:
+                cta.id,
+
+            label:
+                cta.label,
+
+            href:
+                cta.href,
+
+            enabled:
+                cta.enabled,
+
+            target:
+                cta.target
         }
     };
 }
 
 function readStoredNavigation() {
     if (
-        typeof globalThis.localStorage ===
+        typeof globalThis
+            .localStorage ===
         "undefined"
     ) {
         return null;
@@ -338,9 +461,10 @@ function readStoredNavigation() {
 
     try {
         const storedValue =
-            globalThis.localStorage.getItem(
-                STORAGE_KEY
-            );
+            globalThis.localStorage
+                .getItem(
+                    STORAGE_KEY
+                );
 
         if (!storedValue) {
             return null;
@@ -349,7 +473,9 @@ function readStoredNavigation() {
         return JSON.parse(
             storedValue
         );
-    } catch (error) {
+    } catch (
+        error
+    ) {
         console.error(
             "Navigation konnte nicht geladen werden.",
             error
@@ -359,33 +485,41 @@ function readStoredNavigation() {
     }
 }
 
-function writeNavigation(navigation) {
+function writeNavigation(
+    navigation
+) {
     if (
-        typeof globalThis.localStorage ===
+        typeof globalThis
+            .localStorage ===
         "undefined"
     ) {
         return;
     }
 
-    globalThis.localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(navigation)
-    );
+    globalThis.localStorage
+        .setItem(
+            STORAGE_KEY,
+            JSON.stringify(
+                navigation
+            )
+        );
 }
 
 function emitNavigationChange() {
     if (
-        typeof globalThis.window ===
+        typeof globalThis
+            .window ===
         "undefined"
     ) {
         return;
     }
 
-    globalThis.window.dispatchEvent(
-        new CustomEvent(
-            CHANGE_EVENT
-        )
-    );
+    globalThis.window
+        .dispatchEvent(
+            new CustomEvent(
+                CHANGE_EVENT
+            )
+        );
 }
 
 export function getSiteNavigation() {
@@ -435,7 +569,8 @@ export function subscribeToSiteNavigation(
     listener
 ) {
     if (
-        typeof globalThis.window ===
+        typeof globalThis
+            .window ===
         "undefined"
     ) {
         return () => {};
@@ -447,7 +582,9 @@ export function subscribeToSiteNavigation(
         );
     }
 
-    function handleStorageChange(event) {
+    function handleStorageChange(
+        event
+    ) {
         if (
             event.key !==
             STORAGE_KEY
@@ -458,25 +595,29 @@ export function subscribeToSiteNavigation(
         handleNavigationChange();
     }
 
-    globalThis.window.addEventListener(
-        CHANGE_EVENT,
-        handleNavigationChange
-    );
-
-    globalThis.window.addEventListener(
-        "storage",
-        handleStorageChange
-    );
-
-    return () => {
-        globalThis.window.removeEventListener(
+    globalThis.window
+        .addEventListener(
             CHANGE_EVENT,
             handleNavigationChange
         );
 
-        globalThis.window.removeEventListener(
+    globalThis.window
+        .addEventListener(
             "storage",
             handleStorageChange
         );
+
+    return () => {
+        globalThis.window
+            .removeEventListener(
+                CHANGE_EVENT,
+                handleNavigationChange
+            );
+
+        globalThis.window
+            .removeEventListener(
+                "storage",
+                handleStorageChange
+            );
     };
 }

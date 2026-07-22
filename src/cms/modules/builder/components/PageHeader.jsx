@@ -5,6 +5,7 @@ export default function PageHeader({
     onSave,
     onPublish,
     onPreview,
+    onSettings,
     onUndo,
     onRedo,
     canUndo = false,
@@ -13,7 +14,8 @@ export default function PageHeader({
     isPublishing = false
 }) {
     const statusLabel =
-        page.status === "published"
+        page.status ===
+        "published"
             ? "Veröffentlicht"
             : "Entwurf";
 
@@ -21,42 +23,76 @@ export default function PageHeader({
         <header className="bp-page-header">
             <div className="bp-page-header-left">
                 <h1>
-                    {page.title}
+                    {
+                        page.title
+                    }
                 </h1>
 
                 <small>
-                    Status: {statusLabel}
+                    Status: {
+                        statusLabel
+                    } · /{
+                        page.slug
+                    }
                 </small>
             </div>
 
             <div className="bp-page-header-right">
                 <button
                     type="button"
-                    onClick={onUndo}
-                    disabled={!canUndo}
+                    onClick={
+                        onUndo
+                    }
+                    disabled={
+                        !canUndo
+                    }
                 >
                     ↶ Rückgängig
                 </button>
 
                 <button
                     type="button"
-                    onClick={onRedo}
-                    disabled={!canRedo}
+                    onClick={
+                        onRedo
+                    }
+                    disabled={
+                        !canRedo
+                    }
                 >
                     ↷ Wiederholen
                 </button>
 
                 <button
                     type="button"
-                    onClick={onPreview}
+                    onClick={
+                        onSettings
+                    }
+                >
+                    <i
+                        className="bi bi-sliders me-1"
+                        aria-hidden="true"
+                    />
+
+                    Einstellungen
+                </button>
+
+                <button
+                    type="button"
+                    onClick={
+                        onPreview
+                    }
                 >
                     Vorschau
                 </button>
 
                 <button
                     type="button"
-                    onClick={onSave}
-                    disabled={isSaving}
+                    onClick={
+                        onSave
+                    }
+                    disabled={
+                        isSaving
+                    }
                 >
                     {
                         isSaving
@@ -67,8 +103,12 @@ export default function PageHeader({
 
                 <button
                     type="button"
-                    onClick={onPublish}
-                    disabled={isPublishing}
+                    onClick={
+                        onPublish
+                    }
+                    disabled={
+                        isPublishing
+                    }
                 >
                     {
                         isPublishing

@@ -35,104 +35,226 @@ const ALL_ROLES = [
 
 const NAVIGATION_ITEMS = [
     {
-        to: "/admin",
-        end: true,
-        icon: "bi-speedometer2",
-        label: "Dashboard",
+        to:
+            "/admin",
+
+        end:
+            true,
+
+        icon:
+            "bi-speedometer2",
+
+        label:
+            "Dashboard",
+
         roles:
             CONTENT_ROLES
     },
 
     {
-        to: "/admin/pages",
-        end: true,
-        icon: "bi-file-earmark-text",
-        label: "Seiten",
+        to:
+            "/admin/pages",
+
+        end:
+            true,
+
+        icon:
+            "bi-file-earmark-text",
+
+        label:
+            "Seiten",
+
         roles:
             CONTENT_ROLES
     },
 
     {
-        to: "/admin/pages/trash",
-        end: true,
-        icon: "bi-trash3",
-        label: "Papierkorb",
+        to:
+            "/admin/pages/trash",
+
+        end:
+            true,
+
+        icon:
+            "bi-trash3",
+
+        label:
+            "Papierkorb",
+
         roles:
             CONTENT_ROLES
     },
 
     {
-        to: "/admin/home-layout",
-        icon: "bi-grid-1x2",
-        label: "Startseiten-Layout",
+        to:
+            "/admin/home-layout",
+
+        end:
+            true,
+
+        icon:
+            "bi-grid-1x2",
+
+        label:
+            "Startseiten-Layout",
+
         roles:
             CONTENT_ROLES
     },
 
     {
-        to: "/admin/footer",
-        icon: "bi-layout-text-window-reverse",
-        label: "Footer",
+        to:
+            "/admin/footer",
+
+        end:
+            true,
+
+        icon:
+            "bi-layout-text-window-reverse",
+
+        label:
+            "Footer",
+
         roles:
             CONTENT_ROLES
     },
 
     {
-        to: "/admin/media",
-        icon: "bi-images",
-        label: "Medien",
+        to:
+            "/admin/media",
+
+        end:
+            true,
+
+        icon:
+            "bi-images",
+
+        label:
+            "Medien",
+
         roles:
             ALL_ROLES
     },
 
     {
-        to: "/admin/media-migration",
-        icon: "bi-cloud-arrow-up",
-        label: "Medienmigration",
+        to:
+            "/admin/media-migration",
+
+        end:
+            true,
+
+        icon:
+            "bi-cloud-arrow-up",
+
+        label:
+            "Medienmigration",
+
         roles: [
             ADMINISTRATOR
         ]
     },
 
     {
-        to: "/admin/backups",
-        icon: "bi-cloud-arrow-down",
-        label: "Sicherungen",
+        to:
+            "/admin/backups",
+
+        end:
+            true,
+
+        icon:
+            "bi-cloud-arrow-down",
+
+        label:
+            "Sicherungen",
+
         roles:
             CONTENT_ROLES
     },
 
     {
-        to: "/admin/data-migration",
-        icon: "bi-database-up",
-        label: "Datenmigration",
+        to:
+            "/admin/data-migration",
+
+        end:
+            true,
+
+        icon:
+            "bi-database-up",
+
+        label:
+            "Datenmigration",
+
         roles: [
             ADMINISTRATOR
         ]
     },
 
     {
-        to: "/admin/audit",
-        icon: "bi-clock-history",
-        label: "Aktivitäten",
+        to:
+            "/admin/audit",
+
+        end:
+            true,
+
+        icon:
+            "bi-clock-history",
+
+        label:
+            "Aktivitäten",
+
         roles: [
             ADMINISTRATOR
         ]
     },
 
     {
-        to: "/admin/users",
-        icon: "bi-people",
-        label: "Benutzer",
+        to:
+            "/admin/users",
+
+        end:
+            true,
+
+        icon:
+            "bi-people",
+
+        label:
+            "Benutzer",
+
         roles: [
             ADMINISTRATOR
         ]
     },
 
     {
-        to: "/admin/settings",
-        icon: "bi-gear",
-        label: "Einstellungen",
+        to:
+            "/admin/settings",
+
+        end:
+            true,
+
+        icon:
+            "bi-gear",
+
+        label:
+            "Einstellungen",
+
+        roles:
+            CONTENT_ROLES
+    },
+
+    {
+        to:
+            "/admin/settings/navigation-sync",
+
+        end:
+            true,
+
+        icon:
+            "bi-diagram-3",
+
+        label:
+            "Navigationsprüfung",
+
         roles:
             CONTENT_ROLES
     }

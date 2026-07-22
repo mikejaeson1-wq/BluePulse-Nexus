@@ -22,6 +22,8 @@ import {
 
 import AdminLayout from "@cms/modules/dashboard/admin/layouts/AdminLayout";
 
+import SettingsNavigationLayout from "@cms/modules/dashboard/admin/layouts/SettingsNavigationLayout";
+
 import Dashboard from "@cms/modules/dashboard/admin/pages/Dashboard";
 import Pages from "@cms/modules/dashboard/admin/pages/Pages";
 import PageTrash from "@cms/modules/dashboard/admin/pages/PageTrash";
@@ -35,6 +37,7 @@ import DataMigration from "@cms/modules/dashboard/admin/pages/DataMigration";
 import AuditLog from "@cms/modules/dashboard/admin/pages/AuditLog";
 import Users from "@cms/modules/dashboard/admin/pages/Users";
 import Settings from "@cms/modules/dashboard/admin/pages/Settings";
+import NavigationSync from "@cms/modules/dashboard/admin/pages/NavigationSync";
 
 import PagePreview from "@cms/modules/pages/pages/PagePreview";
 import WebsiteSectionEditor from "@cms/modules/pages/pages/WebsiteSectionEditor";
@@ -289,10 +292,24 @@ export default function App() {
                                 CONTENT_ROLES
                             }
                         >
-                            <Settings />
+                            <SettingsNavigationLayout />
                         </RoleRoute>
                     }
-                />
+                >
+                    <Route
+                        index
+                        element={
+                            <Settings />
+                        }
+                    />
+
+                    <Route
+                        path="navigation-sync"
+                        element={
+                            <NavigationSync />
+                        }
+                    />
+                </Route>
 
                 <Route
                     path="*"

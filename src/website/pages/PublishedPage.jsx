@@ -14,31 +14,43 @@ import {
     getPublishedPageBySlug
 } from "@cms/modules/pages/services/pageService";
 
+import {
+    applyPageDocumentMetadata
+} from "@shared/pages/documentMetadata";
+
 export default function PublishedPage() {
     const {
         slug
-    } = useParams();
+    } =
+        useParams();
 
     const [
         page,
         setPage
-    ] = useState(null);
+    ] =
+        useState(null);
 
     const [
         loading,
         setLoading
-    ] = useState(true);
+    ] =
+        useState(true);
 
     const [
         error,
         setError
-    ] = useState("");
+    ] =
+        useState("");
 
     useEffect(() => {
-        let active = true;
+        let active =
+            true;
 
         async function loadPage() {
-            setLoading(true);
+            setLoading(
+                true
+            );
+
             setError("");
 
             try {
@@ -55,12 +67,16 @@ export default function PublishedPage() {
                         null
                     );
                 }
-            } catch (loadError) {
+            } catch (
+                loadError
+            ) {
                 if (!active) {
                     return;
                 }
 
-                setPage(null);
+                setPage(
+                    null
+                );
 
                 if (
                     loadError.status !==
@@ -73,7 +89,9 @@ export default function PublishedPage() {
                 }
             } finally {
                 if (active) {
-                    setLoading(false);
+                    setLoading(
+                        false
+                    );
                 }
             }
         }
@@ -81,29 +99,27 @@ export default function PublishedPage() {
         loadPage();
 
         return () => {
-            active = false;
+            active =
+                false;
         };
-    }, [slug]);
+    }, [
+        slug
+    ]);
 
     useEffect(() => {
         if (
             page?.status !==
             "published"
         ) {
-            return;
+            return undefined;
         }
 
-        const previousTitle =
-            document.title;
-
-        document.title =
-            page.title;
-
-        return () => {
-            document.title =
-                previousTitle;
-        };
-    }, [page]);
+        return applyPageDocumentMetadata(
+            page
+        );
+    }, [
+        page
+    ]);
 
     if (loading) {
         return (
@@ -123,7 +139,9 @@ export default function PublishedPage() {
         return (
             <main className="container py-5 text-light">
                 <div className="alert alert-danger">
-                    {error}
+                    {
+                        error
+                    }
                 </div>
             </main>
         );
@@ -132,7 +150,7 @@ export default function PublishedPage() {
     if (
         !page ||
         page.status !==
-            "published"
+        "published"
     ) {
         return (
             <Navigate
@@ -144,7 +162,9 @@ export default function PublishedPage() {
 
     return (
         <WebsiteRenderer
-            page={page}
+            page={
+                page
+            }
             mode="website"
         />
     );

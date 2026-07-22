@@ -14,6 +14,10 @@ import {
 } from "./audit/auditHook.js";
 
 import {
+    registerPageNavigationHook
+} from "./navigation/pageNavigationHook.js";
+
+import {
     createDatabasePool
 } from "./database/database.js";
 
@@ -94,6 +98,10 @@ export function buildApp({
             required:
                 authenticationRequired
         }
+    );
+
+    registerPageNavigationHook(
+        fastify
     );
 
     registerAuditHook(

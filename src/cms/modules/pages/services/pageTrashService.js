@@ -4,10 +4,60 @@ import {
     apiPost
 } from "@shared/data/api/apiClient";
 
-function encodeValue(value) {
+import {
+    removePageNavigation,
+    synchronizePageNavigation
+} from "@shared/navigation/pageNavigationSync";
+
+function encodeValue(
+    value
+) {
     return encodeURIComponent(
-        String(value ?? "")
+        String(
+            value ??
+            ""
+        )
     );
+}
+
+async function synchronizeRestoredPage(
+    page
+) {
+    if (!page?.id) {
+        return page;
+    }
+
+    try {
+        await synchronizePageNavigation(
+            page
+        );
+    } catch (
+        synchronizationError
+    ) {
+        console.error(
+            "Die Navigation der wiederhergestellten Seite konnte nicht synchronisiert werden.",
+            synchronizationError
+        );
+    }
+
+    return page;
+}
+
+async function removeDeletedPageNavigation(
+    pageId
+) {
+    try {
+        await removePageNavigation(
+            pageId
+        );
+    } catch (
+        synchronizationError
+    ) {
+        console.error(
+            "Der Navigationspunkt der endgültig gelöschten Seite konnte nicht entfernt werden.",
+            synchronizationError
+        );
+    }
 }
 
 export async function listDeletedPages({
@@ -31,11 +81,16 @@ export async function listDeletedPages({
 export async function restoreDeletedPage(
     pageId
 ) {
-    return apiPost(
-        `/admin/pages/${encodeValue(
-            pageId
-        )}/restore`,
-        {}
+    const restoredPage =
+        await apiPost(
+            `/admin/pages/${encodeValue(
+                pageId
+            )}/restore`,
+            {}
+        );
+
+    return synchronizeRestoredPage(
+        restoredPage
     );
 }
 
@@ -46,6 +101,10 @@ export async function permanentlyDeletePage(
         `/admin/pages/${encodeValue(
             pageId
         )}/permanent`
+    );
+
+    await removeDeletedPageNavigation(
+        pageId
     );
 
     return true;

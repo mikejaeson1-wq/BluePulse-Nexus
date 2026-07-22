@@ -2,14 +2,63 @@ import {
     getPageRepository
 } from "@shared/data/repositories";
 
+import {
+    removePageNavigation,
+    synchronizePageNavigation
+} from "@shared/navigation/pageNavigationSync";
+
 const repository =
     getPageRepository();
+
+async function synchronizeMutation(
+    page,
+    operation
+) {
+    if (!page?.id) {
+        return page;
+    }
+
+    try {
+        await synchronizePageNavigation(
+            page
+        );
+    } catch (
+        synchronizationError
+    ) {
+        console.error(
+            `Die Navigation konnte nach „${operation}“ nicht synchronisiert werden.`,
+            synchronizationError
+        );
+    }
+
+    return page;
+}
+
+async function removeNavigationAfterMutation(
+    pageId,
+    operation
+) {
+    try {
+        await removePageNavigation(
+            pageId
+        );
+    } catch (
+        synchronizationError
+    ) {
+        console.error(
+            `Der Navigationspunkt konnte nach „${operation}“ nicht entfernt werden.`,
+            synchronizationError
+        );
+    }
+}
 
 export function getPages() {
     const snapshot =
         repository.getSnapshot?.();
 
-    return Array.isArray(snapshot)
+    return Array.isArray(
+        snapshot
+    )
         ? snapshot
         : [];
 }
@@ -22,7 +71,9 @@ export function refreshPages(
     );
 }
 
-export function getPage(id) {
+export function getPage(
+    id
+) {
     if (
         repository.mode ===
         "api"
@@ -39,8 +90,10 @@ export function getPage(id) {
             );
 
     if (
-        snapshot !== null &&
-        snapshot !== undefined
+        snapshot !==
+            null &&
+        snapshot !==
+            undefined
     ) {
         return snapshot;
     }
@@ -50,8 +103,12 @@ export function getPage(id) {
     );
 }
 
-export function getPageById(id) {
-    return getPage(id);
+export function getPageById(
+    id
+) {
+    return getPage(
+        id
+    );
 }
 
 export function getPageBySlug(
@@ -73,8 +130,10 @@ export function getPageBySlug(
             );
 
     if (
-        snapshot !== null &&
-        snapshot !== undefined
+        snapshot !==
+            null &&
+        snapshot !==
+            undefined
     ) {
         return snapshot;
     }
@@ -104,8 +163,10 @@ export function getPublishedPageBySlug(
             );
 
     if (
-        snapshot !== null &&
-        snapshot !== undefined
+        snapshot !==
+            null &&
+        snapshot !==
+            undefined
     ) {
         return snapshot;
     }
@@ -134,75 +195,127 @@ export function isSlugAvailable(
     );
 }
 
-export function createPage(data) {
-    return repository.create(
-        data
+export async function createPage(
+    data
+) {
+    const page =
+        await repository.create(
+            data
+        );
+
+    return synchronizeMutation(
+        page,
+        "Seite erstellen"
     );
 }
 
-export function updatePage(
+export async function updatePage(
     id,
     data
 ) {
-    return repository.update(
-        id,
-        data
+    const page =
+        await repository.update(
+            id,
+            data
+        );
+
+    return synchronizeMutation(
+        page,
+        "Seite speichern"
     );
 }
 
-export function savePage(
+export async function savePage(
     pageOrId,
     data
 ) {
-    return repository.save(
-        pageOrId,
-        data
+    const page =
+        await repository.save(
+            pageOrId,
+            data
+        );
+
+    return synchronizeMutation(
+        page,
+        "Seite speichern"
     );
 }
 
-export function deletePage(id) {
-    return repository.remove(
+export async function deletePage(
+    id
+) {
+    const result =
+        await repository.remove(
+            id
+        );
+
+    await removeNavigationAfterMutation(
+        id,
+        "Seite löschen"
+    );
+
+    return result;
+}
+
+export function removePage(
+    id
+) {
+    return deletePage(
         id
     );
 }
 
-export function removePage(id) {
-    return deletePage(id);
-}
-
-export function publishPage(
+export async function publishPage(
     id,
     data = {}
 ) {
-    return repository.publish(
-        id,
-        data
+    const page =
+        await repository.publish(
+            id,
+            data
+        );
+
+    return synchronizeMutation(
+        page,
+        "Seite veröffentlichen"
     );
 }
 
-export function unpublishPage(
+export async function unpublishPage(
     id,
     data = {}
 ) {
-    return repository.unpublish(
-        id,
-        data
+    const page =
+        await repository.unpublish(
+            id,
+            data
+        );
+
+    return synchronizeMutation(
+        page,
+        "Veröffentlichung aufheben"
     );
 }
 
-export function duplicatePage(id) {
+export function duplicatePage(
+    id
+) {
     return repository.duplicate(
         id
     );
 }
 
-export function getPageVersions(id) {
+export function getPageVersions(
+    id
+) {
     if (
         typeof repository
             .getVersions !==
         "function"
     ) {
-        return Promise.resolve([]);
+        return Promise.resolve(
+            []
+        );
     }
 
     return repository.getVersions(
@@ -210,7 +323,7 @@ export function getPageVersions(id) {
     );
 }
 
-export function restorePageVersion(
+export async function restorePageVersion(
     id,
     versionNumber
 ) {
@@ -219,16 +332,20 @@ export function restorePageVersion(
             .restoreVersion !==
         "function"
     ) {
-        return Promise.reject(
-            new Error(
-                "Die Versionswiederherstellung ist nur im API-Modus verfügbar."
-            )
+        throw new Error(
+            "Die Versionswiederherstellung ist nur im API-Modus verfügbar."
         );
     }
 
-    return repository.restoreVersion(
-        id,
-        versionNumber
+    const page =
+        await repository.restoreVersion(
+            id,
+            versionNumber
+        );
+
+    return synchronizeMutation(
+        page,
+        "Seitenversion wiederherstellen"
     );
 }
 

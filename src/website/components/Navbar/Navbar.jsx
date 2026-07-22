@@ -1,4 +1,5 @@
 import "./Navbar.css";
+import "./NavbarHighlighted.css";
 
 import {
     useEffect,
@@ -20,7 +21,8 @@ function getChildren(
     return items
         .filter(
             (item) =>
-                item.parentId === parentId
+                item.parentId ===
+                parentId
         )
         .sort(
             (
@@ -40,36 +42,51 @@ function buildNavigationTree(
     return getChildren(
         items,
         parentId
-    ).map((item) => {
-        if (visited.has(item.id)) {
+    ).map(
+        (item) => {
+            if (
+                visited.has(
+                    item.id
+                )
+            ) {
+                return {
+                    ...item,
+
+                    children: []
+                };
+            }
+
+            const nextVisited =
+                new Set(
+                    visited
+                );
+
+            nextVisited.add(
+                item.id
+            );
+
             return {
                 ...item,
-                children: []
+
+                children:
+                    buildNavigationTree(
+                        items,
+                        item.id,
+                        nextVisited
+                    )
             };
         }
-
-        const nextVisited =
-            new Set(visited);
-
-        nextVisited.add(item.id);
-
-        return {
-            ...item,
-
-            children:
-                buildNavigationTree(
-                    items,
-                    item.id,
-                    nextVisited
-                )
-        };
-    });
+    );
 }
 
-function isExternalLink(href) {
-    return /^https?:\/\//i.test(
-        href ?? ""
-    );
+function isExternalLink(
+    href
+) {
+    return /^https?:\/\//i
+        .test(
+            href ??
+            ""
+        );
 }
 
 function getRel(
@@ -77,31 +94,138 @@ function getRel(
     href
 ) {
     return (
-        target === "_blank" ||
-        isExternalLink(href)
+        target ===
+            "_blank" ||
+        isExternalLink(
+            href
+        )
     )
         ? "noopener noreferrer"
         : undefined;
 }
 
+function normalizePath(
+    value
+) {
+    const path =
+        String(
+            value ??
+            ""
+        )
+            .trim()
+            .split(
+                "?"
+            )[0]
+            .split(
+                "#"
+            )[0];
+
+    if (!path) {
+        return "/";
+    }
+
+    const normalizedPath =
+        path.startsWith(
+            "/"
+        )
+            ? path
+            : `/${path}`;
+
+    if (
+        normalizedPath.length >
+            1 &&
+        normalizedPath.endsWith(
+            "/"
+        )
+    ) {
+        return normalizedPath.slice(
+            0,
+            -1
+        );
+    }
+
+    return normalizedPath;
+}
+
+function isCurrentPage(
+    href,
+    pathname
+) {
+    if (
+        !href ||
+        isExternalLink(
+            href
+        )
+    ) {
+        return false;
+    }
+
+    return normalizePath(
+        href
+    ) ===
+        normalizePath(
+            pathname
+        );
+}
+
+function getLinkClassName({
+    highlighted,
+    active
+}) {
+    return [
+        "navbar__link",
+
+        highlighted
+            ? "navbar__link--highlighted"
+            : "",
+
+        active
+            ? "navbar__link--active"
+            : ""
+    ]
+        .filter(
+            Boolean
+        )
+        .join(
+            " "
+        );
+}
+
 function NavigationItem({
     item,
     depth,
+    pathname,
     openMenus,
     toggleMenu,
     closeNavigation
 }) {
     const hasChildren =
-        item.children.length > 0;
+        item.children.length >
+        0;
 
     const menuOpen =
-        openMenus.has(item.id);
+        openMenus.has(
+            item.id
+        );
+
+    const active =
+        isCurrentPage(
+            item.href,
+            pathname
+        );
+
+    const highlighted =
+        Boolean(
+            item.highlighted
+        );
 
     function handleMouseEnter() {
         if (
-            globalThis.window.matchMedia(
-                "(min-width: 951px)"
-            ).matches
+            globalThis.window
+                .matchMedia(
+                    "(min-width: 951px)"
+                )
+                .matches
         ) {
             toggleMenu(
                 item.id,
@@ -112,9 +236,11 @@ function NavigationItem({
 
     function handleMouseLeave() {
         if (
-            globalThis.window.matchMedia(
-                "(min-width: 951px)"
-            ).matches
+            globalThis.window
+                .matchMedia(
+                    "(min-width: 951px)"
+                )
+                .matches
         ) {
             toggleMenu(
                 item.id,
@@ -125,20 +251,38 @@ function NavigationItem({
 
     return (
         <li
-            className={[
-                "navbar__item",
-                hasChildren
-                    ? "navbar__item--hasChildren"
-                    : "",
-                menuOpen
-                    ? "navbar__item--open"
-                    : "",
-                depth > 0
-                    ? "navbar__item--nested"
-                    : ""
-            ]
-                .filter(Boolean)
-                .join(" ")}
+            className={
+                [
+                    "navbar__item",
+
+                    hasChildren
+                        ? "navbar__item--hasChildren"
+                        : "",
+
+                    menuOpen
+                        ? "navbar__item--open"
+                        : "",
+
+                    depth >
+                        0
+                        ? "navbar__item--nested"
+                        : "",
+
+                    highlighted
+                        ? "navbar__item--highlighted"
+                        : "",
+
+                    active
+                        ? "navbar__item--active"
+                        : ""
+                ]
+                    .filter(
+                        Boolean
+                    )
+                    .join(
+                        " "
+                    )
+            }
             onMouseEnter={
                 handleMouseEnter
             }
@@ -150,32 +294,78 @@ function NavigationItem({
                 {
                     item.href ? (
                         <a
-                            className="navbar__link"
-                            href={item.href}
-                            target={item.target}
+                            className={
+                                getLinkClassName({
+                                    highlighted,
+                                    active
+                                })
+                            }
+                            href={
+                                item.href
+                            }
+                            target={
+                                item.target
+                            }
                             rel={
                                 getRel(
                                     item.target,
                                     item.href
                                 )
                             }
+                            aria-current={
+                                active
+                                    ? "page"
+                                    : undefined
+                            }
                             onClick={
                                 closeNavigation
                             }
                         >
-                            {item.label}
+                            {
+                                highlighted && (
+                                    <i
+                                        className="bi bi-stars navbar__highlightIcon"
+                                        aria-hidden="true"
+                                    />
+                                )
+                            }
+
+                            <span>
+                                {
+                                    item.label
+                                }
+                            </span>
                         </a>
                     ) : (
                         <button
                             type="button"
-                            className="navbar__link navbar__link--button"
-                            onClick={() =>
-                                toggleMenu(
-                                    item.id
-                                )
+                            className={
+                                `${getLinkClassName({
+                                    highlighted,
+                                    active
+                                })} navbar__link--button`
+                            }
+                            onClick={
+                                () =>
+                                    toggleMenu(
+                                        item.id
+                                    )
                             }
                         >
-                            {item.label}
+                            {
+                                highlighted && (
+                                    <i
+                                        className="bi bi-stars navbar__highlightIcon"
+                                        aria-hidden="true"
+                                    />
+                                )
+                            }
+
+                            <span>
+                                {
+                                    item.label
+                                }
+                            </span>
                         </button>
                     )
                 }
@@ -191,13 +381,17 @@ function NavigationItem({
                             aria-expanded={
                                 menuOpen
                             }
-                            onClick={(event) => {
-                                event.stopPropagation();
+                            onClick={
+                                (
+                                    event
+                                ) => {
+                                    event.stopPropagation();
 
-                                toggleMenu(
-                                    item.id
-                                );
-                            }}
+                                    toggleMenu(
+                                        item.id
+                                    );
+                                }
+                            }
                         >
                             <i
                                 className="bi bi-chevron-down"
@@ -218,7 +412,9 @@ function NavigationItem({
                     >
                         {
                             item.children.map(
-                                (child) => (
+                                (
+                                    child
+                                ) => (
                                     <NavigationItem
                                         key={
                                             child.id
@@ -227,7 +423,11 @@ function NavigationItem({
                                             child
                                         }
                                         depth={
-                                            depth + 1
+                                            depth +
+                                            1
+                                        }
+                                        pathname={
+                                            pathname
                                         }
                                         openMenus={
                                             openMenus
@@ -257,28 +457,40 @@ export default function Navbar() {
         useLocation();
 
     const navbarRef =
-        useRef(null);
+        useRef(
+            null
+        );
 
     const [
         mobileOpen,
         setMobileOpen
-    ] = useState(false);
+    ] =
+        useState(
+            false
+        );
 
     const [
         openMenus,
         setOpenMenus
-    ] = useState(
-        () => new Set()
-    );
+    ] =
+        useState(
+            () =>
+                new Set()
+        );
 
     const visibleItems =
         useMemo(
             () =>
-                navigation.items.filter(
+                (
+                    navigation.items ??
+                    []
+                ).filter(
                     (item) =>
                         item.enabled
                 ),
-            [navigation.items]
+            [
+                navigation.items
+            ]
         );
 
     const navigationTree =
@@ -287,18 +499,34 @@ export default function Navbar() {
                 buildNavigationTree(
                     visibleItems
                 ),
-            [visibleItems]
+            [
+                visibleItems
+            ]
         );
 
     const cta =
-        navigation.cta;
+        navigation.cta ?? {
+            enabled:
+                false,
+
+            label:
+                "",
+
+            href:
+                "",
+
+            target:
+                "_self"
+        };
 
     function toggleMenu(
         itemId,
         forcedState
     ) {
         setOpenMenus(
-            (currentMenus) => {
+            (
+                currentMenus
+            ) => {
                 const nextMenus =
                     new Set(
                         currentMenus
@@ -306,7 +534,7 @@ export default function Navbar() {
 
                 const shouldOpen =
                     forcedState !==
-                    undefined
+                        undefined
                         ? forcedState
                         : !nextMenus.has(
                             itemId
@@ -328,7 +556,10 @@ export default function Navbar() {
     }
 
     function closeNavigation() {
-        setMobileOpen(false);
+        setMobileOpen(
+            false
+        );
+
         setOpenMenus(
             new Set()
         );
@@ -347,48 +578,58 @@ export default function Navbar() {
         ) {
             if (
                 navbarRef.current &&
-                !navbarRef.current.contains(
-                    event.target
-                )
+                !navbarRef.current
+                    .contains(
+                        event.target
+                    )
             ) {
                 closeNavigation();
             }
         }
 
-        function handleEscape(event) {
+        function handleEscape(
+            event
+        ) {
             if (
-                event.key === "Escape"
+                event.key ===
+                "Escape"
             ) {
                 closeNavigation();
             }
         }
 
-        globalThis.document.addEventListener(
-            "mousedown",
-            handleOutsideClick
-        );
-
-        globalThis.document.addEventListener(
-            "keydown",
-            handleEscape
-        );
-
-        return () => {
-            globalThis.document.removeEventListener(
+        globalThis.document
+            .addEventListener(
                 "mousedown",
                 handleOutsideClick
             );
 
-            globalThis.document.removeEventListener(
+        globalThis.document
+            .addEventListener(
                 "keydown",
                 handleEscape
             );
+
+        return () => {
+            globalThis.document
+                .removeEventListener(
+                    "mousedown",
+                    handleOutsideClick
+                );
+
+            globalThis.document
+                .removeEventListener(
+                    "keydown",
+                    handleEscape
+                );
         };
     }, []);
 
     return (
         <header
-            ref={navbarRef}
+            ref={
+                navbarRef
+            }
             className={
                 mobileOpen
                     ? "navbar navbar--open"
@@ -421,11 +662,14 @@ export default function Navbar() {
                 aria-expanded={
                     mobileOpen
                 }
-                onClick={() =>
-                    setMobileOpen(
-                        (currentValue) =>
-                            !currentValue
-                    )
+                onClick={
+                    () =>
+                        setMobileOpen(
+                            (
+                                currentValue
+                            ) =>
+                                !currentValue
+                        )
                 }
             >
                 <span />
@@ -441,7 +685,9 @@ export default function Navbar() {
                     <ul className="navbar__list">
                         {
                             navigationTree.map(
-                                (item) => (
+                                (
+                                    item
+                                ) => (
                                     <NavigationItem
                                         key={
                                             item.id
@@ -449,7 +695,12 @@ export default function Navbar() {
                                         item={
                                             item
                                         }
-                                        depth={0}
+                                        depth={
+                                            0
+                                        }
+                                        pathname={
+                                            location.pathname
+                                        }
                                         openMenus={
                                             openMenus
                                         }
@@ -471,8 +722,12 @@ export default function Navbar() {
                     cta.href && (
                         <a
                             className="navbar__button"
-                            href={cta.href}
-                            target={cta.target}
+                            href={
+                                cta.href
+                            }
+                            target={
+                                cta.target
+                            }
                             rel={
                                 getRel(
                                     cta.target,
@@ -483,7 +738,9 @@ export default function Navbar() {
                                 closeNavigation
                             }
                         >
-                            {cta.label}
+                            {
+                                cta.label
+                            }
                         </a>
                     )
                 }
