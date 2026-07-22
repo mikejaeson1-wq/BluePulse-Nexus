@@ -4,6 +4,7 @@ import healthRoutes from "./healthRoutes.js";
 import mediaRoutes from "./mediaRoutes.js";
 import migrationRoutes from "./migrationRoutes.js";
 import pageRoutes from "./pageRoutes.js";
+import pageTrashRoutes from "./pageTrashRoutes.js";
 import publicSiteRoutes from "./publicSiteRoutes.js";
 import systemRoutes from "./systemRoutes.js";
 import userRoutes from "./userRoutes.js";
@@ -38,6 +39,10 @@ export default async function apiRoutes(
 
     await fastify.register(
         migrationRoutes
+    );
+
+    await fastify.register(
+        pageTrashRoutes
     );
 
     await fastify.register(

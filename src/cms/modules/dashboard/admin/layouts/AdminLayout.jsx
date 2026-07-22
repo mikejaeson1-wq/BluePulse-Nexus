@@ -45,8 +45,18 @@ const NAVIGATION_ITEMS = [
 
     {
         to: "/admin/pages",
+        end: true,
         icon: "bi-file-earmark-text",
         label: "Seiten",
+        roles:
+            CONTENT_ROLES
+    },
+
+    {
+        to: "/admin/pages/trash",
+        end: true,
+        icon: "bi-trash3",
+        label: "Papierkorb",
         roles:
             CONTENT_ROLES
     },

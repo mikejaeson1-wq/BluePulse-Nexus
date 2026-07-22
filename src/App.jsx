@@ -24,6 +24,7 @@ import AdminLayout from "@cms/modules/dashboard/admin/layouts/AdminLayout";
 
 import Dashboard from "@cms/modules/dashboard/admin/pages/Dashboard";
 import Pages from "@cms/modules/dashboard/admin/pages/Pages";
+import PageTrash from "@cms/modules/dashboard/admin/pages/PageTrash";
 import PageEditor from "@cms/modules/dashboard/admin/pages/PageEditor";
 import HomeLayout from "@cms/modules/dashboard/admin/pages/HomeLayout";
 import FooterSettings from "@cms/modules/dashboard/admin/pages/FooterSettings";
@@ -132,6 +133,19 @@ export default function App() {
                             }
                         >
                             <Pages />
+                        </RoleRoute>
+                    }
+                />
+
+                <Route
+                    path="pages/trash"
+                    element={
+                        <RoleRoute
+                            roles={
+                                CONTENT_ROLES
+                            }
+                        >
+                            <PageTrash />
                         </RoleRoute>
                     }
                 />
