@@ -2,29 +2,50 @@ import Hero from "./Hero";
 import HeroProperties from "./Properties";
 
 export default {
+    type:
+        "hero",
 
-    type: "hero",
+    name:
+        "Hero",
 
-    name: "Hero",
+    description:
+        "Großer Einstiegsbereich mit Überschrift, Untertitel und Aktionsbutton.",
 
-    icon: "🏔",
+    icon:
+        "bi-stars",
 
-    category: "Layout",
+    category:
+        "Layout",
 
-    version: 1,
+    keywords: [
+        "header",
+        "titelbild",
+        "start",
+        "banner",
+        "überschrift",
+        "cta"
+    ],
 
-    component: Hero,
+    order:
+        10,
 
-    properties: HeroProperties,
+    version:
+        1,
+
+    component:
+        Hero,
+
+    properties:
+        HeroProperties,
 
     defaultData: {
+        title:
+            "Neue Überschrift",
 
-        title: "Neue Überschrift",
+        subtitle:
+            "Untertitel",
 
-        subtitle: "Untertitel",
-
-        buttonText: "Jetzt starten"
-
+        buttonText:
+            "Jetzt starten"
     }
-
 };

@@ -2,33 +2,56 @@ import Section from "./Section";
 import SectionProperties from "./Properties";
 
 export default {
+    type:
+        "section",
 
-    type:"section",
+    name:
+        "Abschnitt",
 
-    name:"Section",
+    description:
+        "Farbiger Inhaltsbereich mit eigener Überschrift, Breite und Innenabständen.",
 
-    icon:"📦",
+    icon:
+        "bi-layout-text-window",
 
-    category:"Layout",
+    category:
+        "Layout",
 
-    version:1,
+    keywords: [
+        "section",
+        "container",
+        "bereich",
+        "hintergrund",
+        "abstand",
+        "layout"
+    ],
 
-    component:Section,
+    order:
+        20,
 
-    properties:SectionProperties,
+    version:
+        1,
 
-    defaultData:{
+    component:
+        Section,
 
-        title:"Neue Section",
+    properties:
+        SectionProperties,
 
-        background:"#1b2335",
+    defaultData: {
+        title:
+            "Neuer Abschnitt",
 
-        maxWidth:"1200px",
+        background:
+            "#1b2335",
 
-        paddingTop:"80px",
+        maxWidth:
+            "1200px",
 
-        paddingBottom:"80px"
+        paddingTop:
+            "80px",
 
+        paddingBottom:
+            "80px"
     }
-
 };

@@ -2,25 +2,46 @@ import Text from "./Text";
 import TextProperties from "./Properties";
 
 export default {
+    type:
+        "text",
 
-    type:"text",
+    name:
+        "Text",
 
-    name:"Text",
+    description:
+        "Überschrift mit einem frei bearbeitbaren Textabschnitt.",
 
-    icon:"📝",
+    icon:
+        "bi-fonts",
 
-    category:"Inhalt",
+    category:
+        "Inhalt",
 
-    component:Text,
+    keywords: [
+        "text",
+        "absatz",
+        "überschrift",
+        "inhalt",
+        "beschreibung"
+    ],
 
-    properties:TextProperties,
+    order:
+        10,
 
-    defaultData:{
+    version:
+        1,
 
-        title:"Überschrift",
+    component:
+        Text,
 
-        text:"Lorem ipsum dolor sit amet..."
+    properties:
+        TextProperties,
 
+    defaultData: {
+        title:
+            "Überschrift",
+
+        text:
+            "Lorem ipsum dolor sit amet..."
     }
-
 };

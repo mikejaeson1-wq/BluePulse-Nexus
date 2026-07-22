@@ -2,27 +2,47 @@ import Image from "./Image";
 import ImageProperties from "./Properties";
 
 export default {
+    type:
+        "image",
 
-    type: "image",
+    name:
+        "Bild",
 
-    name: "Bild",
+    description:
+        "Ein einzelnes Bild mit Alternativtext für barrierefreie Seiten.",
 
-    icon: "🖼️",
+    icon:
+        "bi-image",
 
-    category: "Inhalt",
+    category:
+        "Medien",
 
-    version: 1,
+    keywords: [
+        "bild",
+        "foto",
+        "grafik",
+        "image",
+        "media",
+        "alt"
+    ],
 
-    component: Image,
+    order:
+        10,
 
-    properties: ImageProperties,
+    version:
+        1,
+
+    component:
+        Image,
+
+    properties:
+        ImageProperties,
 
     defaultData: {
+        src:
+            "https://placehold.co/900x500",
 
-        src: "https://placehold.co/900x500",
-
-        alt: "Bild"
-
+        alt:
+            "Bild"
     }
-
 };
