@@ -14,6 +14,17 @@ import PropertiesPanel from "./PropertiesPanel";
 import PageHeader from "./PageHeader";
 import PageSettingsPanel from "./PageSettingsPanel";
 
+function getSelectedBlockLabel(
+    selectedBlock
+) {
+    if (!selectedBlock) {
+        return "Kein Block ausgewählt";
+    }
+
+    return selectedBlock.type ??
+        "Ausgewählter Block";
+}
+
 export default function Builder({
     initialPage,
     onSave,
@@ -33,6 +44,11 @@ export default function Builder({
             onPublish,
             onPreview
         });
+
+    const selectedBlockLabel =
+        getSelectedBlockLabel(
+            builder.selectedBlock
+        );
 
     return (
         <>
@@ -75,7 +91,13 @@ export default function Builder({
                 }
             />
 
-            <div className="bp-builder">
+            <div
+                className={
+                    builder.selectedBlock
+                        ? "bp-builder bp-builder--has-selection"
+                        : "bp-builder"
+                }
+            >
                 <Sidebar
                     onAdd={
                         builder.addBlock
@@ -83,6 +105,9 @@ export default function Builder({
                 />
 
                 <Canvas
+                    page={
+                        builder.page
+                    }
                     blocks={
                         builder.blocks
                     }
@@ -110,14 +135,69 @@ export default function Builder({
                 />
 
                 <aside className="bp-builder-right">
-                    <PropertiesPanel
-                        block={
-                            builder.selectedBlock
-                        }
-                        onChange={
-                            builder.updateBlock
-                        }
-                    />
+                    <header className="bp-builder-right__header">
+                        <div>
+                            <span className="bp-builder-right__eyebrow">
+                                Block-Inspector
+                            </span>
+
+                            <h2>
+                                Eigenschaften
+                            </h2>
+
+                            <small>
+                                {
+                                    selectedBlockLabel
+                                }
+                            </small>
+                        </div>
+
+                        <span
+                            className={
+                                builder.selectedBlock
+                                    ? "bp-builder-right__status bp-builder-right__status--active"
+                                    : "bp-builder-right__status"
+                            }
+                            title={
+                                builder.selectedBlock
+                                    ? "Block ausgewählt"
+                                    : "Kein Block ausgewählt"
+                            }
+                        >
+                            <i
+                                className={
+                                    builder.selectedBlock
+                                        ? "bi bi-check-circle-fill"
+                                        : "bi bi-circle"
+                                }
+                                aria-hidden="true"
+                            />
+                        </span>
+                    </header>
+
+                    <div className="bp-builder-right__content">
+                        <PropertiesPanel
+                            block={
+                                builder.selectedBlock
+                            }
+                            onChange={
+                                builder.updateBlock
+                            }
+                        />
+                    </div>
+
+                    {
+                        builder.selectedBlock && (
+                            <footer className="bp-builder-right__footer">
+                                <i
+                                    className="bi bi-lightning-charge"
+                                    aria-hidden="true"
+                                />
+
+                                Änderungen erscheinen unmittelbar in der Live-Leinwand.
+                            </footer>
+                        )
+                    }
                 </aside>
             </div>
 
