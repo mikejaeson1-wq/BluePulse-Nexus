@@ -112,6 +112,15 @@ const NAVIGATION_ITEMS = [
     },
 
     {
+        to: "/admin/audit",
+        icon: "bi-clock-history",
+        label: "Aktivitäten",
+        roles: [
+            ADMINISTRATOR
+        ]
+    },
+
+    {
         to: "/admin/users",
         icon: "bi-people",
         label: "Benutzer",

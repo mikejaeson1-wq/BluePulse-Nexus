@@ -10,6 +10,10 @@ import {
 } from "./auth/authGuard.js";
 
 import {
+    registerAuditHook
+} from "./audit/auditHook.js";
+
+import {
     createDatabasePool
 } from "./database/database.js";
 
@@ -34,7 +38,8 @@ export function buildApp({
     const fastify =
         Fastify({
             logger:
-                logger !== undefined
+                logger !==
+                undefined
                     ? logger
                     : {
                         level:
@@ -91,6 +96,10 @@ export function buildApp({
         }
     );
 
+    registerAuditHook(
+        fastify
+    );
+
     fastify.addHook(
         "onClose",
         async () => {
@@ -123,7 +132,8 @@ export function buildApp({
     fastify.register(
         apiRoutes,
         {
-            prefix: "/api"
+            prefix:
+                "/api"
         }
     );
 
@@ -176,18 +186,22 @@ export function buildApp({
                     : 500;
 
             return reply
-                .status(statusCode)
+                .status(
+                    statusCode
+                )
                 .send({
                     statusCode,
 
                     error:
-                        statusCode >= 500
+                        statusCode >=
+                        500
                             ? "Internal Server Error"
                             : error.name ||
                                 "Request Error",
 
                     message:
-                        statusCode >= 500 &&
+                        statusCode >=
+                            500 &&
                         runtimeConfig
                             .production
                             ? "Ein interner Serverfehler ist aufgetreten."

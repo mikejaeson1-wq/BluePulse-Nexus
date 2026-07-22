@@ -32,6 +32,7 @@ import Media from "@cms/modules/dashboard/admin/pages/Media";
 import MediaMigration from "@cms/modules/dashboard/admin/pages/MediaMigration";
 import Backups from "@cms/modules/dashboard/admin/pages/Backups";
 import DataMigration from "@cms/modules/dashboard/admin/pages/DataMigration";
+import AuditLog from "@cms/modules/dashboard/admin/pages/AuditLog";
 import Users from "@cms/modules/dashboard/admin/pages/Users";
 import Settings from "@cms/modules/dashboard/admin/pages/Settings";
 
@@ -250,6 +251,19 @@ export default function App() {
                             }
                         >
                             <DataMigration />
+                        </RoleRoute>
+                    }
+                />
+
+                <Route
+                    path="audit"
+                    element={
+                        <RoleRoute
+                            roles={
+                                ADMINISTRATOR_ROLES
+                            }
+                        >
+                            <AuditLog />
                         </RoleRoute>
                     }
                 />
