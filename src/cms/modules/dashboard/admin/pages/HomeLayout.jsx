@@ -1,4 +1,5 @@
 import {
+    useEffect,
     useMemo,
     useState
 } from "react";
@@ -8,17 +9,24 @@ import AdminPage from "../components/AdminPage";
 import Button from "@shared/ui/Button";
 
 import {
-    getHomeLayout,
-    resetHomeLayout,
-    updateHomeLayout
-} from "@shared/layout/homeLayoutService";
+    getHomeLayoutRepository
+} from "@shared/data/repositories";
+
+const homeLayoutRepository =
+    getHomeLayoutRepository();
+
+const EMPTY_LAYOUT = {
+    items: []
+};
 
 function cloneValue(value) {
     if (
         typeof globalThis.structuredClone ===
         "function"
     ) {
-        return globalThis.structuredClone(value);
+        return globalThis.structuredClone(
+            value
+        );
     }
 
     return JSON.parse(
@@ -30,61 +38,260 @@ function serializeValue(value) {
     return JSON.stringify(value);
 }
 
-export default function HomeLayout() {
-    const initialLayout =
-        useMemo(
-            () => getHomeLayout(),
-            []
-        );
+function LoadingState() {
+    return (
+        <div
+            className="d-flex align-items-center justify-content-center gap-3 py-5"
+            role="status"
+            aria-live="polite"
+        >
+            <span
+                className="spinner-border text-info"
+                aria-hidden="true"
+            />
 
+            <span>
+                Startseiten-Layout wird aus Nexus geladen …
+            </span>
+        </div>
+    );
+}
+
+export default function HomeLayout() {
     const [
         layout,
         setLayout
-    ] = useState(
-        () =>
-            cloneValue(
-                initialLayout
-            )
-    );
+    ] =
+        useState(
+            EMPTY_LAYOUT
+        );
 
     const [
         savedLayout,
         setSavedLayout
-    ] = useState(
-        () =>
-            cloneValue(
-                initialLayout
-            )
-    );
+    ] =
+        useState(
+            EMPTY_LAYOUT
+        );
+
+    const [
+        loading,
+        setLoading
+    ] =
+        useState(true);
+
+    const [
+        saving,
+        setSaving
+    ] =
+        useState(false);
+
+    const [
+        resetting,
+        setResetting
+    ] =
+        useState(false);
+
+    const [
+        error,
+        setError
+    ] =
+        useState("");
 
     const [
         message,
         setMessage
-    ] = useState("");
+    ] =
+        useState("");
+
+    const busy =
+        saving ||
+        resetting;
 
     const hasUnsavedChanges =
         useMemo(
             () =>
-                serializeValue(layout) !==
+                !loading &&
                 serializeValue(
-                    savedLayout
-                ),
+                    layout
+                ) !==
+                    serializeValue(
+                        savedLayout
+                    ),
             [
                 layout,
-                savedLayout
+                savedLayout,
+                loading
             ]
         );
+
+    const orderedItems =
+        useMemo(
+            () =>
+                [
+                    ...(
+                        layout.items ??
+                        []
+                    )
+                ].sort(
+                    (
+                        firstItem,
+                        secondItem
+                    ) =>
+                        firstItem.order -
+                        secondItem.order
+                ),
+            [
+                layout.items
+            ]
+        );
+
+    useEffect(() => {
+        let active =
+            true;
+
+        const controller =
+            new AbortController();
+
+        async function loadLayout() {
+            setLoading(true);
+            setError("");
+            setMessage("");
+
+            try {
+                const loadedLayout =
+                    await homeLayoutRepository.get({
+                        signal:
+                            controller.signal
+                    });
+
+                if (
+                    !active ||
+                    controller.signal.aborted
+                ) {
+                    return;
+                }
+
+                const nextLayout =
+                    loadedLayout &&
+                    Array.isArray(
+                        loadedLayout.items
+                    )
+                        ? cloneValue(
+                            loadedLayout
+                        )
+                        : cloneValue(
+                            EMPTY_LAYOUT
+                        );
+
+                setLayout(
+                    nextLayout
+                );
+
+                setSavedLayout(
+                    cloneValue(
+                        nextLayout
+                    )
+                );
+            } catch (
+                loadError
+            ) {
+                if (
+                    loadError?.name ===
+                        "AbortError" ||
+                    controller.signal.aborted
+                ) {
+                    return;
+                }
+
+                if (active) {
+                    setLayout(
+                        cloneValue(
+                            EMPTY_LAYOUT
+                        )
+                    );
+
+                    setSavedLayout(
+                        cloneValue(
+                            EMPTY_LAYOUT
+                        )
+                    );
+
+                    setError(
+                        loadError.message ??
+                        "Das Startseiten-Layout konnte nicht geladen werden."
+                    );
+                }
+            } finally {
+                if (
+                    active &&
+                    !controller.signal.aborted
+                ) {
+                    setLoading(false);
+                }
+            }
+        }
+
+        loadLayout();
+
+        return () => {
+            active =
+                false;
+
+            controller.abort();
+        };
+    }, []);
+
+    useEffect(() => {
+        function handleBeforeUnload(
+            event
+        ) {
+            if (
+                !hasUnsavedChanges
+            ) {
+                return;
+            }
+
+            event.preventDefault();
+            event.returnValue =
+                "";
+        }
+
+        globalThis.window.addEventListener(
+            "beforeunload",
+            handleBeforeUnload
+        );
+
+        return () => {
+            globalThis.window.removeEventListener(
+                "beforeunload",
+                handleBeforeUnload
+            );
+        };
+    }, [
+        hasUnsavedChanges
+    ]);
+
+    function clearFeedback() {
+        setMessage("");
+        setError("");
+    }
 
     function toggleItem(
         itemId,
         enabled
     ) {
         setLayout(
-            (currentLayout) => ({
+            (
+                currentLayout
+            ) => ({
                 ...currentLayout,
 
                 items:
-                    currentLayout.items.map(
+                    (
+                        currentLayout.items ??
+                        []
+                    ).map(
                         (item) => {
                             if (
                                 item.id !==
@@ -93,7 +300,9 @@ export default function HomeLayout() {
                                 return item;
                             }
 
-                            if (item.required) {
+                            if (
+                                item.required
+                            ) {
                                 return {
                                     ...item,
                                     enabled: true
@@ -109,7 +318,7 @@ export default function HomeLayout() {
             })
         );
 
-        setMessage("");
+        clearFeedback();
     }
 
     function moveItem(
@@ -117,9 +326,14 @@ export default function HomeLayout() {
         direction
     ) {
         setLayout(
-            (currentLayout) => {
+            (
+                currentLayout
+            ) => {
                 const items = [
-                    ...currentLayout.items
+                    ...(
+                        currentLayout.items ??
+                        []
+                    )
                 ].sort(
                     (
                         firstItem,
@@ -141,8 +355,10 @@ export default function HomeLayout() {
                     direction;
 
                 if (
-                    currentIndex === -1 ||
-                    nextIndex < 0 ||
+                    currentIndex ===
+                        -1 ||
+                    nextIndex <
+                        0 ||
                     nextIndex >=
                         items.length
                 ) {
@@ -150,11 +366,19 @@ export default function HomeLayout() {
                 }
 
                 [
-                    items[currentIndex],
-                    items[nextIndex]
+                    items[
+                        currentIndex
+                    ],
+                    items[
+                        nextIndex
+                    ]
                 ] = [
-                    items[nextIndex],
-                    items[currentIndex]
+                    items[
+                        nextIndex
+                    ],
+                    items[
+                        currentIndex
+                    ]
                 ];
 
                 return {
@@ -167,6 +391,7 @@ export default function HomeLayout() {
                                 index
                             ) => ({
                                 ...item,
+
                                 order:
                                     (
                                         index +
@@ -179,31 +404,69 @@ export default function HomeLayout() {
             }
         );
 
-        setMessage("");
+        clearFeedback();
     }
 
-    function saveLayout(event) {
+    async function saveLayout(
+        event
+    ) {
         event.preventDefault();
 
-        const saved =
-            updateHomeLayout(
-                layout
+        if (
+            busy ||
+            !hasUnsavedChanges
+        ) {
+            return;
+        }
+
+        setSaving(true);
+        setError("");
+        setMessage("");
+
+        try {
+            const saved =
+                await homeLayoutRepository.update(
+                    layout
+                );
+
+            const nextLayout =
+                cloneValue(
+                    saved
+                );
+
+            setLayout(
+                nextLayout
             );
 
-        setLayout(
-            cloneValue(saved)
-        );
+            setSavedLayout(
+                cloneValue(
+                    nextLayout
+                )
+            );
 
-        setSavedLayout(
-            cloneValue(saved)
-        );
-
-        setMessage(
-            "Startseiten-Layout wurde gespeichert."
-        );
+            setMessage(
+                homeLayoutRepository.mode ===
+                    "api"
+                    ? "Startseiten-Layout wurde in PostgreSQL gespeichert."
+                    : "Startseiten-Layout wurde gespeichert."
+            );
+        } catch (
+            saveError
+        ) {
+            setError(
+                saveError.message ??
+                "Das Startseiten-Layout konnte nicht gespeichert werden."
+            );
+        } finally {
+            setSaving(false);
+        }
     }
 
-    function restoreDefaults() {
+    async function restoreDefaults() {
+        if (busy) {
+            return;
+        }
+
         if (
             !globalThis.confirm(
                 "Startseiten-Layout auf die Standardwerte zurücksetzen?"
@@ -212,20 +475,45 @@ export default function HomeLayout() {
             return;
         }
 
-        const defaults =
-            resetHomeLayout();
+        setResetting(true);
+        setError("");
+        setMessage("");
 
-        setLayout(
-            cloneValue(defaults)
-        );
+        try {
+            const defaults =
+                await homeLayoutRepository.reset();
 
-        setSavedLayout(
-            cloneValue(defaults)
-        );
+            const nextLayout =
+                cloneValue(
+                    defaults
+                );
 
-        setMessage(
-            "Standardreihenfolge wurde wiederhergestellt."
-        );
+            setLayout(
+                nextLayout
+            );
+
+            setSavedLayout(
+                cloneValue(
+                    nextLayout
+                )
+            );
+
+            setMessage(
+                homeLayoutRepository.mode ===
+                    "api"
+                    ? "Standardreihenfolge wurde in PostgreSQL wiederhergestellt."
+                    : "Standardreihenfolge wurde wiederhergestellt."
+            );
+        } catch (
+            resetError
+        ) {
+            setError(
+                resetError.message ??
+                "Die Standardreihenfolge konnte nicht wiederhergestellt werden."
+            );
+        } finally {
+            setResetting(false);
+        }
     }
 
     function openHomepage() {
@@ -236,7 +524,9 @@ export default function HomeLayout() {
         );
     }
 
-    function openSection(item) {
+    function openSection(
+        item
+    ) {
         globalThis.window.open(
             item.route,
             "_blank",
@@ -244,20 +534,15 @@ export default function HomeLayout() {
         );
     }
 
-    const orderedItems =
-        [...layout.items].sort(
-            (
-                firstItem,
-                secondItem
-            ) =>
-                firstItem.order -
-                secondItem.order
-        );
-
     return (
         <AdminPage
             title="Startseiten-Layout"
-            description="Bereiche der Startseite aktivieren und in die gewünschte Reihenfolge bringen."
+            description={
+                homeLayoutRepository.mode ===
+                    "api"
+                    ? "Bereiche aktivieren, sortieren und direkt in PostgreSQL speichern."
+                    : "Bereiche der Startseite aktivieren und sortieren."
+            }
             action={
                 <Button
                     variant="secondary"
@@ -269,6 +554,14 @@ export default function HomeLayout() {
                 </Button>
             }
         >
+            {
+                error && (
+                    <div className="alert alert-danger">
+                        {error}
+                    </div>
+                )
+            }
+
             {
                 message && (
                     <div className="alert alert-success">
@@ -291,217 +584,285 @@ export default function HomeLayout() {
                 noch als Menüpunkt aktiviert sein.
             </div>
 
-            <form onSubmit={saveLayout}>
-                <div className="table-responsive">
-                    <table className="table table-dark table-hover align-middle">
-                        <thead>
-                            <tr>
-                                <th>
-                                    Position
-                                </th>
-
-                                <th>
-                                    Aktiv
-                                </th>
-
-                                <th>
-                                    Bereich
-                                </th>
-
-                                <th>
-                                    Komponente
-                                </th>
-
-                                <th>
-                                    Status
-                                </th>
-
-                                <th>
-                                    Reihenfolge
-                                </th>
-
-                                <th>
-                                    Vorschau
-                                </th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            {
-                                orderedItems.map(
-                                    (
-                                        item,
-                                        index
-                                    ) => (
-                                        <tr
-                                            key={
-                                                item.id
-                                            }
-                                        >
-                                            <td>
-                                                <strong>
-                                                    {
-                                                        index +
-                                                        1
-                                                    }
-                                                </strong>
-                                            </td>
-
-                                            <td>
-                                                <input
-                                                    id={
-                                                        `layout-${item.id}`
-                                                    }
-                                                    type="checkbox"
-                                                    className="form-check-input"
-                                                    checked={
-                                                        item.enabled
-                                                    }
-                                                    disabled={
-                                                        item.required
-                                                    }
-                                                    onChange={
-                                                        (
-                                                            event
-                                                        ) =>
-                                                            toggleItem(
-                                                                item.id,
-                                                                event
-                                                                    .target
-                                                                    .checked
-                                                            )
-                                                    }
-                                                />
-                                            </td>
-
-                                            <td>
-                                                <label
-                                                    htmlFor={
-                                                        `layout-${item.id}`
-                                                    }
-                                                    className="mb-0"
-                                                >
-                                                    <strong>
-                                                        {
-                                                            item.label
-                                                        }
-                                                    </strong>
-                                                </label>
-                                            </td>
-
-                                            <td>
-                                                <code>
-                                                    {
-                                                        item.component
-                                                    }
-                                                </code>
-                                            </td>
-
-                                            <td>
-                                                {
-                                                    item.required ? (
-                                                        <span className="badge text-bg-primary">
-                                                            Pflichtbereich
-                                                        </span>
-                                                    ) : item.enabled ? (
-                                                        <span className="badge text-bg-success">
-                                                            Sichtbar
-                                                        </span>
-                                                    ) : (
-                                                        <span className="badge text-bg-secondary">
-                                                            Ausgeblendet
-                                                        </span>
-                                                    )
-                                                }
-                                            </td>
-
-                                            <td>
-                                                <div className="d-flex gap-2">
-                                                    <Button
-                                                        type="button"
-                                                        size="sm"
-                                                        variant="secondary"
-                                                        disabled={
-                                                            index ===
-                                                            0
-                                                        }
-                                                        onClick={() =>
-                                                            moveItem(
-                                                                item.id,
-                                                                -1
-                                                            )
-                                                        }
-                                                    >
-                                                        ↑
-                                                    </Button>
-
-                                                    <Button
-                                                        type="button"
-                                                        size="sm"
-                                                        variant="secondary"
-                                                        disabled={
-                                                            index ===
-                                                            orderedItems.length -
-                                                                1
-                                                        }
-                                                        onClick={() =>
-                                                            moveItem(
-                                                                item.id,
-                                                                1
-                                                            )
-                                                        }
-                                                    >
-                                                        ↓
-                                                    </Button>
-                                                </div>
-                                            </td>
-
-                                            <td>
-                                                <Button
-                                                    type="button"
-                                                    size="sm"
-                                                    variant="secondary"
-                                                    disabled={
-                                                        !item.enabled
-                                                    }
-                                                    onClick={() =>
-                                                        openSection(
-                                                            item
-                                                        )
-                                                    }
-                                                >
-                                                    Ansehen
-                                                </Button>
-                                            </td>
-                                        </tr>
-                                    )
-                                )
+            {
+                loading ? (
+                    <LoadingState />
+                ) : orderedItems.length ===
+                    0 ? (
+                    <div className="alert alert-danger">
+                        Es wurden keine Startseitenbereiche geladen.
+                    </div>
+                ) : (
+                    <form
+                        onSubmit={
+                            saveLayout
+                        }
+                    >
+                        <fieldset
+                            disabled={
+                                busy
                             }
-                        </tbody>
-                    </table>
-                </div>
+                            className="border-0 p-0 m-0"
+                        >
+                            <div className="table-responsive">
+                                <table className="table table-dark table-hover align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>
+                                                Position
+                                            </th>
 
-                <div className="d-flex flex-wrap gap-2 mt-4">
-                    <Button
-                        type="submit"
-                        disabled={
-                            !hasUnsavedChanges
-                        }
-                    >
-                        Layout speichern
-                    </Button>
+                                            <th>
+                                                Aktiv
+                                            </th>
 
-                    <Button
-                        type="button"
-                        variant="secondary"
-                        onClick={
-                            restoreDefaults
-                        }
-                    >
-                        Standardreihenfolge
-                    </Button>
-                </div>
-            </form>
+                                            <th>
+                                                Bereich
+                                            </th>
+
+                                            <th>
+                                                Komponente
+                                            </th>
+
+                                            <th>
+                                                Status
+                                            </th>
+
+                                            <th>
+                                                Reihenfolge
+                                            </th>
+
+                                            <th>
+                                                Vorschau
+                                            </th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        {
+                                            orderedItems.map(
+                                                (
+                                                    item,
+                                                    index
+                                                ) => (
+                                                    <tr
+                                                        key={
+                                                            item.id
+                                                        }
+                                                    >
+                                                        <td>
+                                                            <strong>
+                                                                {
+                                                                    index +
+                                                                    1
+                                                                }
+                                                            </strong>
+                                                        </td>
+
+                                                        <td>
+                                                            <input
+                                                                id={
+                                                                    `layout-${item.id}`
+                                                                }
+                                                                type="checkbox"
+                                                                className="form-check-input"
+                                                                checked={
+                                                                    Boolean(
+                                                                        item.enabled
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    busy ||
+                                                                    item.required
+                                                                }
+                                                                onChange={
+                                                                    (
+                                                                        event
+                                                                    ) =>
+                                                                        toggleItem(
+                                                                            item.id,
+                                                                            event
+                                                                                .target
+                                                                                .checked
+                                                                        )
+                                                                }
+                                                            />
+                                                        </td>
+
+                                                        <td>
+                                                            <label
+                                                                htmlFor={
+                                                                    `layout-${item.id}`
+                                                                }
+                                                                className="mb-0"
+                                                            >
+                                                                <strong>
+                                                                    {
+                                                                        item.label
+                                                                    }
+                                                                </strong>
+                                                            </label>
+                                                        </td>
+
+                                                        <td>
+                                                            <code>
+                                                                {
+                                                                    item.component
+                                                                }
+                                                            </code>
+                                                        </td>
+
+                                                        <td>
+                                                            {
+                                                                item.required ? (
+                                                                    <span className="badge text-bg-primary">
+                                                                        Pflichtbereich
+                                                                    </span>
+                                                                ) : item.enabled ? (
+                                                                    <span className="badge text-bg-success">
+                                                                        Sichtbar
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="badge text-bg-secondary">
+                                                                        Ausgeblendet
+                                                                    </span>
+                                                                )
+                                                            }
+                                                        </td>
+
+                                                        <td>
+                                                            <div className="d-flex gap-2">
+                                                                <Button
+                                                                    type="button"
+                                                                    size="sm"
+                                                                    variant="secondary"
+                                                                    disabled={
+                                                                        busy ||
+                                                                        index ===
+                                                                            0
+                                                                    }
+                                                                    onClick={
+                                                                        () =>
+                                                                            moveItem(
+                                                                                item.id,
+                                                                                -1
+                                                                            )
+                                                                    }
+                                                                >
+                                                                    ↑
+                                                                </Button>
+
+                                                                <Button
+                                                                    type="button"
+                                                                    size="sm"
+                                                                    variant="secondary"
+                                                                    disabled={
+                                                                        busy ||
+                                                                        index ===
+                                                                            orderedItems.length -
+                                                                            1
+                                                                    }
+                                                                    onClick={
+                                                                        () =>
+                                                                            moveItem(
+                                                                                item.id,
+                                                                                1
+                                                                            )
+                                                                    }
+                                                                >
+                                                                    ↓
+                                                                </Button>
+                                                            </div>
+                                                        </td>
+
+                                                        <td>
+                                                            <Button
+                                                                type="button"
+                                                                size="sm"
+                                                                variant="secondary"
+                                                                disabled={
+                                                                    busy ||
+                                                                    !item.enabled
+                                                                }
+                                                                onClick={
+                                                                    () =>
+                                                                        openSection(
+                                                                            item
+                                                                        )
+                                                                }
+                                                            >
+                                                                Ansehen
+                                                            </Button>
+                                                        </td>
+                                                    </tr>
+                                                )
+                                            )
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </fieldset>
+
+                        <div className="d-flex flex-wrap gap-2 mt-4">
+                            <Button
+                                type="submit"
+                                disabled={
+                                    busy ||
+                                    !hasUnsavedChanges
+                                }
+                            >
+                                {
+                                    saving ? (
+                                        <>
+                                            <span
+                                                className="spinner-border spinner-border-sm"
+                                                aria-hidden="true"
+                                            />
+
+                                            Wird gespeichert …
+                                        </>
+                                    ) : (
+                                        <>
+                                            <i
+                                                className="bi bi-database-check"
+                                                aria-hidden="true"
+                                            />
+
+                                            Layout speichern
+                                        </>
+                                    )
+                                }
+                            </Button>
+
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                disabled={
+                                    busy
+                                }
+                                onClick={
+                                    restoreDefaults
+                                }
+                            >
+                                {
+                                    resetting ? (
+                                        <>
+                                            <span
+                                                className="spinner-border spinner-border-sm"
+                                                aria-hidden="true"
+                                            />
+
+                                            Wird zurückgesetzt …
+                                        </>
+                                    ) : (
+                                        "Standardreihenfolge"
+                                    )
+                                }
+                            </Button>
+                        </div>
+                    </form>
+                )
+            }
         </AdminPage>
     );
 }

@@ -28,17 +28,20 @@ import {
 } from "@shared/content/siteContentSchemaExtensions";
 
 import {
-    getSiteSection,
-    resetSiteSection,
-    updateSiteSection
-} from "@shared/content/siteContentService";
+    getSiteContentRepository
+} from "@shared/data/repositories";
+
+const siteContentRepository =
+    getSiteContentRepository();
 
 function cloneValue(value) {
     if (
         typeof globalThis.structuredClone ===
         "function"
     ) {
-        return globalThis.structuredClone(value);
+        return globalThis.structuredClone(
+            value
+        );
     }
 
     return JSON.parse(
@@ -54,13 +57,17 @@ function Field({
     field,
     value,
     onChange,
-    inputId
+    inputId,
+    disabled = false
 }) {
     const width =
         field.width ?? 12;
 
     function handleChange(event) {
-        if (field.type === "number") {
+        if (
+            field.type ===
+            "number"
+        ) {
             const nextValue =
                 event.target.value === ""
                     ? 0
@@ -97,27 +104,43 @@ function Field({
             </label>
 
             {
-                field.type === "media" && (
+                field.type ===
+                    "media" && (
                     <MediaField
-                        value={value ?? ""}
-                        onChange={onChange}
+                        value={
+                            value ?? ""
+                        }
+                        onChange={
+                            onChange
+                        }
+                        disabled={
+                            disabled
+                        }
                     />
                 )
             }
 
             {
                 field.type ===
-                "textarea" && (
+                    "textarea" && (
                     <textarea
-                        id={inputId}
+                        id={
+                            inputId
+                        }
                         className="form-control"
                         rows={
-                            field.rows ?? 4
+                            field.rows ??
+                            4
                         }
-                        value={value ?? ""}
+                        value={
+                            value ?? ""
+                        }
                         placeholder={
                             field.placeholder ??
                             ""
+                        }
+                        disabled={
+                            disabled
                         }
                         onChange={
                             handleChange
@@ -127,11 +150,14 @@ function Field({
             }
 
             {
-                field.type !== "media" &&
                 field.type !==
-                "textarea" && (
+                    "media" &&
+                field.type !==
+                    "textarea" && (
                     <input
-                        id={inputId}
+                        id={
+                            inputId
+                        }
                         type={
                             field.type ===
                             "number"
@@ -139,10 +165,15 @@ function Field({
                                 : "text"
                         }
                         className="form-control"
-                        value={value ?? ""}
+                        value={
+                            value ?? ""
+                        }
                         placeholder={
                             field.placeholder ??
                             ""
+                        }
+                        disabled={
+                            disabled
                         }
                         onChange={
                             handleChange
@@ -158,31 +189,42 @@ function FieldGroup({
     fields,
     values,
     onChange,
-    inputPrefix
+    inputPrefix,
+    disabled = false
 }) {
     return (
         <div className="row">
             {
-                fields.map((field) => (
-                    <Field
-                        key={field.key}
-                        field={field}
-                        value={
-                            values[
+                fields.map(
+                    (field) => (
+                        <Field
+                            key={
                                 field.key
-                            ]
-                        }
-                        inputId={
-                            `${inputPrefix}-${field.key}`
-                        }
-                        onChange={(value) =>
-                            onChange(
-                                field.key,
-                                value
-                            )
-                        }
-                    />
-                ))
+                            }
+                            field={
+                                field
+                            }
+                            value={
+                                values[
+                                    field.key
+                                ]
+                            }
+                            inputId={
+                                `${inputPrefix}-${field.key}`
+                            }
+                            disabled={
+                                disabled
+                            }
+                            onChange={
+                                (value) =>
+                                    onChange(
+                                        field.key,
+                                        value
+                                    )
+                            }
+                        />
+                    )
+                )
             }
         </div>
     );
@@ -193,29 +235,41 @@ function CollectionEditor({
     items,
     onItemChange,
     onAddItem,
-    onRemoveItem
+    onRemoveItem,
+    disabled = false
 }) {
     const minimumItems =
-        collection.minItems ?? 0;
+        collection.minItems ??
+        0;
 
     return (
         <section className="mt-4">
             <div className="d-flex align-items-center justify-content-between gap-3 mb-3">
                 <h3 className="mb-0">
-                    {collection.label}
+                    {
+                        collection.label
+                    }
                 </h3>
 
                 <Button
                     type="button"
                     size="sm"
-                    onClick={onAddItem}
+                    disabled={
+                        disabled
+                    }
+                    onClick={
+                        onAddItem
+                    }
                 >
-                    {collection.addLabel}
+                    {
+                        collection.addLabel
+                    }
                 </Button>
             </div>
 
             {
-                items.length === 0 && (
+                items.length ===
+                    0 && (
                     <div className="alert alert-secondary">
                         Noch keine Einträge vorhanden.
                     </div>
@@ -224,7 +278,10 @@ function CollectionEditor({
 
             {
                 items.map(
-                    (item, index) => (
+                    (
+                        item,
+                        index
+                    ) => (
                         <article
                             key={
                                 item.id ??
@@ -238,7 +295,10 @@ function CollectionEditor({
                                         {
                                             collection.itemLabel
                                         }{" "}
-                                        {index + 1}
+                                        {
+                                            index +
+                                            1
+                                        }
                                     </strong>
 
                                     <Button
@@ -246,13 +306,15 @@ function CollectionEditor({
                                         size="sm"
                                         variant="secondary"
                                         disabled={
+                                            disabled ||
                                             items.length <=
-                                            minimumItems
+                                                minimumItems
                                         }
-                                        onClick={() =>
-                                            onRemoveItem(
-                                                index
-                                            )
+                                        onClick={
+                                            () =>
+                                                onRemoveItem(
+                                                    index
+                                                )
                                         }
                                     >
                                         Entfernen
@@ -263,19 +325,25 @@ function CollectionEditor({
                                     fields={
                                         collection.fields
                                     }
-                                    values={item}
+                                    values={
+                                        item
+                                    }
                                     inputPrefix={
                                         `${collection.key}-${index}`
                                     }
-                                    onChange={(
-                                        field,
-                                        value
-                                    ) =>
-                                        onItemChange(
-                                            index,
+                                    disabled={
+                                        disabled
+                                    }
+                                    onChange={
+                                        (
                                             field,
                                             value
-                                        )
+                                        ) =>
+                                            onItemChange(
+                                                index,
+                                                field,
+                                                value
+                                            )
                                     }
                                 />
                             </div>
@@ -287,13 +355,33 @@ function CollectionEditor({
     );
 }
 
+function LoadingState() {
+    return (
+        <div
+            className="d-flex align-items-center justify-content-center gap-3 py-5"
+            role="status"
+            aria-live="polite"
+        >
+            <span
+                className="spinner-border text-info"
+                aria-hidden="true"
+            />
+
+            <span>
+                Website-Inhalte werden aus Nexus geladen …
+            </span>
+        </div>
+    );
+}
+
 export default function WebsiteSectionEditor() {
     const navigate =
         useNavigate();
 
     const {
         sectionId
-    } = useParams();
+    } =
+        useParams();
 
     const structureItem =
         useMemo(
@@ -301,11 +389,14 @@ export default function WebsiteSectionEditor() {
                 getWebsiteStructureItem(
                     sectionId
                 ),
-            [sectionId]
+            [
+                sectionId
+            ]
         );
 
     const contentKey =
-        structureItem?.contentKey ??
+        structureItem
+            ?.contentKey ??
         null;
 
     const schema =
@@ -325,35 +416,69 @@ export default function WebsiteSectionEditor() {
                     baseSchema
                 );
             },
-            [contentKey]
+            [
+                contentKey
+            ]
         );
 
     const [
         content,
         setContent
-    ] = useState(null);
+    ] =
+        useState(null);
 
     const [
         savedContent,
         setSavedContent
-    ] = useState(null);
+    ] =
+        useState(null);
+
+    const [
+        loading,
+        setLoading
+    ] =
+        useState(true);
+
+    const [
+        saving,
+        setSaving
+    ] =
+        useState(false);
+
+    const [
+        resetting,
+        setResetting
+    ] =
+        useState(false);
+
+    const [
+        error,
+        setError
+    ] =
+        useState("");
 
     const [
         message,
         setMessage
-    ] = useState("");
+    ] =
+        useState("");
+
+    const busy =
+        saving ||
+        resetting;
 
     const hasUnsavedChanges =
         useMemo(
             () =>
                 content !== null &&
-                savedContent !== null &&
+                savedContent !==
+                    null &&
                 serializeValue(
                     content
                 ) !==
-                serializeValue(
-                    savedContent
-                ),
+                    serializeValue(
+                        savedContent
+                    ),
             [
                 content,
                 savedContent
@@ -361,74 +486,173 @@ export default function WebsiteSectionEditor() {
         );
 
     useEffect(() => {
-        if (!contentKey) {
-            setContent(null);
-            setSavedContent(null);
+        let active =
+            true;
 
-            return;
+        const controller =
+            new AbortController();
+
+        async function loadContent() {
+            setMessage("");
+            setError("");
+
+            if (!contentKey) {
+                if (active) {
+                    setContent(null);
+                    setSavedContent(
+                        null
+                    );
+                    setLoading(
+                        false
+                    );
+                }
+
+                return;
+            }
+
+            setLoading(true);
+
+            try {
+                const loadedContent =
+                    await siteContentRepository
+                        .getSection(
+                            contentKey,
+                            {
+                                signal:
+                                    controller
+                                        .signal
+                            }
+                        );
+
+                if (
+                    !active ||
+                    controller.signal
+                        .aborted
+                ) {
+                    return;
+                }
+
+                const nextContent =
+                    loadedContent
+                        ? cloneValue(
+                            loadedContent
+                        )
+                        : null;
+
+                setContent(
+                    nextContent
+                );
+
+                setSavedContent(
+                    nextContent
+                        ? cloneValue(
+                            nextContent
+                        )
+                        : null
+                );
+            } catch (
+                loadError
+            ) {
+                if (
+                    loadError?.name ===
+                        "AbortError" ||
+                    controller.signal
+                        .aborted
+                ) {
+                    return;
+                }
+
+                if (active) {
+                    setContent(
+                        null
+                    );
+
+                    setSavedContent(
+                        null
+                    );
+
+                    setError(
+                        loadError.message ??
+                        "Die Website-Inhalte konnten nicht geladen werden."
+                    );
+                }
+            } finally {
+                if (
+                    active &&
+                    !controller.signal
+                        .aborted
+                ) {
+                    setLoading(
+                        false
+                    );
+                }
+            }
         }
 
-        const loadedContent =
-            getSiteSection(
-                contentKey
-            );
+        loadContent();
 
-        setContent(
-            loadedContent
-                ? cloneValue(
-                    loadedContent
-                )
-                : null
-        );
+        return () => {
+            active =
+                false;
 
-        setSavedContent(
-            loadedContent
-                ? cloneValue(
-                    loadedContent
-                )
-                : null
-        );
-
-        setMessage("");
-    }, [contentKey]);
+            controller.abort();
+        };
+    }, [
+        contentKey
+    ]);
 
     useEffect(() => {
         function handleBeforeUnload(
             event
         ) {
-            if (!hasUnsavedChanges) {
+            if (
+                !hasUnsavedChanges
+            ) {
                 return;
             }
 
             event.preventDefault();
-            event.returnValue = "";
+            event.returnValue =
+                "";
         }
 
-        globalThis.window.addEventListener(
-            "beforeunload",
-            handleBeforeUnload
-        );
-
-        return () => {
-            globalThis.window.removeEventListener(
+        globalThis.window
+            .addEventListener(
                 "beforeunload",
                 handleBeforeUnload
             );
+
+        return () => {
+            globalThis.window
+                .removeEventListener(
+                    "beforeunload",
+                    handleBeforeUnload
+                );
         };
-    }, [hasUnsavedChanges]);
+    }, [
+        hasUnsavedChanges
+    ]);
+
+    function clearFeedback() {
+        setMessage("");
+        setError("");
+    }
 
     function changeField(
         field,
         value
     ) {
         setContent(
-            (currentContent) => ({
+            (
+                currentContent
+            ) => ({
                 ...currentContent,
-                [field]: value
+                [field]:
+                    value
             })
         );
 
-        setMessage("");
+        clearFeedback();
     }
 
     function changeCollectionItem(
@@ -438,7 +662,9 @@ export default function WebsiteSectionEditor() {
         value
     ) {
         setContent(
-            (currentContent) => ({
+            (
+                currentContent
+            ) => ({
                 ...currentContent,
 
                 [collectionKey]:
@@ -463,23 +689,27 @@ export default function WebsiteSectionEditor() {
             })
         );
 
-        setMessage("");
+        clearFeedback();
     }
 
     function addCollectionItem(
         collection
     ) {
         const newItem =
-            collection.createItem();
+            collection
+                .createItem();
 
         setContent(
-            (currentContent) => ({
+            (
+                currentContent
+            ) => ({
                 ...currentContent,
 
                 [collection.key]: [
                     ...(
                         currentContent[
-                            collection.key
+                            collection
+                                .key
                         ] ?? []
                     ),
                     newItem
@@ -487,7 +717,7 @@ export default function WebsiteSectionEditor() {
             })
         );
 
-        setMessage("");
+        clearFeedback();
     }
 
     function removeCollectionItem(
@@ -510,13 +740,16 @@ export default function WebsiteSectionEditor() {
         }
 
         setContent(
-            (currentContent) => ({
+            (
+                currentContent
+            ) => ({
                 ...currentContent,
 
                 [collection.key]:
                     (
                         currentContent[
-                            collection.key
+                            collection
+                                .key
                         ] ?? []
                     ).filter(
                         (
@@ -529,69 +762,126 @@ export default function WebsiteSectionEditor() {
             })
         );
 
-        setMessage("");
+        clearFeedback();
     }
 
-    function saveContent(event) {
+    async function saveContent(
+        event
+    ) {
         event.preventDefault();
 
         if (
             !contentKey ||
-            !content
+            !content ||
+            !hasUnsavedChanges ||
+            busy
         ) {
             return;
         }
 
-        const saved =
-            updateSiteSection(
-                contentKey,
-                content
+        setSaving(true);
+        setMessage("");
+        setError("");
+
+        try {
+            const saved =
+                await siteContentRepository
+                    .updateSection(
+                        contentKey,
+                        content
+                    );
+
+            const nextContent =
+                cloneValue(
+                    saved
+                );
+
+            setContent(
+                nextContent
             );
 
-        setContent(
-            cloneValue(saved)
-        );
+            setSavedContent(
+                cloneValue(
+                    nextContent
+                )
+            );
 
-        setSavedContent(
-            cloneValue(saved)
-        );
-
-        setMessage(
-            "Änderungen wurden gespeichert."
-        );
+            setMessage(
+                "Änderungen wurden in PostgreSQL gespeichert."
+            );
+        } catch (
+            saveError
+        ) {
+            setError(
+                saveError.message ??
+                "Die Änderungen konnten nicht gespeichert werden."
+            );
+        } finally {
+            setSaving(false);
+        }
     }
 
-    function resetContent() {
+    async function resetContent() {
         if (
-            !confirm(
-                "Diesen Bereich auf die Standardwerte zurücksetzen?"
+            !contentKey ||
+            busy
+        ) {
+            return;
+        }
+
+        if (
+            !globalThis.confirm(
+                "Diesen Bereich in PostgreSQL auf die Standardwerte zurücksetzen?"
             )
         ) {
             return;
         }
 
-        const defaults =
-            resetSiteSection(
-                contentKey
+        setResetting(true);
+        setMessage("");
+        setError("");
+
+        try {
+            const defaults =
+                await siteContentRepository
+                    .resetSection(
+                        contentKey
+                    );
+
+            const nextContent =
+                cloneValue(
+                    defaults
+                );
+
+            setContent(
+                nextContent
             );
 
-        setContent(
-            cloneValue(defaults)
-        );
+            setSavedContent(
+                cloneValue(
+                    nextContent
+                )
+            );
 
-        setSavedContent(
-            cloneValue(defaults)
-        );
-
-        setMessage(
-            "Standardwerte wurden wiederhergestellt."
-        );
+            setMessage(
+                "Standardwerte wurden in PostgreSQL wiederhergestellt."
+            );
+        } catch (
+            resetError
+        ) {
+            setError(
+                resetError.message ??
+                "Die Standardwerte konnten nicht wiederhergestellt werden."
+            );
+        } finally {
+            setResetting(false);
+        }
     }
 
     function goBack() {
         if (
             hasUnsavedChanges &&
-            !confirm(
+            !globalThis.confirm(
                 "Ungespeicherte Änderungen verwerfen?"
             )
         ) {
@@ -611,31 +901,90 @@ export default function WebsiteSectionEditor() {
         );
     }
 
-    const canEdit =
+    const isConfigured =
         Boolean(
-            structureItem?.editable &&
+            structureItem
+                ?.editable &&
             contentKey &&
-            schema &&
-            content
+            schema
         );
 
-    if (!canEdit) {
+    if (
+        loading &&
+        isConfigured
+    ) {
+        return (
+            <AdminPage
+                title={
+                    structureItem
+                        ? `${structureItem.title} bearbeiten`
+                        : "Website-Bereich"
+                }
+                description="Website-Inhalte werden aus PostgreSQL geladen."
+                action={
+                    <Button
+                        onClick={
+                            goBack
+                        }
+                    >
+                        ← Zurück
+                    </Button>
+                }
+            >
+                <LoadingState />
+            </AdminPage>
+        );
+    }
+
+    if (
+        !isConfigured
+    ) {
         return (
             <AdminPage
                 title="Bereich nicht bearbeitbar"
                 description="Für diesen Website-Bereich existiert noch kein Inhaltseditor."
                 action={
                     <Button
-                        onClick={goBack}
+                        onClick={
+                            goBack
+                        }
                     >
                         ← Zurück
                     </Button>
                 }
             >
                 <p>
-                    Der Bereich kann derzeit noch
-                    nicht über Nexus bearbeitet werden.
+                    Der Bereich kann derzeit noch nicht über Nexus bearbeitet werden.
                 </p>
+            </AdminPage>
+        );
+    }
+
+    if (
+        !content
+    ) {
+        return (
+            <AdminPage
+                title={
+                    `${structureItem.title} bearbeiten`
+                }
+                description="Der Website-Inhalt konnte nicht geladen werden."
+                action={
+                    <Button
+                        onClick={
+                            goBack
+                        }
+                    >
+                        ← Zurück
+                    </Button>
+                }
+            >
+                <div className="alert alert-danger">
+                    {
+                        error ||
+                        "Für diesen Bereich wurden keine Inhalte gefunden."
+                    }
+                </div>
             </AdminPage>
         );
     }
@@ -646,7 +995,7 @@ export default function WebsiteSectionEditor() {
                 `${structureItem.title} bearbeiten`
             }
             description={
-                `Website-Komponente: ${structureItem.component}`
+                `Website-Komponente: ${structureItem.component} · Datenquelle: PostgreSQL`
             }
             action={
                 <div className="d-flex gap-2">
@@ -660,13 +1009,23 @@ export default function WebsiteSectionEditor() {
                     </Button>
 
                     <Button
-                        onClick={goBack}
+                        onClick={
+                            goBack
+                        }
                     >
                         ← Zurück
                     </Button>
                 </div>
             }
         >
+            {
+                error && (
+                    <div className="alert alert-danger">
+                        {error}
+                    </div>
+                )
+            }
+
             {
                 message && (
                     <div className="alert alert-success">
@@ -683,93 +1042,156 @@ export default function WebsiteSectionEditor() {
                 )
             }
 
-            <form onSubmit={saveContent}>
-                <section>
-                    <h2 className="mb-3">
-                        {schema.title}
-                    </h2>
-
-                    <FieldGroup
-                        fields={
-                            schema.fields ??
-                            []
-                        }
-                        values={content}
-                        inputPrefix={
-                            contentKey
-                        }
-                        onChange={
-                            changeField
-                        }
-                    />
-                </section>
-
-                {
-                    (
-                        schema.collections ??
-                        []
-                    ).map(
-                        (collection) => (
-                            <CollectionEditor
-                                key={
-                                    collection.key
-                                }
-                                collection={
-                                    collection
-                                }
-                                items={
-                                    content[
-                                        collection.key
-                                    ] ?? []
-                                }
-                                onAddItem={() =>
-                                    addCollectionItem(
-                                        collection
-                                    )
-                                }
-                                onRemoveItem={(
-                                    index
-                                ) =>
-                                    removeCollectionItem(
-                                        collection,
-                                        index
-                                    )
-                                }
-                                onItemChange={(
-                                    index,
-                                    field,
-                                    value
-                                ) =>
-                                    changeCollectionItem(
-                                        collection.key,
-                                        index,
-                                        field,
-                                        value
-                                    )
-                                }
-                            />
-                        )
-                    )
+            <form
+                onSubmit={
+                    saveContent
                 }
+            >
+                <fieldset
+                    disabled={
+                        busy
+                    }
+                    className="border-0 p-0 m-0"
+                >
+                    <section>
+                        <h2 className="mb-3">
+                            {
+                                schema.title
+                            }
+                        </h2>
 
-                <div className="d-flex gap-2 mt-4">
+                        <FieldGroup
+                            fields={
+                                schema.fields ??
+                                []
+                            }
+                            values={
+                                content
+                            }
+                            inputPrefix={
+                                contentKey
+                            }
+                            disabled={
+                                busy
+                            }
+                            onChange={
+                                changeField
+                            }
+                        />
+                    </section>
+
+                    {
+                        (
+                            schema.collections ??
+                            []
+                        ).map(
+                            (
+                                collection
+                            ) => (
+                                <CollectionEditor
+                                    key={
+                                        collection.key
+                                    }
+                                    collection={
+                                        collection
+                                    }
+                                    items={
+                                        content[
+                                            collection.key
+                                        ] ?? []
+                                    }
+                                    disabled={
+                                        busy
+                                    }
+                                    onAddItem={
+                                        () =>
+                                            addCollectionItem(
+                                                collection
+                                            )
+                                    }
+                                    onRemoveItem={
+                                        (
+                                            index
+                                        ) =>
+                                            removeCollectionItem(
+                                                collection,
+                                                index
+                                            )
+                                    }
+                                    onItemChange={
+                                        (
+                                            index,
+                                            field,
+                                            value
+                                        ) =>
+                                            changeCollectionItem(
+                                                collection.key,
+                                                index,
+                                                field,
+                                                value
+                                            )
+                                    }
+                                />
+                            )
+                        )
+                    }
+                </fieldset>
+
+                <div className="d-flex flex-wrap gap-2 mt-4">
                     <Button
                         type="submit"
                         disabled={
-                            !hasUnsavedChanges
+                            !hasUnsavedChanges ||
+                            busy
                         }
                     >
-                        Änderungen speichern
+                        {
+                            saving ? (
+                                <>
+                                    <span
+                                        className="spinner-border spinner-border-sm"
+                                        aria-hidden="true"
+                                    />
+
+                                    Wird gespeichert …
+                                </>
+                            ) : (
+                                <>
+                                    <i
+                                        className="bi bi-database-check"
+                                        aria-hidden="true"
+                                    />
+
+                                    Änderungen speichern
+                                </>
+                            )
+                        }
                     </Button>
 
                     <Button
                         type="button"
                         variant="secondary"
+                        disabled={
+                            busy
+                        }
                         onClick={
                             resetContent
                         }
                     >
-                        Standardwerte
+                        {
+                            resetting ? (
+                                <>
+                                    <span
+                                        className="spinner-border spinner-border-sm"
+                                        aria-hidden="true"
+                                    />
+
+                                    Wird zurückgesetzt …
+                                </>
+                            ) : (
+                                "Standardwerte"
+                            )
+                        }
                     </Button>
                 </div>
             </form>

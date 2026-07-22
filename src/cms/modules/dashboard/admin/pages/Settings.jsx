@@ -1,4 +1,5 @@
 import {
+    useEffect,
     useMemo,
     useState
 } from "react";
@@ -8,21 +9,36 @@ import AdminPage from "../components/AdminPage";
 import Button from "@shared/ui/Button";
 
 import {
-    getPages
+    refreshPages
 } from "@cms/modules/pages/services/pageService";
 
 import {
-    getSiteNavigation,
-    resetSiteNavigation,
-    updateSiteNavigation
-} from "@shared/navigation/SiteNavigationService";
+    getSiteNavigationRepository
+} from "@shared/data/repositories";
+
+const siteNavigationRepository =
+    getSiteNavigationRepository();
+
+const EMPTY_NAVIGATION = {
+    items: [],
+
+    cta: {
+        id: "navigation-cta",
+        label: "",
+        href: "",
+        enabled: false,
+        target: "_self"
+    }
+};
 
 function cloneValue(value) {
     if (
         typeof globalThis.structuredClone ===
         "function"
     ) {
-        return globalThis.structuredClone(value);
+        return globalThis.structuredClone(
+            value
+        );
     }
 
     return JSON.parse(
@@ -30,8 +46,15 @@ function cloneValue(value) {
     );
 }
 
+function serializeValue(value) {
+    return JSON.stringify(value);
+}
+
 function createId(prefix = "nav") {
-    if (globalThis.crypto?.randomUUID) {
+    if (
+        globalThis.crypto
+            ?.randomUUID
+    ) {
         return `${prefix}-${globalThis.crypto.randomUUID()}`;
     }
 
@@ -47,7 +70,8 @@ function getChildren(
     return items
         .filter(
             (item) =>
-                item.parentId === parentId
+                item.parentId ===
+                parentId
         )
         .sort(
             (
@@ -73,30 +97,40 @@ function flattenNavigation(
             parentId
         );
 
-    children.forEach((item) => {
-        if (visited.has(item.id)) {
-            return;
+    children.forEach(
+        (item) => {
+            if (
+                visited.has(
+                    item.id
+                )
+            ) {
+                return;
+            }
+
+            const nextVisited =
+                new Set(
+                    visited
+                );
+
+            nextVisited.add(
+                item.id
+            );
+
+            result.push({
+                item,
+                depth
+            });
+
+            result.push(
+                ...flattenNavigation(
+                    items,
+                    item.id,
+                    depth + 1,
+                    nextVisited
+                )
+            );
         }
-
-        const nextVisited =
-            new Set(visited);
-
-        nextVisited.add(item.id);
-
-        result.push({
-            item,
-            depth
-        });
-
-        result.push(
-            ...flattenNavigation(
-                items,
-                item.id,
-                depth + 1,
-                nextVisited
-            )
-        );
-    });
+    );
 
     return result;
 }
@@ -108,31 +142,39 @@ function getDescendantIds(
     const descendants =
         new Set();
 
-    function collect(parentId) {
+    function collect(
+        parentId
+    ) {
         items
             .filter(
                 (item) =>
                     item.parentId ===
                     parentId
             )
-            .forEach((child) => {
-                if (
-                    descendants.has(
+            .forEach(
+                (child) => {
+                    if (
+                        descendants.has(
+                            child.id
+                        )
+                    ) {
+                        return;
+                    }
+
+                    descendants.add(
                         child.id
-                    )
-                ) {
-                    return;
+                    );
+
+                    collect(
+                        child.id
+                    );
                 }
-
-                descendants.add(
-                    child.id
-                );
-
-                collect(child.id);
-            });
+            );
     }
 
-    collect(itemId);
+    collect(
+        itemId
+    );
 
     return descendants;
 }
@@ -143,30 +185,113 @@ function getPageHref(page) {
             page.slug ?? ""
         )
             .trim()
-            .replace(/^\/+/, "");
+            .replace(
+                /^\/+/,
+                ""
+            );
 
     return slug
         ? `/${slug}`
         : "/";
 }
 
+function LoadingState() {
+    return (
+        <div
+            className="d-flex align-items-center justify-content-center gap-3 py-5"
+            role="status"
+            aria-live="polite"
+        >
+            <span
+                className="spinner-border text-info"
+                aria-hidden="true"
+            />
+
+            <span>
+                Navigation und Builder-Seiten werden aus Nexus geladen …
+            </span>
+        </div>
+    );
+}
+
 export default function Settings() {
     const [
         navigation,
         setNavigation
-    ] = useState(
-        () => getSiteNavigation()
-    );
+    ] =
+        useState(
+            EMPTY_NAVIGATION
+        );
+
+    const [
+        savedNavigation,
+        setSavedNavigation
+    ] =
+        useState(
+            EMPTY_NAVIGATION
+        );
+
+    const [
+        pages,
+        setPages
+    ] =
+        useState([]);
+
+    const [
+        loading,
+        setLoading
+    ] =
+        useState(true);
+
+    const [
+        saving,
+        setSaving
+    ] =
+        useState(false);
+
+    const [
+        resetting,
+        setResetting
+    ] =
+        useState(false);
+
+    const [
+        error,
+        setError
+    ] =
+        useState("");
 
     const [
         message,
         setMessage
-    ] = useState("");
+    ] =
+        useState("");
+
+    const busy =
+        saving ||
+        resetting;
+
+    const hasUnsavedChanges =
+        useMemo(
+            () =>
+                !loading &&
+                serializeValue(
+                    navigation
+                ) !==
+                    serializeValue(
+                        savedNavigation
+                    ),
+            [
+                navigation,
+                savedNavigation,
+                loading
+            ]
+        );
 
     const publishedPages =
         useMemo(
             () =>
-                getPages()
+                pages
                     .filter(
                         (page) =>
                             page.status ===
@@ -177,41 +302,205 @@ export default function Settings() {
                             firstPage,
                             secondPage
                         ) =>
-                            firstPage.title.localeCompare(
-                                secondPage.title,
+                            String(
+                                firstPage.title ??
+                                ""
+                            ).localeCompare(
+                                String(
+                                    secondPage.title ??
+                                    ""
+                                ),
                                 "de"
                             )
                     ),
-            []
+            [
+                pages
+            ]
         );
 
     const flattenedItems =
         useMemo(
             () =>
                 flattenNavigation(
-                    navigation.items
-                ),
-            [navigation.items]
-        );
-
-    const availablePublishedPages =
-        useMemo(
-            () =>
-                publishedPages.filter(
-                    (page) =>
-                        !navigation.items.some(
-                            (item) =>
-                                item.source ===
-                                    "page" &&
-                                item.sourceId ===
-                                    page.id
-                        )
+                    navigation.items ??
+                    []
                 ),
             [
-                navigation.items,
-                publishedPages
+                navigation.items
             ]
         );
+
+    useEffect(() => {
+        let active =
+            true;
+
+        const controller =
+            new AbortController();
+
+        async function loadSettings() {
+            setLoading(true);
+            setError("");
+            setMessage("");
+
+            try {
+                const [
+                    loadedNavigation,
+                    loadedPages
+                ] =
+                    await Promise.all([
+                        siteNavigationRepository.get({
+                            signal:
+                                controller.signal
+                        }),
+
+                        refreshPages({
+                            signal:
+                                controller.signal
+                        })
+                    ]);
+
+                if (
+                    !active ||
+                    controller.signal
+                        .aborted
+                ) {
+                    return;
+                }
+
+                const nextNavigation = {
+                    ...EMPTY_NAVIGATION,
+                    ...(
+                        loadedNavigation ??
+                        {}
+                    ),
+
+                    items:
+                        Array.isArray(
+                            loadedNavigation
+                                ?.items
+                        )
+                            ? loadedNavigation
+                                .items
+                            : [],
+
+                    cta: {
+                        ...EMPTY_NAVIGATION
+                            .cta,
+
+                        ...(
+                            loadedNavigation
+                                ?.cta ??
+                            {}
+                        )
+                    }
+                };
+
+                setNavigation(
+                    cloneValue(
+                        nextNavigation
+                    )
+                );
+
+                setSavedNavigation(
+                    cloneValue(
+                        nextNavigation
+                    )
+                );
+
+                setPages(
+                    Array.isArray(
+                        loadedPages
+                    )
+                        ? loadedPages
+                        : []
+                );
+            } catch (
+                loadError
+            ) {
+                if (
+                    loadError?.name ===
+                        "AbortError" ||
+                    controller.signal
+                        .aborted
+                ) {
+                    return;
+                }
+
+                if (active) {
+                    setNavigation(
+                        cloneValue(
+                            EMPTY_NAVIGATION
+                        )
+                    );
+
+                    setSavedNavigation(
+                        cloneValue(
+                            EMPTY_NAVIGATION
+                        )
+                    );
+
+                    setPages([]);
+
+                    setError(
+                        loadError.message ??
+                        "Navigation und Builder-Seiten konnten nicht geladen werden."
+                    );
+                }
+            } finally {
+                if (
+                    active &&
+                    !controller.signal
+                        .aborted
+                ) {
+                    setLoading(false);
+                }
+            }
+        }
+
+        loadSettings();
+
+        return () => {
+            active =
+                false;
+
+            controller.abort();
+        };
+    }, []);
+
+    useEffect(() => {
+        function handleBeforeUnload(
+            event
+        ) {
+            if (
+                !hasUnsavedChanges
+            ) {
+                return;
+            }
+
+            event.preventDefault();
+            event.returnValue =
+                "";
+        }
+
+        globalThis.window.addEventListener(
+            "beforeunload",
+            handleBeforeUnload
+        );
+
+        return () => {
+            globalThis.window.removeEventListener(
+                "beforeunload",
+                handleBeforeUnload
+            );
+        };
+    }, [
+        hasUnsavedChanges
+    ]);
+
+    function clearFeedback() {
+        setMessage("");
+        setError("");
+    }
 
     function updateNavigationItem(
         itemId,
@@ -219,23 +508,30 @@ export default function Settings() {
         value
     ) {
         setNavigation(
-            (currentNavigation) => ({
+            (
+                currentNavigation
+            ) => ({
                 ...currentNavigation,
 
                 items:
-                    currentNavigation.items.map(
+                    (
+                        currentNavigation.items ??
+                        []
+                    ).map(
                         (item) =>
-                            item.id === itemId
+                            item.id ===
+                            itemId
                                 ? {
                                     ...item,
-                                    [field]: value
+                                    [field]:
+                                        value
                                 }
                                 : item
                     )
             })
         );
 
-        setMessage("");
+        clearFeedback();
     }
 
     function updateCta(
@@ -243,22 +539,28 @@ export default function Settings() {
         value
     ) {
         setNavigation(
-            (currentNavigation) => ({
+            (
+                currentNavigation
+            ) => ({
                 ...currentNavigation,
 
                 cta: {
                     ...currentNavigation.cta,
-                    [field]: value
+                    [field]:
+                        value
                 }
             })
         );
 
-        setMessage("");
+        clearFeedback();
     }
 
     function addCustomLink() {
         const rootItems =
-            navigation.items.filter(
+            (
+                navigation.items ??
+                []
+            ).filter(
                 (item) =>
                     !item.parentId
             );
@@ -268,42 +570,91 @@ export default function Settings() {
                 0,
                 ...rootItems.map(
                     (item) =>
-                        Number(item.order) ||
+                        Number(
+                            item.order
+                        ) ||
                         0
                 )
             );
 
         const newItem = {
-            id: createId("custom"),
-            label: "Neuer Link",
-            href: "",
-            enabled: false,
-            target: "_self",
+            id:
+                createId(
+                    "custom"
+                ),
+
+            label:
+                "Neuer Link",
+
+            href:
+                "",
+
+            enabled:
+                false,
+
+            target:
+                "_self",
+
             order:
-                highestOrder + 10,
-            parentId: null,
-            source: "custom",
-            sourceId: null,
-            removable: true
+                highestOrder +
+                10,
+
+            parentId:
+                null,
+
+            source:
+                "custom",
+
+            sourceId:
+                null,
+
+            removable:
+                true
         };
 
         setNavigation(
-            (currentNavigation) => ({
+            (
+                currentNavigation
+            ) => ({
                 ...currentNavigation,
 
                 items: [
-                    ...currentNavigation.items,
+                    ...(
+                        currentNavigation.items ??
+                        []
+                    ),
                     newItem
                 ]
             })
         );
 
-        setMessage("");
+        clearFeedback();
     }
 
-    function addPublishedPage(page) {
+    function addPublishedPage(
+        page
+    ) {
+        const alreadyAdded =
+            (
+                navigation.items ??
+                []
+            ).some(
+                (item) =>
+                    item.source ===
+                        "page" &&
+                    item.sourceId ===
+                        page.id
+            );
+
+        if (alreadyAdded) {
+            return;
+        }
+
         const rootItems =
-            navigation.items.filter(
+            (
+                navigation.items ??
+                []
+            ).filter(
                 (item) =>
                     !item.parentId
             );
@@ -313,46 +664,81 @@ export default function Settings() {
                 0,
                 ...rootItems.map(
                     (item) =>
-                        Number(item.order) ||
+                        Number(
+                            item.order
+                        ) ||
                         0
                 )
             );
 
         const newItem = {
-            id: createId("page"),
+            id:
+                createId(
+                    "page"
+                ),
+
             label:
                 page.title ||
                 "Neue Seite",
+
             href:
-                getPageHref(page),
-            enabled: true,
-            target: "_self",
+                getPageHref(
+                    page
+                ),
+
+            enabled:
+                true,
+
+            target:
+                "_self",
+
             order:
-                highestOrder + 10,
-            parentId: null,
-            source: "page",
-            sourceId: page.id,
-            removable: true
+                highestOrder +
+                10,
+
+            parentId:
+                null,
+
+            source:
+                "page",
+
+            sourceId:
+                page.id,
+
+            removable:
+                true
         };
 
         setNavigation(
-            (currentNavigation) => ({
+            (
+                currentNavigation
+            ) => ({
                 ...currentNavigation,
 
                 items: [
-                    ...currentNavigation.items,
+                    ...(
+                        currentNavigation.items ??
+                        []
+                    ),
                     newItem
                 ]
             })
         );
 
-        setMessage("");
+        clearFeedback();
     }
 
-    function removeItem(itemId) {
+    function removeItem(
+        itemId
+    ) {
         const item =
-            navigation.items.find(
-                (navigationItem) =>
+            (
+                navigation.items ??
+                []
+            ).find(
+                (
+                    navigationItem
+                ) =>
                     navigationItem.id ===
                     itemId
             );
@@ -373,11 +759,16 @@ export default function Settings() {
         }
 
         setNavigation(
-            (currentNavigation) => ({
+            (
+                currentNavigation
+            ) => ({
                 ...currentNavigation,
 
                 items:
-                    currentNavigation.items
+                    (
+                        currentNavigation.items ??
+                        []
+                    )
                         .filter(
                             (
                                 navigationItem
@@ -393,6 +784,7 @@ export default function Settings() {
                                 itemId
                                     ? {
                                         ...navigationItem,
+
                                         parentId:
                                             item.parentId ??
                                             null
@@ -402,7 +794,7 @@ export default function Settings() {
             })
         );
 
-        setMessage("");
+        clearFeedback();
     }
 
     function moveItem(
@@ -410,9 +802,14 @@ export default function Settings() {
         direction
     ) {
         setNavigation(
-            (currentNavigation) => {
+            (
+                currentNavigation
+            ) => {
                 const currentItem =
-                    currentNavigation.items.find(
+                    (
+                        currentNavigation.items ??
+                        []
+                    ).find(
                         (item) =>
                             item.id ===
                             itemId
@@ -423,7 +820,10 @@ export default function Settings() {
                 }
 
                 const siblingItems =
-                    currentNavigation.items
+                    (
+                        currentNavigation.items ??
+                        []
+                    )
                         .filter(
                             (item) =>
                                 item.parentId ===
@@ -441,7 +841,8 @@ export default function Settings() {
                 const currentIndex =
                     siblingItems.findIndex(
                         (item) =>
-                            item.id === itemId
+                            item.id ===
+                            itemId
                     );
 
                 const nextIndex =
@@ -449,8 +850,10 @@ export default function Settings() {
                     direction;
 
                 if (
-                    currentIndex === -1 ||
-                    nextIndex < 0 ||
+                    currentIndex ===
+                        -1 ||
+                    nextIndex <
+                        0 ||
                     nextIndex >=
                         siblingItems.length
                 ) {
@@ -458,11 +861,19 @@ export default function Settings() {
                 }
 
                 [
-                    siblingItems[currentIndex],
-                    siblingItems[nextIndex]
+                    siblingItems[
+                        currentIndex
+                    ],
+                    siblingItems[
+                        nextIndex
+                    ]
                 ] = [
-                    siblingItems[nextIndex],
-                    siblingItems[currentIndex]
+                    siblingItems[
+                        nextIndex
+                    ],
+                    siblingItems[
+                        currentIndex
+                    ]
                 ];
 
                 const nextOrders =
@@ -473,8 +884,11 @@ export default function Settings() {
                                 index
                             ) => [
                                 item.id,
-                                (index + 1) *
-                                    10
+                                (
+                                    index +
+                                    1
+                                ) *
+                                10
                             ]
                         )
                     );
@@ -483,13 +897,17 @@ export default function Settings() {
                     ...currentNavigation,
 
                     items:
-                        currentNavigation.items.map(
+                        (
+                            currentNavigation.items ??
+                            []
+                        ).map(
                             (item) =>
                                 nextOrders.has(
                                     item.id
                                 )
                                     ? {
                                         ...item,
+
                                         order:
                                             nextOrders.get(
                                                 item.id
@@ -501,22 +919,27 @@ export default function Settings() {
             }
         );
 
-        setMessage("");
+        clearFeedback();
     }
 
     function getAvailableParents(
         itemId
     ) {
+        const items =
+            navigation.items ??
+            [];
+
         const descendants =
             getDescendantIds(
-                navigation.items,
+                items,
                 itemId
             );
 
-        return navigation.items
+        return items
             .filter(
                 (item) =>
-                    item.id !== itemId &&
+                    item.id !==
+                        itemId &&
                     !descendants.has(
                         item.id
                     )
@@ -526,33 +949,101 @@ export default function Settings() {
                     firstItem,
                     secondItem
                 ) =>
-                    firstItem.label.localeCompare(
-                        secondItem.label,
+                    String(
+                        firstItem.label ??
+                        ""
+                    ).localeCompare(
+                        String(
+                            secondItem.label ??
+                            ""
+                        ),
                         "de"
                     )
             );
     }
 
-    function saveSettings(event) {
+    async function saveSettings(
+        event
+    ) {
         event.preventDefault();
 
-        const savedNavigation =
-            updateSiteNavigation(
-                navigation
+        if (
+            busy ||
+            !hasUnsavedChanges
+        ) {
+            return;
+        }
+
+        setSaving(true);
+        setError("");
+        setMessage("");
+
+        try {
+            const savedNavigation =
+                await siteNavigationRepository.update(
+                    navigation
+                );
+
+            const nextNavigation = {
+                ...EMPTY_NAVIGATION,
+                ...savedNavigation,
+
+                items:
+                    Array.isArray(
+                        savedNavigation
+                            ?.items
+                    )
+                        ? savedNavigation
+                            .items
+                        : [],
+
+                cta: {
+                    ...EMPTY_NAVIGATION
+                        .cta,
+
+                    ...(
+                        savedNavigation
+                            ?.cta ??
+                        {}
+                    )
+                }
+            };
+
+            setNavigation(
+                cloneValue(
+                    nextNavigation
+                )
             );
 
-        setNavigation(
-            cloneValue(
-                savedNavigation
-            )
-        );
+            setSavedNavigation(
+                cloneValue(
+                    nextNavigation
+                )
+            );
 
-        setMessage(
-            "Navigation wurde gespeichert."
-        );
+            setMessage(
+                siteNavigationRepository.mode ===
+                    "api"
+                    ? "Navigation wurde in PostgreSQL gespeichert."
+                    : "Navigation wurde gespeichert."
+            );
+        } catch (
+            saveError
+        ) {
+            setError(
+                saveError.message ??
+                "Die Navigation konnte nicht gespeichert werden."
+            );
+        } finally {
+            setSaving(false);
+        }
     }
 
-    function restoreDefaults() {
+    async function restoreDefaults() {
+        if (busy) {
+            return;
+        }
+
         if (
             !globalThis.confirm(
                 "Navigation auf die Standardwerte zurücksetzen?"
@@ -561,25 +1052,87 @@ export default function Settings() {
             return;
         }
 
-        const defaultNavigation =
-            resetSiteNavigation();
+        setResetting(true);
+        setError("");
+        setMessage("");
 
-        setNavigation(
-            cloneValue(
-                defaultNavigation
-            )
-        );
+        try {
+            const defaultNavigation =
+                await siteNavigationRepository.reset();
 
-        setMessage(
-            "Standardnavigation wurde wiederhergestellt."
-        );
+            const nextNavigation = {
+                ...EMPTY_NAVIGATION,
+                ...defaultNavigation,
+
+                items:
+                    Array.isArray(
+                        defaultNavigation
+                            ?.items
+                    )
+                        ? defaultNavigation
+                            .items
+                        : [],
+
+                cta: {
+                    ...EMPTY_NAVIGATION
+                        .cta,
+
+                    ...(
+                        defaultNavigation
+                            ?.cta ??
+                        {}
+                    )
+                }
+            };
+
+            setNavigation(
+                cloneValue(
+                    nextNavigation
+                )
+            );
+
+            setSavedNavigation(
+                cloneValue(
+                    nextNavigation
+                )
+            );
+
+            setMessage(
+                siteNavigationRepository.mode ===
+                    "api"
+                    ? "Standardnavigation wurde in PostgreSQL wiederhergestellt."
+                    : "Standardnavigation wurde wiederhergestellt."
+            );
+        } catch (
+            resetError
+        ) {
+            setError(
+                resetError.message ??
+                "Die Standardnavigation konnte nicht wiederhergestellt werden."
+            );
+        } finally {
+            setResetting(false);
+        }
     }
 
     return (
         <AdminPage
             title="Einstellungen"
-            description="Navigation, Dropdown-Menüs und Aktionsbutton konfigurieren."
+            description={
+                siteNavigationRepository.mode ===
+                    "api"
+                    ? "Navigation, Dropdown-Menüs und Aktionsbutton direkt in PostgreSQL verwalten."
+                    : "Navigation, Dropdown-Menüs und Aktionsbutton konfigurieren."
+            }
         >
+            {
+                error && (
+                    <div className="alert alert-danger">
+                        {error}
+                    </div>
+                )
+            }
+
             {
                 message && (
                     <div className="alert alert-success">
@@ -588,539 +1141,748 @@ export default function Settings() {
                 )
             }
 
-            <form onSubmit={saveSettings}>
-                <section className="mb-5">
-                    <div className="d-flex align-items-start justify-content-between gap-3 mb-3">
-                        <div>
-                            <h2>
-                                Hauptnavigation
-                            </h2>
+            {
+                hasUnsavedChanges && (
+                    <div className="alert alert-warning">
+                        Es gibt ungespeicherte Änderungen.
+                    </div>
+                )
+            }
 
-                            <p className="text-secondary mb-0">
-                                Weise Seiten einem übergeordneten Menüpunkt zu,
-                                um Dropdown-Menüs zu erstellen.
-                            </p>
-                        </div>
-
-                        <Button
-                            type="button"
-                            onClick={addCustomLink}
+            {
+                loading ? (
+                    <LoadingState />
+                ) : (
+                    <form
+                        onSubmit={
+                            saveSettings
+                        }
+                    >
+                        <fieldset
+                            disabled={
+                                busy
+                            }
+                            className="border-0 p-0 m-0"
                         >
-                            + Eigener Link
-                        </Button>
-                    </div>
+                            <section className="mb-5">
+                                <div className="d-flex align-items-start justify-content-between gap-3 mb-3">
+                                    <div>
+                                        <h2>
+                                            Hauptnavigation
+                                        </h2>
 
-                    <div className="table-responsive">
-                        <table className="table table-dark table-hover align-middle">
-                            <thead>
-                                <tr>
-                                    <th>Aktiv</th>
-                                    <th>Bezeichnung</th>
-                                    <th>Ziel</th>
-                                    <th>Übergeordnet</th>
-                                    <th>Fenster</th>
-                                    <th>Reihenfolge</th>
-                                    <th>Aktionen</th>
-                                </tr>
-                            </thead>
+                                        <p className="text-secondary mb-0">
+                                            Weise Seiten einem übergeordneten Menüpunkt zu, um Dropdown-Menüs zu erstellen.
+                                        </p>
+                                    </div>
 
-                            <tbody>
-                                {
-                                    flattenedItems.map(
-                                        ({
-                                            item,
-                                            depth
-                                        }) => {
-                                            const siblings =
-                                                navigation.items
-                                                    .filter(
-                                                        (
-                                                            sibling
-                                                        ) =>
-                                                            sibling.parentId ===
-                                                            item.parentId
-                                                    )
-                                                    .sort(
-                                                        (
-                                                            firstSibling,
-                                                            secondSibling
-                                                        ) =>
-                                                            firstSibling.order -
-                                                            secondSibling.order
-                                                    );
-
-                                            const siblingIndex =
-                                                siblings.findIndex(
-                                                    (
-                                                        sibling
-                                                    ) =>
-                                                        sibling.id ===
-                                                        item.id
-                                                );
-
-                                            return (
-                                                <tr key={item.id}>
-                                                    <td>
-                                                        <input
-                                                            type="checkbox"
-                                                            className="form-check-input"
-                                                            checked={
-                                                                item.enabled
-                                                            }
-                                                            onChange={
-                                                                (
-                                                                    event
-                                                                ) =>
-                                                                    updateNavigationItem(
-                                                                        item.id,
-                                                                        "enabled",
-                                                                        event
-                                                                            .target
-                                                                            .checked
-                                                                    )
-                                                            }
-                                                        />
-                                                    </td>
-
-                                                    <td>
-                                                        <div
-                                                            style={{
-                                                                paddingLeft:
-                                                                    `${depth * 24}px`
-                                                            }}
-                                                        >
-                                                            {
-                                                                depth >
-                                                                    0 && (
-                                                                    <span className="text-secondary me-2">
-                                                                        ↳
-                                                                    </span>
-                                                                )
-                                                            }
-
-                                                            <input
-                                                                className="form-control d-inline-block"
-                                                                style={{
-                                                                    width:
-                                                                        "calc(100% - 30px)"
-                                                                }}
-                                                                value={
-                                                                    item.label
-                                                                }
-                                                                onChange={
-                                                                    (
-                                                                        event
-                                                                    ) =>
-                                                                        updateNavigationItem(
-                                                                            item.id,
-                                                                            "label",
-                                                                            event
-                                                                                .target
-                                                                                .value
-                                                                        )
-                                                                }
-                                                            />
-                                                        </div>
-                                                    </td>
-
-                                                    <td>
-                                                        <input
-                                                            className="form-control"
-                                                            value={
-                                                                item.href
-                                                            }
-                                                            placeholder="/seite oder https://…"
-                                                            onChange={
-                                                                (
-                                                                    event
-                                                                ) =>
-                                                                    updateNavigationItem(
-                                                                        item.id,
-                                                                        "href",
-                                                                        event
-                                                                            .target
-                                                                            .value
-                                                                    )
-                                                            }
-                                                        />
-                                                    </td>
-
-                                                    <td>
-                                                        <select
-                                                            className="form-select"
-                                                            value={
-                                                                item.parentId ??
-                                                                ""
-                                                            }
-                                                            onChange={
-                                                                (
-                                                                    event
-                                                                ) =>
-                                                                    updateNavigationItem(
-                                                                        item.id,
-                                                                        "parentId",
-                                                                        event
-                                                                            .target
-                                                                            .value ||
-                                                                            null
-                                                                    )
-                                                            }
-                                                        >
-                                                            <option value="">
-                                                                Hauptebene
-                                                            </option>
-
-                                                            {
-                                                                getAvailableParents(
-                                                                    item.id
-                                                                ).map(
-                                                                    (
-                                                                        parent
-                                                                    ) => (
-                                                                        <option
-                                                                            key={
-                                                                                parent.id
-                                                                            }
-                                                                            value={
-                                                                                parent.id
-                                                                            }
-                                                                        >
-                                                                            {
-                                                                                parent.label
-                                                                            }
-                                                                        </option>
-                                                                    )
-                                                                )
-                                                            }
-                                                        </select>
-                                                    </td>
-
-                                                    <td>
-                                                        <select
-                                                            className="form-select"
-                                                            value={
-                                                                item.target
-                                                            }
-                                                            onChange={
-                                                                (
-                                                                    event
-                                                                ) =>
-                                                                    updateNavigationItem(
-                                                                        item.id,
-                                                                        "target",
-                                                                        event
-                                                                            .target
-                                                                            .value
-                                                                    )
-                                                            }
-                                                        >
-                                                            <option value="_self">
-                                                                Gleiches Fenster
-                                                            </option>
-
-                                                            <option value="_blank">
-                                                                Neues Fenster
-                                                            </option>
-                                                        </select>
-                                                    </td>
-
-                                                    <td>
-                                                        <div className="d-flex gap-2">
-                                                            <Button
-                                                                type="button"
-                                                                size="sm"
-                                                                variant="secondary"
-                                                                disabled={
-                                                                    siblingIndex ===
-                                                                    0
-                                                                }
-                                                                onClick={() =>
-                                                                    moveItem(
-                                                                        item.id,
-                                                                        -1
-                                                                    )
-                                                                }
-                                                            >
-                                                                ↑
-                                                            </Button>
-
-                                                            <Button
-                                                                type="button"
-                                                                size="sm"
-                                                                variant="secondary"
-                                                                disabled={
-                                                                    siblingIndex ===
-                                                                    siblings.length -
-                                                                        1
-                                                                }
-                                                                onClick={() =>
-                                                                    moveItem(
-                                                                        item.id,
-                                                                        1
-                                                                    )
-                                                                }
-                                                            >
-                                                                ↓
-                                                            </Button>
-                                                        </div>
-                                                    </td>
-
-                                                    <td>
-                                                        {
-                                                            item.removable ? (
-                                                                <Button
-                                                                    type="button"
-                                                                    size="sm"
-                                                                    variant="secondary"
-                                                                    onClick={() =>
-                                                                        removeItem(
-                                                                            item.id
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    Entfernen
-                                                                </Button>
-                                                            ) : (
-                                                                <span className="badge text-bg-secondary">
-                                                                    Website
-                                                                </span>
-                                                            )
-                                                        }
-                                                    </td>
-                                                </tr>
-                                            );
+                                    <Button
+                                        type="button"
+                                        disabled={
+                                            busy
                                         }
-                                    )
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <section className="mb-5">
-                    <div className="mb-3">
-                        <h2>
-                            Veröffentlichte Seiten
-                        </h2>
-
-                        <p className="text-secondary mb-0">
-                            Veröffentlichte Builder-Seiten können direkt zur
-                            Navigation hinzugefügt werden.
-                        </p>
-                    </div>
-
-                    {
-                        publishedPages.length === 0 && (
-                            <div className="alert alert-secondary">
-                                Es existieren noch keine veröffentlichten
-                                Builder-Seiten.
-                            </div>
-                        )
-                    }
-
-                    {
-                        publishedPages.length > 0 && (
-                            <div className="table-responsive">
-                                <table className="table table-dark table-hover align-middle">
-                                    <thead>
-                                        <tr>
-                                            <th>Seite</th>
-                                            <th>Adresse</th>
-                                            <th>Status</th>
-                                            <th>Aktion</th>
-                                        </tr>
-                                    </thead>
-
-                                    <tbody>
-                                        {
-                                            publishedPages.map(
-                                                (page) => {
-                                                    const alreadyAdded =
-                                                        navigation.items.some(
-                                                            (
-                                                                item
-                                                            ) =>
-                                                                item.source ===
-                                                                    "page" &&
-                                                                item.sourceId ===
-                                                                    page.id
-                                                        );
-
-                                                    return (
-                                                        <tr key={page.id}>
-                                                            <td>
-                                                                {page.title}
-                                                            </td>
-
-                                                            <td>
-                                                                <code>
-                                                                    {
-                                                                        getPageHref(
-                                                                            page
-                                                                        )
-                                                                    }
-                                                                </code>
-                                                            </td>
-
-                                                            <td>
-                                                                <span className="badge text-bg-success">
-                                                                    Veröffentlicht
-                                                                </span>
-                                                            </td>
-
-                                                            <td>
-                                                                <Button
-                                                                    type="button"
-                                                                    size="sm"
-                                                                    disabled={
-                                                                        alreadyAdded
-                                                                    }
-                                                                    onClick={() =>
-                                                                        addPublishedPage(
-                                                                            page
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    {
-                                                                        alreadyAdded
-                                                                            ? "Bereits hinzugefügt"
-                                                                            : "Zur Navigation"
-                                                                    }
-                                                                </Button>
-                                                            </td>
-                                                        </tr>
-                                                    );
-                                                }
-                                            )
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
-                        )
-                    }
-                </section>
-
-                <section className="mb-5">
-                    <div className="mb-3">
-                        <h2>
-                            Aktionsbutton
-                        </h2>
-
-                        <p className="text-secondary mb-0">
-                            Der hervorgehobene Button rechts in der Navigation.
-                        </p>
-                    </div>
-
-                    <div className="card bg-dark border-secondary">
-                        <div className="card-body">
-                            <div className="form-check mb-3">
-                                <input
-                                    id="navigation-cta-enabled"
-                                    type="checkbox"
-                                    className="form-check-input"
-                                    checked={
-                                        navigation.cta.enabled
-                                    }
-                                    onChange={(event) =>
-                                        updateCta(
-                                            "enabled",
-                                            event.target.checked
-                                        )
-                                    }
-                                />
-
-                                <label
-                                    className="form-check-label"
-                                    htmlFor="navigation-cta-enabled"
-                                >
-                                    Aktionsbutton anzeigen
-                                </label>
-                            </div>
-
-                            <div className="row">
-                                <div className="col-md-4 mb-3">
-                                    <label className="form-label">
-                                        Bezeichnung
-                                    </label>
-
-                                    <input
-                                        className="form-control"
-                                        value={
-                                            navigation.cta.label
-                                        }
-                                        onChange={(event) =>
-                                            updateCta(
-                                                "label",
-                                                event.target.value
-                                            )
-                                        }
-                                    />
-                                </div>
-
-                                <div className="col-md-5 mb-3">
-                                    <label className="form-label">
-                                        Ziel
-                                    </label>
-
-                                    <input
-                                        className="form-control"
-                                        value={
-                                            navigation.cta.href
-                                        }
-                                        onChange={(event) =>
-                                            updateCta(
-                                                "href",
-                                                event.target.value
-                                            )
-                                        }
-                                    />
-                                </div>
-
-                                <div className="col-md-3 mb-3">
-                                    <label className="form-label">
-                                        Öffnen
-                                    </label>
-
-                                    <select
-                                        className="form-select"
-                                        value={
-                                            navigation.cta.target
-                                        }
-                                        onChange={(event) =>
-                                            updateCta(
-                                                "target",
-                                                event.target.value
-                                            )
+                                        onClick={
+                                            addCustomLink
                                         }
                                     >
-                                        <option value="_self">
-                                            Gleiches Fenster
-                                        </option>
+                                        <i
+                                            className="bi bi-plus-lg"
+                                            aria-hidden="true"
+                                        />
 
-                                        <option value="_blank">
-                                            Neues Fenster
-                                        </option>
-                                    </select>
+                                        Eigener Link
+                                    </Button>
                                 </div>
-                            </div>
+
+                                {
+                                    flattenedItems.length ===
+                                        0 ? (
+                                        <div className="alert alert-secondary">
+                                            Noch keine Navigationspunkte vorhanden.
+                                        </div>
+                                    ) : (
+                                        <div className="table-responsive">
+                                            <table className="table table-dark table-hover align-middle">
+                                                <thead>
+                                                    <tr>
+                                                        <th>
+                                                            Aktiv
+                                                        </th>
+
+                                                        <th>
+                                                            Bezeichnung
+                                                        </th>
+
+                                                        <th>
+                                                            Ziel
+                                                        </th>
+
+                                                        <th>
+                                                            Übergeordnet
+                                                        </th>
+
+                                                        <th>
+                                                            Fenster
+                                                        </th>
+
+                                                        <th>
+                                                            Reihenfolge
+                                                        </th>
+
+                                                        <th>
+                                                            Aktionen
+                                                        </th>
+                                                    </tr>
+                                                </thead>
+
+                                                <tbody>
+                                                    {
+                                                        flattenedItems.map(
+                                                            ({
+                                                                item,
+                                                                depth
+                                                            }) => {
+                                                                const siblings =
+                                                                    (
+                                                                        navigation.items ??
+                                                                        []
+                                                                    )
+                                                                        .filter(
+                                                                            (
+                                                                                sibling
+                                                                            ) =>
+                                                                                sibling.parentId ===
+                                                                                item.parentId
+                                                                        )
+                                                                        .sort(
+                                                                            (
+                                                                                firstSibling,
+                                                                                secondSibling
+                                                                            ) =>
+                                                                                firstSibling.order -
+                                                                                secondSibling.order
+                                                                        );
+
+                                                                const siblingIndex =
+                                                                    siblings.findIndex(
+                                                                        (
+                                                                            sibling
+                                                                        ) =>
+                                                                            sibling.id ===
+                                                                            item.id
+                                                                    );
+
+                                                                return (
+                                                                    <tr
+                                                                        key={
+                                                                            item.id
+                                                                        }
+                                                                    >
+                                                                        <td>
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                className="form-check-input"
+                                                                                checked={
+                                                                                    Boolean(
+                                                                                        item.enabled
+                                                                                    )
+                                                                                }
+                                                                                disabled={
+                                                                                    busy
+                                                                                }
+                                                                                onChange={
+                                                                                    (
+                                                                                        event
+                                                                                    ) =>
+                                                                                        updateNavigationItem(
+                                                                                            item.id,
+                                                                                            "enabled",
+                                                                                            event
+                                                                                                .target
+                                                                                                .checked
+                                                                                        )
+                                                                                }
+                                                                            />
+                                                                        </td>
+
+                                                                        <td>
+                                                                            <div
+                                                                                style={{
+                                                                                    paddingLeft:
+                                                                                        `${depth * 24}px`
+                                                                                }}
+                                                                            >
+                                                                                {
+                                                                                    depth >
+                                                                                        0 && (
+                                                                                        <span className="text-secondary me-2">
+                                                                                            ↳
+                                                                                        </span>
+                                                                                    )
+                                                                                }
+
+                                                                                <input
+                                                                                    className="form-control d-inline-block"
+                                                                                    style={{
+                                                                                        width:
+                                                                                            depth >
+                                                                                            0
+                                                                                                ? "calc(100% - 30px)"
+                                                                                                : "100%"
+                                                                                    }}
+                                                                                    value={
+                                                                                        item.label ??
+                                                                                        ""
+                                                                                    }
+                                                                                    disabled={
+                                                                                        busy
+                                                                                    }
+                                                                                    onChange={
+                                                                                        (
+                                                                                            event
+                                                                                        ) =>
+                                                                                            updateNavigationItem(
+                                                                                                item.id,
+                                                                                                "label",
+                                                                                                event
+                                                                                                    .target
+                                                                                                    .value
+                                                                                            )
+                                                                                    }
+                                                                                />
+                                                                            </div>
+                                                                        </td>
+
+                                                                        <td>
+                                                                            <input
+                                                                                className="form-control"
+                                                                                value={
+                                                                                    item.href ??
+                                                                                    ""
+                                                                                }
+                                                                                placeholder="/seite oder https://…"
+                                                                                disabled={
+                                                                                    busy
+                                                                                }
+                                                                                onChange={
+                                                                                    (
+                                                                                        event
+                                                                                    ) =>
+                                                                                        updateNavigationItem(
+                                                                                            item.id,
+                                                                                            "href",
+                                                                                            event
+                                                                                                .target
+                                                                                                .value
+                                                                                        )
+                                                                                }
+                                                                            />
+                                                                        </td>
+
+                                                                        <td>
+                                                                            <select
+                                                                                className="form-select"
+                                                                                value={
+                                                                                    item.parentId ??
+                                                                                    ""
+                                                                                }
+                                                                                disabled={
+                                                                                    busy
+                                                                                }
+                                                                                onChange={
+                                                                                    (
+                                                                                        event
+                                                                                    ) =>
+                                                                                        updateNavigationItem(
+                                                                                            item.id,
+                                                                                            "parentId",
+                                                                                            event
+                                                                                                .target
+                                                                                                .value ||
+                                                                                                null
+                                                                                        )
+                                                                                }
+                                                                            >
+                                                                                <option value="">
+                                                                                    Hauptebene
+                                                                                </option>
+
+                                                                                {
+                                                                                    getAvailableParents(
+                                                                                        item.id
+                                                                                    ).map(
+                                                                                        (
+                                                                                            parent
+                                                                                        ) => (
+                                                                                            <option
+                                                                                                key={
+                                                                                                    parent.id
+                                                                                                }
+                                                                                                value={
+                                                                                                    parent.id
+                                                                                                }
+                                                                                            >
+                                                                                                {
+                                                                                                    parent.label
+                                                                                                }
+                                                                                            </option>
+                                                                                        )
+                                                                                    )
+                                                                                }
+                                                                            </select>
+                                                                        </td>
+
+                                                                        <td>
+                                                                            <select
+                                                                                className="form-select"
+                                                                                value={
+                                                                                    item.target ??
+                                                                                    "_self"
+                                                                                }
+                                                                                disabled={
+                                                                                    busy
+                                                                                }
+                                                                                onChange={
+                                                                                    (
+                                                                                        event
+                                                                                    ) =>
+                                                                                        updateNavigationItem(
+                                                                                            item.id,
+                                                                                            "target",
+                                                                                            event
+                                                                                                .target
+                                                                                                .value
+                                                                                        )
+                                                                                }
+                                                                            >
+                                                                                <option value="_self">
+                                                                                    Gleiches Fenster
+                                                                                </option>
+
+                                                                                <option value="_blank">
+                                                                                    Neues Fenster
+                                                                                </option>
+                                                                            </select>
+                                                                        </td>
+
+                                                                        <td>
+                                                                            <div className="d-flex gap-2">
+                                                                                <Button
+                                                                                    type="button"
+                                                                                    size="sm"
+                                                                                    variant="secondary"
+                                                                                    disabled={
+                                                                                        busy ||
+                                                                                        siblingIndex ===
+                                                                                            0
+                                                                                    }
+                                                                                    onClick={
+                                                                                        () =>
+                                                                                            moveItem(
+                                                                                                item.id,
+                                                                                                -1
+                                                                                            )
+                                                                                    }
+                                                                                >
+                                                                                    ↑
+                                                                                </Button>
+
+                                                                                <Button
+                                                                                    type="button"
+                                                                                    size="sm"
+                                                                                    variant="secondary"
+                                                                                    disabled={
+                                                                                        busy ||
+                                                                                        siblingIndex ===
+                                                                                            siblings.length -
+                                                                                            1
+                                                                                    }
+                                                                                    onClick={
+                                                                                        () =>
+                                                                                            moveItem(
+                                                                                                item.id,
+                                                                                                1
+                                                                                            )
+                                                                                    }
+                                                                                >
+                                                                                    ↓
+                                                                                </Button>
+                                                                            </div>
+                                                                        </td>
+
+                                                                        <td>
+                                                                            {
+                                                                                item.removable ? (
+                                                                                    <Button
+                                                                                        type="button"
+                                                                                        size="sm"
+                                                                                        variant="secondary"
+                                                                                        disabled={
+                                                                                            busy
+                                                                                        }
+                                                                                        onClick={
+                                                                                            () =>
+                                                                                                removeItem(
+                                                                                                    item.id
+                                                                                                )
+                                                                                        }
+                                                                                    >
+                                                                                        Entfernen
+                                                                                    </Button>
+                                                                                ) : (
+                                                                                    <span className="badge text-bg-secondary">
+                                                                                        Website
+                                                                                    </span>
+                                                                                )
+                                                                            }
+                                                                        </td>
+                                                                    </tr>
+                                                                );
+                                                            }
+                                                        )
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )
+                                }
+                            </section>
+
+                            <section className="mb-5">
+                                <div className="mb-3">
+                                    <h2>
+                                        Veröffentlichte Seiten
+                                    </h2>
+
+                                    <p className="text-secondary mb-0">
+                                        Veröffentlichte Builder-Seiten aus PostgreSQL können direkt zur Navigation hinzugefügt werden.
+                                    </p>
+                                </div>
+
+                                {
+                                    publishedPages.length ===
+                                        0 ? (
+                                        <div className="alert alert-secondary">
+                                            Es existieren noch keine veröffentlichten Builder-Seiten.
+                                        </div>
+                                    ) : (
+                                        <div className="table-responsive">
+                                            <table className="table table-dark table-hover align-middle">
+                                                <thead>
+                                                    <tr>
+                                                        <th>
+                                                            Seite
+                                                        </th>
+
+                                                        <th>
+                                                            Adresse
+                                                        </th>
+
+                                                        <th>
+                                                            Status
+                                                        </th>
+
+                                                        <th>
+                                                            Aktion
+                                                        </th>
+                                                    </tr>
+                                                </thead>
+
+                                                <tbody>
+                                                    {
+                                                        publishedPages.map(
+                                                            (
+                                                                page
+                                                            ) => {
+                                                                const alreadyAdded =
+                                                                    (
+                                                                        navigation.items ??
+                                                                        []
+                                                                    ).some(
+                                                                        (
+                                                                            item
+                                                                        ) =>
+                                                                            item.source ===
+                                                                                "page" &&
+                                                                            item.sourceId ===
+                                                                                page.id
+                                                                    );
+
+                                                                return (
+                                                                    <tr
+                                                                        key={
+                                                                            page.id
+                                                                        }
+                                                                    >
+                                                                        <td>
+                                                                            {
+                                                                                page.title
+                                                                            }
+                                                                        </td>
+
+                                                                        <td>
+                                                                            <code>
+                                                                                {
+                                                                                    getPageHref(
+                                                                                        page
+                                                                                    )
+                                                                                }
+                                                                            </code>
+                                                                        </td>
+
+                                                                        <td>
+                                                                            <span className="badge text-bg-success">
+                                                                                Veröffentlicht
+                                                                            </span>
+                                                                        </td>
+
+                                                                        <td>
+                                                                            <Button
+                                                                                type="button"
+                                                                                size="sm"
+                                                                                disabled={
+                                                                                    busy ||
+                                                                                    alreadyAdded
+                                                                                }
+                                                                                onClick={
+                                                                                    () =>
+                                                                                        addPublishedPage(
+                                                                                            page
+                                                                                        )
+                                                                                }
+                                                                            >
+                                                                                {
+                                                                                    alreadyAdded
+                                                                                        ? "Bereits hinzugefügt"
+                                                                                        : "Zur Navigation"
+                                                                                }
+                                                                            </Button>
+                                                                        </td>
+                                                                    </tr>
+                                                                );
+                                                            }
+                                                        )
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )
+                                }
+                            </section>
+
+                            <section className="mb-5">
+                                <div className="mb-3">
+                                    <h2>
+                                        Aktionsbutton
+                                    </h2>
+
+                                    <p className="text-secondary mb-0">
+                                        Der hervorgehobene Button rechts in der Navigation.
+                                    </p>
+                                </div>
+
+                                <div className="card bg-dark border-secondary">
+                                    <div className="card-body">
+                                        <div className="form-check mb-3">
+                                            <input
+                                                id="navigation-cta-enabled"
+                                                type="checkbox"
+                                                className="form-check-input"
+                                                checked={
+                                                    Boolean(
+                                                        navigation
+                                                            .cta
+                                                            .enabled
+                                                    )
+                                                }
+                                                disabled={
+                                                    busy
+                                                }
+                                                onChange={
+                                                    (
+                                                        event
+                                                    ) =>
+                                                        updateCta(
+                                                            "enabled",
+                                                            event
+                                                                .target
+                                                                .checked
+                                                        )
+                                                }
+                                            />
+
+                                            <label
+                                                className="form-check-label"
+                                                htmlFor="navigation-cta-enabled"
+                                            >
+                                                Aktionsbutton anzeigen
+                                            </label>
+                                        </div>
+
+                                        <div className="row">
+                                            <div className="col-md-4 mb-3">
+                                                <label className="form-label">
+                                                    Bezeichnung
+                                                </label>
+
+                                                <input
+                                                    className="form-control"
+                                                    value={
+                                                        navigation
+                                                            .cta
+                                                            .label ??
+                                                        ""
+                                                    }
+                                                    disabled={
+                                                        busy
+                                                    }
+                                                    onChange={
+                                                        (
+                                                            event
+                                                        ) =>
+                                                            updateCta(
+                                                                "label",
+                                                                event
+                                                                    .target
+                                                                    .value
+                                                            )
+                                                    }
+                                                />
+                                            </div>
+
+                                            <div className="col-md-5 mb-3">
+                                                <label className="form-label">
+                                                    Ziel
+                                                </label>
+
+                                                <input
+                                                    className="form-control"
+                                                    value={
+                                                        navigation
+                                                            .cta
+                                                            .href ??
+                                                        ""
+                                                    }
+                                                    disabled={
+                                                        busy
+                                                    }
+                                                    onChange={
+                                                        (
+                                                            event
+                                                        ) =>
+                                                            updateCta(
+                                                                "href",
+                                                                event
+                                                                    .target
+                                                                    .value
+                                                            )
+                                                    }
+                                                />
+                                            </div>
+
+                                            <div className="col-md-3 mb-3">
+                                                <label className="form-label">
+                                                    Öffnen
+                                                </label>
+
+                                                <select
+                                                    className="form-select"
+                                                    value={
+                                                        navigation
+                                                            .cta
+                                                            .target ??
+                                                        "_self"
+                                                    }
+                                                    disabled={
+                                                        busy
+                                                    }
+                                                    onChange={
+                                                        (
+                                                            event
+                                                        ) =>
+                                                            updateCta(
+                                                                "target",
+                                                                event
+                                                                    .target
+                                                                    .value
+                                                            )
+                                                    }
+                                                >
+                                                    <option value="_self">
+                                                        Gleiches Fenster
+                                                    </option>
+
+                                                    <option value="_blank">
+                                                        Neues Fenster
+                                                    </option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                        </fieldset>
+
+                        <div className="d-flex flex-wrap gap-2">
+                            <Button
+                                type="submit"
+                                disabled={
+                                    busy ||
+                                    !hasUnsavedChanges
+                                }
+                            >
+                                {
+                                    saving ? (
+                                        <>
+                                            <span
+                                                className="spinner-border spinner-border-sm"
+                                                aria-hidden="true"
+                                            />
+
+                                            Wird gespeichert …
+                                        </>
+                                    ) : (
+                                        <>
+                                            <i
+                                                className="bi bi-database-check"
+                                                aria-hidden="true"
+                                            />
+
+                                            Navigation speichern
+                                        </>
+                                    )
+                                }
+                            </Button>
+
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                disabled={
+                                    busy
+                                }
+                                onClick={
+                                    restoreDefaults
+                                }
+                            >
+                                {
+                                    resetting ? (
+                                        <>
+                                            <span
+                                                className="spinner-border spinner-border-sm"
+                                                aria-hidden="true"
+                                            />
+
+                                            Wird zurückgesetzt …
+                                        </>
+                                    ) : (
+                                        "Standardwerte"
+                                    )
+                                }
+                            </Button>
                         </div>
-                    </div>
-                </section>
-
-                <div className="d-flex flex-wrap gap-2">
-                    <Button type="submit">
-                        Navigation speichern
-                    </Button>
-
-                    <Button
-                        type="button"
-                        variant="secondary"
-                        onClick={restoreDefaults}
-                    >
-                        Standardwerte
-                    </Button>
-                </div>
-            </form>
+                    </form>
+                )
+            }
         </AdminPage>
     );
 }
