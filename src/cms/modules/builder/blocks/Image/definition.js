@@ -1,3 +1,7 @@
+import {
+    createDefaultImageBlockSettings
+} from "@shared/media/imageBlockSettings";
+
 import Image from "./Image";
 import ImageProperties from "./Properties";
 
@@ -9,7 +13,7 @@ export default {
         "Bild",
 
     description:
-        "Ein einzelnes Bild mit Alternativtext für barrierefreie Seiten.",
+        "Ein frei skalierbares und responsives Bild mit Alternativtext.",
 
     icon:
         "bi-image",
@@ -23,14 +27,17 @@ export default {
         "grafik",
         "image",
         "media",
-        "alt"
+        "alt",
+        "responsive",
+        "skalieren",
+        "zuschneiden"
     ],
 
     order:
         10,
 
     version:
-        1,
+        2,
 
     component:
         Image,
@@ -43,6 +50,15 @@ export default {
             "https://placehold.co/900x500",
 
         alt:
-            "Bild"
+            "Bild",
+
+        caption:
+            "",
+
+        loading:
+            "lazy",
+
+        imageSettings:
+            createDefaultImageBlockSettings()
     }
 };
