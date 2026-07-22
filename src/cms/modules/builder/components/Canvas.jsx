@@ -899,12 +899,35 @@ export default function Canvas({
             return;
         }
 
-        onMove(
+        onMove?.(
             arrayMove(
                 blocks,
                 oldIndex,
                 newIndex
             )
+        );
+    }
+
+    function handleEditSurfaceClick(
+        event
+    ) {
+        const target =
+            event.target;
+
+        const clickedBlock =
+            typeof target?.closest ===
+                "function"
+                ? target.closest(
+                    "[data-builder-block-id]"
+                )
+                : null;
+
+        if (clickedBlock) {
+            return;
+        }
+
+        onSelect?.(
+            null
         );
     }
 
@@ -1149,10 +1172,14 @@ export default function Canvas({
                             ) : (
                                 <div
                                     className="bp-builder-viewport__page bp-builder-viewport__page--edit"
+                                    data-builder-edit-surface="true"
                                     style={{
                                         minHeight:
                                             `${previewContentHeight}px`
                                     }}
+                                    onClick={
+                                        handleEditSurfaceClick
+                                    }
                                 >
                                     <ThemeContext.Provider
                                         value={
@@ -1204,7 +1231,10 @@ export default function Canvas({
                                                     >
                                                         {
                                                             blocks.map(
-                                                                (block) => (
+                                                                (
+                                                                    block,
+                                                                    index
+                                                                ) => (
                                                                     <SortableBlock
                                                                         key={
                                                                             block.id
@@ -1215,6 +1245,15 @@ export default function Canvas({
                                                                         selected={
                                                                             selectedId ===
                                                                             block.id
+                                                                        }
+                                                                        canMoveUp={
+                                                                            index >
+                                                                            0
+                                                                        }
+                                                                        canMoveDown={
+                                                                            index <
+                                                                            blocks.length -
+                                                                                1
                                                                         }
                                                                         onSelect={
                                                                             onSelect
