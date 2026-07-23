@@ -2,8 +2,12 @@ import {
     createDefaultImageBlockSettings
 } from "@shared/media/imageBlockSettings";
 
+import {
+    createDefaultImageShapeSettings
+} from "@shared/media/imageShapeSettings";
+
 import Image from "./Image";
-import ImageProperties from "./Properties";
+import ImageInspector from "./ImageInspector";
 
 export default {
     type:
@@ -13,7 +17,7 @@ export default {
         "Bild",
 
     description:
-        "Ein frei skalierbares und responsives Bild mit Alternativtext.",
+        "Ein frei skalierbares, responsives Bild mit Mediathek, Fokuspunkt und individuellen Bildformen.",
 
     icon:
         "bi-image",
@@ -30,20 +34,27 @@ export default {
         "alt",
         "responsive",
         "skalieren",
-        "zuschneiden"
+        "zuschneiden",
+        "form",
+        "kreis",
+        "oval",
+        "kiesel",
+        "tropfen",
+        "hexagon",
+        "freiform"
     ],
 
     order:
         10,
 
     version:
-        2,
+        3,
 
     component:
         Image,
 
     properties:
-        ImageProperties,
+        ImageInspector,
 
     defaultData: {
         src:
@@ -59,6 +70,9 @@ export default {
             "lazy",
 
         imageSettings:
-            createDefaultImageBlockSettings()
+            createDefaultImageBlockSettings(),
+
+        imageShapeSettings:
+            createDefaultImageShapeSettings()
     }
 };

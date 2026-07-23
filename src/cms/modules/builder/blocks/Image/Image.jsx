@@ -6,6 +6,12 @@ import {
     resolveImageLayoutForDevice
 } from "@shared/media/imageBlockSettings";
 
+import {
+    getImageShapeCss,
+    getImageShapeSettings,
+    resolveImageShapeForDevice
+} from "@shared/media/imageShapeSettings";
+
 function getWidthValue(
     layout
 ) {
@@ -40,41 +46,38 @@ function getAlignmentValues(
     ) {
         case "left":
             return {
-                left:
-                    "0",
-
-                right:
-                    "auto"
+                left: "0",
+                right: "auto"
             };
 
         case "right":
             return {
-                left:
-                    "auto",
-
-                right:
-                    "0"
+                left: "auto",
+                right: "0"
             };
 
         case "center":
         default:
             return {
-                left:
-                    "auto",
-
-                right:
-                    "auto"
+                left: "auto",
+                right: "auto"
             };
     }
 }
 
 function getDeviceVariables(
     device,
-    layout
+    layout,
+    shape
 ) {
     const alignment =
         getAlignmentValues(
             layout.alignment
+        );
+
+    const shapeCss =
+        getImageShapeCss(
+            shape
         );
 
     const naturalHeight =
@@ -88,30 +91,22 @@ function getDeviceVariables(
         "fixed";
 
     return {
-        [
-            `--bp-image-${device}-width`
-        ]:
+        [`--bp-image-${device}-width`]:
             getWidthValue(
                 layout
             ),
 
-        [
-            `--bp-image-${device}-max-width`
-        ]:
+        [`--bp-image-${device}-max-width`]:
             getMaximumWidthValue(
                 layout
             ),
 
-        [
-            `--bp-image-${device}-height`
-        ]:
+        [`--bp-image-${device}-height`]:
             fixedHeight
                 ? `${layout.fixedHeight}px`
                 : "auto",
 
-        [
-            `--bp-image-${device}-aspect-ratio`
-        ]:
+        [`--bp-image-${device}-aspect-ratio`]:
             fixedHeight ||
             naturalHeight
                 ? "auto"
@@ -119,37 +114,26 @@ function getDeviceVariables(
                     layout.aspectRatio
                 ),
 
-        [
-            `--bp-image-${device}-margin-left`
-        ]:
+        [`--bp-image-${device}-margin-left`]:
             alignment.left,
 
-        [
-            `--bp-image-${device}-margin-right`
-        ]:
+        [`--bp-image-${device}-margin-right`]:
             alignment.right,
 
-        [
-            `--bp-image-${device}-fit`
-        ]:
+        [`--bp-image-${device}-fit`]:
             layout.objectFit,
 
-        [
-            `--bp-image-${device}-focus-x`
-        ]:
+        [`--bp-image-${device}-focus-x`]:
             `${layout.focusX}%`,
 
-        [
-            `--bp-image-${device}-focus-y`
-        ]:
+        [`--bp-image-${device}-focus-y`]:
             `${layout.focusY}%`,
 
-        [
-            `--bp-image-${device}-natural`
-        ]:
-            naturalHeight
-                ? 1
-                : 0
+        [`--bp-image-${device}-shape-radius`]:
+            shapeCss.borderRadius,
+
+        [`--bp-image-${device}-shape-clip`]:
+            shapeCss.clipPath
     };
 }
 
@@ -160,9 +144,7 @@ function getImageClassName(
         "bp-image",
 
         `bp-image--shadow-${settings.shadow}`
-    ].join(
-        " "
-    );
+    ].join(" ");
 }
 
 export default function Image({
@@ -170,6 +152,11 @@ export default function Image({
 }) {
     const settings =
         getImageBlockSettings(
+            data
+        );
+
+    const shapeSettings =
+        getImageShapeSettings(
             data
         );
 
@@ -191,6 +178,24 @@ export default function Image({
             "mobile"
         );
 
+    const desktopShape =
+        resolveImageShapeForDevice(
+            shapeSettings,
+            "desktop"
+        );
+
+    const tabletShape =
+        resolveImageShapeForDevice(
+            shapeSettings,
+            "tablet"
+        );
+
+    const mobileShape =
+        resolveImageShapeForDevice(
+            shapeSettings,
+            "mobile"
+        );
+
     const caption =
         String(
             data.caption ??
@@ -206,17 +211,20 @@ export default function Image({
     const style = {
         ...getDeviceVariables(
             "desktop",
-            desktopLayout
+            desktopLayout,
+            desktopShape
         ),
 
         ...getDeviceVariables(
             "tablet",
-            tabletLayout
+            tabletLayout,
+            tabletShape
         ),
 
         ...getDeviceVariables(
             "mobile",
-            mobileLayout
+            mobileLayout,
+            mobileShape
         ),
 
         "--bp-image-border-radius":
@@ -241,6 +249,15 @@ export default function Image({
             }
             style={
                 style
+            }
+            data-desktop-shape={
+                desktopShape
+            }
+            data-tablet-shape={
+                tabletShape
+            }
+            data-mobile-shape={
+                mobileShape
             }
         >
             <div className="bp-image__stage">

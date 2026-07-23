@@ -6,10 +6,78 @@
     flex-direction: column;
 
     margin: 0;
-
     padding: 40px;
 
     box-sizing: border-box;
+
+    --bp-image-active-width:
+        var(
+            --bp-image-desktop-width,
+            100%
+        );
+
+    --bp-image-active-max-width:
+        var(
+            --bp-image-desktop-max-width,
+            100%
+        );
+
+    --bp-image-active-height:
+        var(
+            --bp-image-desktop-height,
+            auto
+        );
+
+    --bp-image-active-aspect-ratio:
+        var(
+            --bp-image-desktop-aspect-ratio,
+            auto
+        );
+
+    --bp-image-active-margin-left:
+        var(
+            --bp-image-desktop-margin-left,
+            auto
+        );
+
+    --bp-image-active-margin-right:
+        var(
+            --bp-image-desktop-margin-right,
+            auto
+        );
+
+    --bp-image-active-fit:
+        var(
+            --bp-image-desktop-fit,
+            cover
+        );
+
+    --bp-image-active-focus-x:
+        var(
+            --bp-image-desktop-focus-x,
+            50%
+        );
+
+    --bp-image-active-focus-y:
+        var(
+            --bp-image-desktop-focus-y,
+            50%
+        );
+
+    --bp-image-active-shape-radius:
+        var(
+            --bp-image-desktop-shape-radius,
+            var(
+                --bp-image-border-radius,
+                12px
+            )
+        );
+
+    --bp-image-active-shape-clip:
+        var(
+            --bp-image-desktop-shape-clip,
+            none
+        );
 }
 
 .bp-image__stage {
@@ -17,31 +85,31 @@
 
     width:
         var(
-            --bp-image-desktop-width,
+            --bp-image-active-width,
             100%
         );
 
     max-width:
         var(
-            --bp-image-desktop-max-width,
+            --bp-image-active-max-width,
             100%
         );
 
     height:
         var(
-            --bp-image-desktop-height,
+            --bp-image-active-height,
             auto
         );
 
     margin-right:
         var(
-            --bp-image-desktop-margin-right,
+            --bp-image-active-margin-right,
             auto
         );
 
     margin-left:
         var(
-            --bp-image-desktop-margin-left,
+            --bp-image-active-margin-left,
             auto
         );
 
@@ -49,7 +117,7 @@
 
     aspect-ratio:
         var(
-            --bp-image-desktop-aspect-ratio,
+            --bp-image-active-aspect-ratio,
             auto
         );
 
@@ -72,11 +140,24 @@
 
     border-radius:
         var(
-            --bp-image-border-radius,
-            12px
+            --bp-image-active-shape-radius,
+            var(
+                --bp-image-border-radius,
+                12px
+            )
+        );
+
+    clip-path:
+        var(
+            --bp-image-active-shape-clip,
+            none
         );
 
     box-sizing: border-box;
+
+    transition:
+        border-radius .2s ease,
+        clip-path .2s ease;
 }
 
 .bp-image__element {
@@ -87,49 +168,43 @@
 
     object-fit:
         var(
-            --bp-image-desktop-fit,
+            --bp-image-active-fit,
             cover
         );
 
     object-position:
         var(
-            --bp-image-desktop-focus-x,
+            --bp-image-active-focus-x,
             50%
         )
         var(
-            --bp-image-desktop-focus-y,
+            --bp-image-active-focus-y,
             50%
         );
-}
-
-.bp-image__stage:has(
-    .bp-image__element
-) {
-    min-width: 0;
 }
 
 .bp-image__caption {
     width:
         var(
-            --bp-image-desktop-width,
+            --bp-image-active-width,
             100%
         );
 
     max-width:
         var(
-            --bp-image-desktop-max-width,
+            --bp-image-active-max-width,
             100%
         );
 
     margin:
         9px
         var(
-            --bp-image-desktop-margin-right,
+            --bp-image-active-margin-right,
             auto
         )
         0
         var(
-            --bp-image-desktop-margin-left,
+            --bp-image-active-margin-left,
             auto
         );
 
@@ -168,272 +243,302 @@
 }
 
 /*
- * Natürliche Bildhöhe:
- * Ist keine feste Höhe und kein Seitenverhältnis aktiv,
- * bestimmt das Originalbild seine Höhe.
+ * Simulierte Geräteansichten des Builders
  */
 
-.bp-image__stage:has(
-    .bp-image__element
-) {
-    container-type: inline-size;
-}
-
-.bp-image__stage
-.bp-image__element {
-    min-width: 0;
-}
-
 .bp-builder-viewport__frame[data-viewport="desktop"]
-.bp-image__stage,
-.bp-builder-viewport__frame[data-viewport="desktop"]
-.bp-image__caption {
-    width:
+.bp-image {
+    --bp-image-active-width:
         var(
             --bp-image-desktop-width,
             100%
         );
 
-    max-width:
+    --bp-image-active-max-width:
         var(
             --bp-image-desktop-max-width,
             100%
         );
 
-    margin-right:
-        var(
-            --bp-image-desktop-margin-right,
-            auto
-        );
-
-    margin-left:
-        var(
-            --bp-image-desktop-margin-left,
-            auto
-        );
-}
-
-.bp-builder-viewport__frame[data-viewport="desktop"]
-.bp-image__stage {
-    height:
+    --bp-image-active-height:
         var(
             --bp-image-desktop-height,
             auto
         );
 
-    aspect-ratio:
+    --bp-image-active-aspect-ratio:
         var(
             --bp-image-desktop-aspect-ratio,
             auto
         );
-}
 
-.bp-builder-viewport__frame[data-viewport="desktop"]
-.bp-image__element {
-    object-fit:
+    --bp-image-active-margin-left:
+        var(
+            --bp-image-desktop-margin-left,
+            auto
+        );
+
+    --bp-image-active-margin-right:
+        var(
+            --bp-image-desktop-margin-right,
+            auto
+        );
+
+    --bp-image-active-fit:
         var(
             --bp-image-desktop-fit,
             cover
         );
 
-    object-position:
+    --bp-image-active-focus-x:
         var(
             --bp-image-desktop-focus-x,
             50%
-        )
+        );
+
+    --bp-image-active-focus-y:
         var(
             --bp-image-desktop-focus-y,
             50%
         );
+
+    --bp-image-active-shape-radius:
+        var(
+            --bp-image-desktop-shape-radius,
+            var(
+                --bp-image-border-radius,
+                12px
+            )
+        );
+
+    --bp-image-active-shape-clip:
+        var(
+            --bp-image-desktop-shape-clip,
+            none
+        );
 }
 
 .bp-builder-viewport__frame[data-viewport="tablet"]
-.bp-image__stage,
-.bp-builder-viewport__frame[data-viewport="tablet"]
-.bp-image__caption {
-    width:
+.bp-image {
+    --bp-image-active-width:
         var(
             --bp-image-tablet-width,
             100%
         );
 
-    max-width:
+    --bp-image-active-max-width:
         var(
             --bp-image-tablet-max-width,
             100%
         );
 
-    margin-right:
-        var(
-            --bp-image-tablet-margin-right,
-            auto
-        );
-
-    margin-left:
-        var(
-            --bp-image-tablet-margin-left,
-            auto
-        );
-}
-
-.bp-builder-viewport__frame[data-viewport="tablet"]
-.bp-image__stage {
-    height:
+    --bp-image-active-height:
         var(
             --bp-image-tablet-height,
             auto
         );
 
-    aspect-ratio:
+    --bp-image-active-aspect-ratio:
         var(
             --bp-image-tablet-aspect-ratio,
             auto
         );
-}
 
-.bp-builder-viewport__frame[data-viewport="tablet"]
-.bp-image__element {
-    object-fit:
+    --bp-image-active-margin-left:
+        var(
+            --bp-image-tablet-margin-left,
+            auto
+        );
+
+    --bp-image-active-margin-right:
+        var(
+            --bp-image-tablet-margin-right,
+            auto
+        );
+
+    --bp-image-active-fit:
         var(
             --bp-image-tablet-fit,
             cover
         );
 
-    object-position:
+    --bp-image-active-focus-x:
         var(
             --bp-image-tablet-focus-x,
             50%
-        )
+        );
+
+    --bp-image-active-focus-y:
         var(
             --bp-image-tablet-focus-y,
             50%
         );
+
+    --bp-image-active-shape-radius:
+        var(
+            --bp-image-tablet-shape-radius,
+            var(
+                --bp-image-border-radius,
+                12px
+            )
+        );
+
+    --bp-image-active-shape-clip:
+        var(
+            --bp-image-tablet-shape-clip,
+            none
+        );
 }
 
 .bp-builder-viewport__frame[data-viewport="mobile"]
-.bp-image__stage,
-.bp-builder-viewport__frame[data-viewport="mobile"]
-.bp-image__caption {
-    width:
+.bp-image {
+    --bp-image-active-width:
         var(
             --bp-image-mobile-width,
             100%
         );
 
-    max-width:
+    --bp-image-active-max-width:
         var(
             --bp-image-mobile-max-width,
             100%
         );
 
-    margin-right:
-        var(
-            --bp-image-mobile-margin-right,
-            auto
-        );
-
-    margin-left:
-        var(
-            --bp-image-mobile-margin-left,
-            auto
-        );
-}
-
-.bp-builder-viewport__frame[data-viewport="mobile"]
-.bp-image__stage {
-    height:
+    --bp-image-active-height:
         var(
             --bp-image-mobile-height,
             auto
         );
 
-    aspect-ratio:
+    --bp-image-active-aspect-ratio:
         var(
             --bp-image-mobile-aspect-ratio,
             auto
         );
-}
 
-.bp-builder-viewport__frame[data-viewport="mobile"]
-.bp-image__element {
-    object-fit:
+    --bp-image-active-margin-left:
+        var(
+            --bp-image-mobile-margin-left,
+            auto
+        );
+
+    --bp-image-active-margin-right:
+        var(
+            --bp-image-mobile-margin-right,
+            auto
+        );
+
+    --bp-image-active-fit:
         var(
             --bp-image-mobile-fit,
             cover
         );
 
-    object-position:
+    --bp-image-active-focus-x:
         var(
             --bp-image-mobile-focus-x,
             50%
-        )
+        );
+
+    --bp-image-active-focus-y:
         var(
             --bp-image-mobile-focus-y,
             50%
         );
+
+    --bp-image-active-shape-radius:
+        var(
+            --bp-image-mobile-shape-radius,
+            var(
+                --bp-image-border-radius,
+                12px
+            )
+        );
+
+    --bp-image-active-shape-clip:
+        var(
+            --bp-image-mobile-shape-clip,
+            none
+        );
 }
+
+/*
+ * Echte Website und iframe-Vorschau
+ */
 
 @media (
     min-width: 768px
 ) and (
     max-width: 1199.98px
 ) {
-    .bp-image__stage,
-    .bp-image__caption {
-        width:
+    .bp-image {
+        --bp-image-active-width:
             var(
                 --bp-image-tablet-width,
                 100%
             );
 
-        max-width:
+        --bp-image-active-max-width:
             var(
                 --bp-image-tablet-max-width,
                 100%
             );
 
-        margin-right:
-            var(
-                --bp-image-tablet-margin-right,
-                auto
-            );
-
-        margin-left:
-            var(
-                --bp-image-tablet-margin-left,
-                auto
-            );
-    }
-
-    .bp-image__stage {
-        height:
+        --bp-image-active-height:
             var(
                 --bp-image-tablet-height,
                 auto
             );
 
-        aspect-ratio:
+        --bp-image-active-aspect-ratio:
             var(
                 --bp-image-tablet-aspect-ratio,
                 auto
             );
-    }
 
-    .bp-image__element {
-        object-fit:
+        --bp-image-active-margin-left:
+            var(
+                --bp-image-tablet-margin-left,
+                auto
+            );
+
+        --bp-image-active-margin-right:
+            var(
+                --bp-image-tablet-margin-right,
+                auto
+            );
+
+        --bp-image-active-fit:
             var(
                 --bp-image-tablet-fit,
                 cover
             );
 
-        object-position:
+        --bp-image-active-focus-x:
             var(
                 --bp-image-tablet-focus-x,
                 50%
-            )
+            );
+
+        --bp-image-active-focus-y:
             var(
                 --bp-image-tablet-focus-y,
                 50%
+            );
+
+        --bp-image-active-shape-radius:
+            var(
+                --bp-image-tablet-shape-radius,
+                var(
+                    --bp-image-border-radius,
+                    12px
+                )
+            );
+
+        --bp-image-active-shape-clip:
+            var(
+                --bp-image-tablet-shape-clip,
+                none
             );
     }
 }
@@ -443,64 +548,82 @@
 ) {
     .bp-image {
         padding: 24px;
-    }
 
-    .bp-image__stage,
-    .bp-image__caption {
-        width:
+        --bp-image-active-width:
             var(
                 --bp-image-mobile-width,
                 100%
             );
 
-        max-width:
+        --bp-image-active-max-width:
             var(
                 --bp-image-mobile-max-width,
                 100%
             );
 
-        margin-right:
-            var(
-                --bp-image-mobile-margin-right,
-                auto
-            );
-
-        margin-left:
-            var(
-                --bp-image-mobile-margin-left,
-                auto
-            );
-    }
-
-    .bp-image__stage {
-        height:
+        --bp-image-active-height:
             var(
                 --bp-image-mobile-height,
                 auto
             );
 
-        aspect-ratio:
+        --bp-image-active-aspect-ratio:
             var(
                 --bp-image-mobile-aspect-ratio,
                 auto
             );
-    }
 
-    .bp-image__element {
-        object-fit:
+        --bp-image-active-margin-left:
+            var(
+                --bp-image-mobile-margin-left,
+                auto
+            );
+
+        --bp-image-active-margin-right:
+            var(
+                --bp-image-mobile-margin-right,
+                auto
+            );
+
+        --bp-image-active-fit:
             var(
                 --bp-image-mobile-fit,
                 cover
             );
 
-        object-position:
+        --bp-image-active-focus-x:
             var(
                 --bp-image-mobile-focus-x,
                 50%
-            )
+            );
+
+        --bp-image-active-focus-y:
             var(
                 --bp-image-mobile-focus-y,
                 50%
             );
+
+        --bp-image-active-shape-radius:
+            var(
+                --bp-image-mobile-shape-radius,
+                var(
+                    --bp-image-border-radius,
+                    12px
+                )
+            );
+
+        --bp-image-active-shape-clip:
+            var(
+                --bp-image-mobile-shape-clip,
+                none
+            );
+    }
+}
+
+@media (
+    prefers-reduced-motion: reduce
+) {
+    .bp-image__stage {
+        transition: none;
     }
 }
