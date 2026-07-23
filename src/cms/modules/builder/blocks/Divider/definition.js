@@ -1,21 +1,21 @@
+import {
+    createDefaultDividerBlockData
+} from "@shared/layout/dividerBlockSettings";
+
 import Divider from "./Divider";
 import DividerProperties from "./Properties";
 
 export default {
-    type:
-        "divider",
+    type: "divider",
 
-    name:
-        "Trenner",
+    name: "Trenner",
 
     description:
-        "Horizontale Trennlinie mit optionaler Beschriftung und Abständen.",
+        "Horizontaler oder vertikaler Trenner mit responsiven Einstellungen.",
 
-    icon:
-        "bi-dash-lg",
+    icon: "bi-dash-lg",
 
-    category:
-        "Layout",
+    category: "Layout",
 
     keywords: [
         "trenner",
@@ -23,14 +23,15 @@ export default {
         "divider",
         "separator",
         "abschnitt",
-        "abgrenzung"
+        "abgrenzung",
+        "horizontal",
+        "vertikal",
+        "spaltentrenner"
     ],
 
-    order:
-        30,
+    order: 30,
 
-    version:
-        1,
+    version: 2,
 
     component:
         Divider,
@@ -38,29 +39,6 @@ export default {
     properties:
         DividerProperties,
 
-    defaultData: {
-        style:
-            "solid",
-
-        color:
-            "#334155",
-
-        thickness:
-            1,
-
-        width:
-            100,
-
-        spacingTop:
-            36,
-
-        spacingBottom:
-            36,
-
-        showLabel:
-            false,
-
-        label:
-            "BluePulse"
-    }
+    defaultData:
+        createDefaultDividerBlockData()
 };

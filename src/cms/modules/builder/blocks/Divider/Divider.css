@@ -1,29 +1,81 @@
 .bp-divider {
-    width:
-        var(
-            --bp-divider-width,
-            100%
-        );
+    width: 100%;
+    min-width: 0;
+    height: 100%;
 
-    margin-inline: auto;
+    box-sizing: border-box;
+}
+
+.bp-divider__presentation {
+    display: none;
+
+    width: 100%;
+    min-width: 0;
+
+    box-sizing: border-box;
+}
+
+.bp-divider__presentation--desktop {
+    display: flex;
+}
+
+/*
+ * Horizontale Darstellung
+ */
+
+.bp-divider__presentation--horizontal {
+    flex-direction: column;
 
     padding-top:
         var(
-            --bp-divider-spacing-top,
+            --bp-divider-spacing-before,
             36px
         );
 
     padding-bottom:
         var(
-            --bp-divider-spacing-bottom,
+            --bp-divider-spacing-after,
             36px
         );
 }
 
+.bp-divider__presentation--horizontal
+.bp-divider__body {
+    width:
+        var(
+            --bp-divider-length,
+            100%
+        );
+
+    max-width: 100%;
+
+    margin-left:
+        var(
+            --bp-divider-margin-left,
+            auto
+        );
+
+    margin-right:
+        var(
+            --bp-divider-margin-right,
+            auto
+        );
+
+    box-sizing: border-box;
+}
+
+.bp-divider__presentation--horizontal
 .bp-divider__line {
     display: block;
 
     width: 100%;
+    height: 0;
+
+    opacity:
+        var(
+            --bp-divider-opacity,
+            1
+        );
 
     border-top-width:
         var(
@@ -38,19 +90,215 @@
         );
 
     border-top-style: solid;
+
+    box-sizing: border-box;
 }
 
-.bp-divider--dashed
+/*
+ * Vertikale Darstellung
+ */
+
+.bp-divider__presentation--vertical {
+    min-height:
+        var(
+            --bp-divider-vertical-min-height,
+            240px
+        );
+
+    flex-direction: column;
+    align-items: center;
+
+    padding-left:
+        var(
+            --bp-divider-spacing-before,
+            36px
+        );
+
+    padding-right:
+        var(
+            --bp-divider-spacing-after,
+            36px
+        );
+
+    box-sizing: border-box;
+}
+
+.bp-divider__presentation--vertical
+.bp-divider__body {
+    width:
+        var(
+            --bp-divider-thickness,
+            1px
+        );
+
+    height:
+        var(
+            --bp-divider-length,
+            240px
+        );
+
+    min-height:
+        var(
+            --bp-divider-thickness,
+            1px
+        );
+
+    max-height: 100%;
+
+    flex: 0 0 auto;
+    align-self: center;
+
+    margin-top:
+        var(
+            --bp-divider-margin-top,
+            auto
+        );
+
+    margin-right: auto;
+
+    margin-bottom:
+        var(
+            --bp-divider-margin-bottom,
+            auto
+        );
+
+    margin-left: auto;
+
+    box-sizing: border-box;
+}
+
+.bp-divider__presentation--vertical
 .bp-divider__line {
-    border-top-style: dashed;
+    display: block;
+
+    width: 0;
+    height: 100%;
+    min-height: 100%;
+
+    opacity:
+        var(
+            --bp-divider-opacity,
+            1
+        );
+
+    border-left-width:
+        var(
+            --bp-divider-thickness,
+            1px
+        );
+
+    border-left-color:
+        var(
+            --bp-divider-color,
+            #334155
+        );
+
+    border-left-style: solid;
+
+    box-sizing: border-box;
 }
 
-.bp-divider--dotted
+/*
+ * Verfügbare Höhe
+ */
+
+.bp-divider__presentation--vertical.bp-divider__presentation--length-stretch {
+    height: 100%;
+
+    min-height:
+        var(
+            --bp-divider-vertical-min-height,
+            240px
+        );
+}
+
+.bp-divider__presentation--vertical.bp-divider__presentation--length-stretch
+.bp-divider__body {
+    height: auto;
+
+    min-height:
+        var(
+            --bp-divider-vertical-min-height,
+            240px
+        );
+
+    flex:
+        1 1 auto;
+
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+/*
+ * Linienarten
+ */
+
+.bp-divider__presentation--dashed
 .bp-divider__line {
-    border-top-style: dotted;
+    border-style: dashed;
 }
 
-.bp-divider--gradient
+.bp-divider__presentation--horizontal.bp-divider__presentation--dashed
+.bp-divider__line {
+    border-width:
+        var(
+            --bp-divider-thickness,
+            1px
+        )
+        0
+        0;
+}
+
+.bp-divider__presentation--vertical.bp-divider__presentation--dashed
+.bp-divider__line {
+    border-width:
+        0
+        0
+        0
+        var(
+            --bp-divider-thickness,
+            1px
+        );
+}
+
+.bp-divider__presentation--dotted
+.bp-divider__line {
+    border-style: dotted;
+}
+
+.bp-divider__presentation--horizontal.bp-divider__presentation--dotted
+.bp-divider__line {
+    border-width:
+        var(
+            --bp-divider-thickness,
+            1px
+        )
+        0
+        0;
+}
+
+.bp-divider__presentation--vertical.bp-divider__presentation--dotted
+.bp-divider__line {
+    border-width:
+        0
+        0
+        0
+        var(
+            --bp-divider-thickness,
+            1px
+        );
+}
+
+/*
+ * Verlaufslinie
+ */
+
+.bp-divider__presentation--gradient
+.bp-divider__line {
+    border: 0;
+}
+
+.bp-divider__presentation--horizontal.bp-divider__presentation--gradient
 .bp-divider__line {
     height:
         var(
@@ -68,9 +316,31 @@
             ),
             transparent
         );
-
-    border: 0;
 }
+
+.bp-divider__presentation--vertical.bp-divider__presentation--gradient
+.bp-divider__line {
+    width:
+        var(
+            --bp-divider-thickness,
+            1px
+        );
+
+    background:
+        linear-gradient(
+            180deg,
+            transparent,
+            var(
+                --bp-divider-color,
+                #334155
+            ),
+            transparent
+        );
+}
+
+/*
+ * Horizontale Beschriftung
+ */
 
 .bp-divider__labeled {
     display: flex;
@@ -97,5 +367,161 @@
 
     letter-spacing: .12em;
 
+    opacity:
+        var(
+            --bp-divider-opacity,
+            1
+        );
+
     text-transform: uppercase;
+}
+
+/*
+ * Vertikale Trenner innerhalb von Spalten.
+ */
+
+.bp-columns__nested-item:has(
+    .bp-divider__presentation--vertical
+),
+.bp-columns__nested-editor:has(
+    .bp-divider__presentation--vertical
+),
+.bp-columns__nested-item:has(
+    .bp-divider__presentation--vertical
+)
+.bp-rendered-block,
+.bp-columns__nested-editor:has(
+    .bp-divider__presentation--vertical
+)
+.bp-rendered-block {
+    min-height:
+        var(
+            --bp-divider-vertical-min-height,
+            240px
+        );
+}
+
+.bp-columns__nested-item:has(
+    .bp-divider__presentation--vertical.bp-divider__presentation--length-stretch
+),
+.bp-columns__nested-editor:has(
+    .bp-divider__presentation--vertical.bp-divider__presentation--length-stretch
+),
+.bp-columns__nested-item:has(
+    .bp-divider__presentation--vertical.bp-divider__presentation--length-stretch
+)
+.bp-rendered-block,
+.bp-columns__nested-editor:has(
+    .bp-divider__presentation--vertical.bp-divider__presentation--length-stretch
+)
+.bp-rendered-block {
+    height: 100%;
+}
+
+/*
+ * Website und iframe-Vorschau
+ */
+
+@media (
+    min-width: 768px
+) and (
+    max-width: 1199.98px
+) {
+    .bp-divider__presentation--desktop {
+        display: none;
+    }
+
+    .bp-divider__presentation--tablet {
+        display: flex;
+    }
+}
+
+@media (
+    max-width: 767.98px
+) {
+    .bp-divider__presentation--desktop,
+    .bp-divider__presentation--tablet {
+        display: none;
+    }
+
+    .bp-divider__presentation--mobile {
+        display: flex;
+    }
+}
+
+/*
+ * Simulierte Builder-Geräteansichten.
+ * Diese Regeln müssen nach den Media Queries stehen.
+ */
+
+.bp-builder-viewport__frame[data-viewport="desktop"]
+.bp-divider__presentation--desktop {
+    display: flex;
+}
+
+.bp-builder-viewport__frame[data-viewport="desktop"]
+.bp-divider__presentation--tablet,
+.bp-builder-viewport__frame[data-viewport="desktop"]
+.bp-divider__presentation--mobile {
+    display: none;
+}
+
+.bp-builder-viewport__frame[data-viewport="tablet"]
+.bp-divider__presentation--desktop,
+.bp-builder-viewport__frame[data-viewport="tablet"]
+.bp-divider__presentation--mobile {
+    display: none;
+}
+
+.bp-builder-viewport__frame[data-viewport="tablet"]
+.bp-divider__presentation--tablet {
+    display: flex;
+}
+
+.bp-builder-viewport__frame[data-viewport="mobile"]
+.bp-divider__presentation--desktop,
+.bp-builder-viewport__frame[data-viewport="mobile"]
+.bp-divider__presentation--tablet {
+    display: none;
+}
+
+.bp-builder-viewport__frame[data-viewport="mobile"]
+.bp-divider__presentation--mobile {
+    display: flex;
+}
+
+/*
+ * Im Editor bleibt der vertikale Trenner sichtbar
+ * und ausreichend groß zum Auswählen.
+ */
+
+.bp-builder-viewport__frame--edit
+.bp-editor-overlay--compact:has(
+    .bp-divider__presentation--vertical
+) {
+    min-height:
+        var(
+            --bp-divider-vertical-min-height,
+            240px
+        );
+}
+
+.bp-builder-viewport__frame--edit
+.bp-editor-overlay--compact:has(
+    .bp-divider__presentation--vertical
+)
+.bp-editor-overlay__content {
+    min-height:
+        var(
+            --bp-divider-vertical-min-height,
+            240px
+        );
+}
+
+.bp-builder-viewport__frame--edit
+.bp-editor-overlay--compact:has(
+    .bp-divider__presentation--vertical
+)
+.bp-editor-overlay__compact-guide {
+    display: none;
 }
