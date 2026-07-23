@@ -5,6 +5,7 @@ import {
 } from "react-router-dom";
 
 import Home from "@website/pages/Home";
+import Contact from "@website/pages/Contact";
 import PublishedPage from "@website/pages/PublishedPage";
 
 import LoginPage from "@cms/modules/auth/pages/LoginPage";
@@ -28,6 +29,7 @@ import Dashboard from "@cms/modules/dashboard/admin/pages/Dashboard";
 import Pages from "@cms/modules/dashboard/admin/pages/Pages";
 import PageTrash from "@cms/modules/dashboard/admin/pages/PageTrash";
 import PageEditor from "@cms/modules/dashboard/admin/pages/PageEditor";
+import ContactInbox from "@cms/modules/dashboard/admin/pages/ContactInbox";
 import HomeLayout from "@cms/modules/dashboard/admin/pages/HomeLayout";
 import FooterSettings from "@cms/modules/dashboard/admin/pages/FooterSettings";
 import Media from "@cms/modules/dashboard/admin/pages/Media";
@@ -82,6 +84,13 @@ export default function App() {
                 path="/"
                 element={
                     <Home />
+                }
+            />
+
+            <Route
+                path="/kontakt"
+                element={
+                    <Contact />
                 }
             />
 
@@ -163,6 +172,19 @@ export default function App() {
                             }
                         >
                             <PageEditor />
+                        </RoleRoute>
+                    }
+                />
+
+                <Route
+                    path="contact"
+                    element={
+                        <RoleRoute
+                            roles={
+                                CONTENT_ROLES
+                            }
+                        >
+                            <ContactInbox />
                         </RoleRoute>
                     }
                 />

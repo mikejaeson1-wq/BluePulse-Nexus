@@ -1,17 +1,24 @@
 import "@cms/modules/dashboard/admin/layouts/AdminLayout.css";
 
 import {
-    useMemo
+    useEffect,
+    useMemo,
+    useState
 } from "react";
 
 import {
     NavLink,
-    Outlet
+    Outlet,
+    useLocation
 } from "react-router-dom";
 
 import {
     useAuth
 } from "@cms/modules/auth/context/AuthContext";
+
+import {
+    getContactOverview
+} from "@shared/contact/contactService";
 
 const ADMINISTRATOR =
     "administrator";
@@ -50,7 +57,6 @@ const NAVIGATION_ITEMS = [
         roles:
             CONTENT_ROLES
     },
-
     {
         to:
             "/admin/pages",
@@ -67,7 +73,6 @@ const NAVIGATION_ITEMS = [
         roles:
             CONTENT_ROLES
     },
-
     {
         to:
             "/admin/pages/trash",
@@ -84,7 +89,25 @@ const NAVIGATION_ITEMS = [
         roles:
             CONTENT_ROLES
     },
+    {
+        to:
+            "/admin/contact",
 
+        end:
+            true,
+
+        icon:
+            "bi-envelope-heart",
+
+        label:
+            "Kontaktanfragen",
+
+        badge:
+            "contactUnread",
+
+        roles:
+            CONTENT_ROLES
+    },
     {
         to:
             "/admin/home-layout",
@@ -101,7 +124,6 @@ const NAVIGATION_ITEMS = [
         roles:
             CONTENT_ROLES
     },
-
     {
         to:
             "/admin/footer",
@@ -118,7 +140,6 @@ const NAVIGATION_ITEMS = [
         roles:
             CONTENT_ROLES
     },
-
     {
         to:
             "/admin/media",
@@ -135,7 +156,6 @@ const NAVIGATION_ITEMS = [
         roles:
             ALL_ROLES
     },
-
     {
         to:
             "/admin/media-migration",
@@ -153,7 +173,6 @@ const NAVIGATION_ITEMS = [
             ADMINISTRATOR
         ]
     },
-
     {
         to:
             "/admin/backups",
@@ -170,7 +189,6 @@ const NAVIGATION_ITEMS = [
         roles:
             CONTENT_ROLES
     },
-
     {
         to:
             "/admin/data-migration",
@@ -188,7 +206,6 @@ const NAVIGATION_ITEMS = [
             ADMINISTRATOR
         ]
     },
-
     {
         to:
             "/admin/audit",
@@ -206,7 +223,6 @@ const NAVIGATION_ITEMS = [
             ADMINISTRATOR
         ]
     },
-
     {
         to:
             "/admin/users",
@@ -224,7 +240,6 @@ const NAVIGATION_ITEMS = [
             ADMINISTRATOR
         ]
     },
-
     {
         to:
             "/admin/settings",
@@ -241,7 +256,6 @@ const NAVIGATION_ITEMS = [
         roles:
             CONTENT_ROLES
     },
-
     {
         to:
             "/admin/settings/navigation-sync",
@@ -268,6 +282,15 @@ export default function AdminLayout() {
     } =
         useAuth();
 
+    const location =
+        useLocation();
+
+    const [
+        contactUnread,
+        setContactUnread
+    ] =
+        useState(0);
+
     const visibleNavigationItems =
         useMemo(
             () =>
@@ -281,6 +304,71 @@ export default function AdminLayout() {
                 user?.role
             ]
         );
+
+    useEffect(() => {
+        if (
+            !CONTENT_ROLES.includes(
+                user?.role
+            )
+        ) {
+            setContactUnread(0);
+
+            return undefined;
+        }
+
+        let active =
+            true;
+
+        async function loadContactBadge() {
+            try {
+                const overview =
+                    await getContactOverview();
+
+                if (active) {
+                    setContactUnread(
+                        overview.unread
+                    );
+                }
+            } catch {
+                if (active) {
+                    setContactUnread(0);
+                }
+            }
+        }
+
+        loadContactBadge();
+
+        const intervalId =
+            globalThis.setInterval(
+                loadContactBadge,
+                60000
+            );
+
+        return () => {
+            active =
+                false;
+
+            globalThis.clearInterval(
+                intervalId
+            );
+        };
+    }, [
+        location.pathname,
+        user?.role
+    ]);
+
+    function getBadgeValue(
+        item
+    ) {
+        if (
+            item.badge ===
+            "contactUnread"
+        ) {
+            return contactUnread;
+        }
+
+        return 0;
+    }
 
     return (
         <div className="bp-layout">
@@ -310,32 +398,44 @@ export default function AdminLayout() {
                 >
                     {
                         visibleNavigationItems.map(
-                            (item) => (
-                                <NavLink
-                                    key={
-                                        item.to
-                                    }
-                                    to={
-                                        item.to
-                                    }
-                                    end={
-                                        item.end
-                                    }
-                                >
-                                    <i
-                                        className={
-                                            `bi ${item.icon}`
-                                        }
-                                        aria-hidden="true"
-                                    />
+                            (item) => {
+                                const badgeValue =
+                                    getBadgeValue(
+                                        item
+                                    );
 
-                                    <span>
+                                return (
+                                    <NavLink
+                                        key={item.to}
+                                        to={item.to}
+                                        end={item.end}
+                                    >
+                                        <i
+                                            className={`bi ${item.icon}`}
+                                            aria-hidden="true"
+                                        />
+
+                                        <span className="bp-nav__label">
+                                            {item.label}
+                                        </span>
+
                                         {
-                                            item.label
+                                            badgeValue > 0 && (
+                                                <span
+                                                    className="bp-nav__badge"
+                                                    aria-label={`${badgeValue} ungelesene Kontaktanfragen`}
+                                                >
+                                                    {
+                                                        badgeValue > 99
+                                                            ? "99+"
+                                                            : badgeValue
+                                                    }
+                                                </span>
+                                            )
                                         }
-                                    </span>
-                                </NavLink>
-                            )
+                                    </NavLink>
+                                );
+                            }
                         )
                     }
                 </nav>
@@ -370,12 +470,8 @@ export default function AdminLayout() {
                     <button
                         type="button"
                         className="bp-user__logout"
-                        disabled={
-                            loggingOut
-                        }
-                        onClick={
-                            logout
-                        }
+                        disabled={loggingOut}
+                        onClick={logout}
                         aria-label="Abmelden"
                         title={
                             loggingOut
