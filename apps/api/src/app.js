@@ -49,7 +49,11 @@ export function buildApp({
                         level:
                             runtimeConfig
                                 .logLevel
-                    }
+                    },
+
+            trustProxy:
+                runtimeConfig
+                    .production
         });
 
     const database =

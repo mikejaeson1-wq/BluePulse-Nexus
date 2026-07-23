@@ -260,6 +260,55 @@ export const runtimeConfig =
                             60
                     }
                 )
+        },
+
+        contact: {
+            rateLimitMaximum:
+                normalizeInteger(
+                    process.env
+                        .CONTACT_RATE_LIMIT_MAX,
+                    5,
+                    {
+                        minimum: 1,
+                        maximum: 100
+                    }
+                ),
+
+            rateLimitWindowMilliseconds:
+                normalizeInteger(
+                    process.env
+                        .CONTACT_RATE_LIMIT_WINDOW_MS,
+                    15 * 60 * 1000,
+                    {
+                        minimum:
+                            10 * 1000,
+                        maximum:
+                            24 *
+                            60 *
+                            60 *
+                            1000
+                    }
+                ),
+
+            duplicateWindowSeconds:
+                normalizeInteger(
+                    process.env
+                        .CONTACT_DUPLICATE_WINDOW_SECONDS,
+                    60,
+                    {
+                        minimum: 1,
+                        maximum: 3600
+                    }
+                ),
+
+            ipHashSecret:
+                normalizeText(
+                    process.env
+                        .CONTACT_IP_HASH_SECRET,
+                    production
+                        ? "change-this-contact-ip-hash-secret"
+                        : "bluepulse-contact-development-secret"
+                )
         }
     });
 
