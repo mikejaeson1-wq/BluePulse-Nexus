@@ -1,6 +1,7 @@
 import "./Builder.css";
 
 import {
+    useEffect,
     useMemo,
     useState
 } from "react";
@@ -19,13 +20,19 @@ import {
     getBlock
 } from "../registry/blockRegistry";
 
+import {
+    createBuilderPageSnapshot
+} from "../utils/builderDirtyState";
+
 import useBuilder from "../hooks/useBuilder";
 import useBuilderKeyboardShortcuts from "../hooks/useBuilderKeyboardShortcuts";
+import useUnsavedChangesGuard from "../hooks/useUnsavedChangesGuard";
 
 import Sidebar from "./Sidebar";
 import Canvas from "./Canvas";
 import BlockNavigator from "./BlockNavigator";
 import BlockDeleteDialog from "./BlockDeleteDialog";
+import UnsavedChangesDialog from "./UnsavedChangesDialog";
 import PropertiesPanel from "./PropertiesPanel";
 import PageHeader from "./PageHeader";
 import PageSettingsPanel from "./PageSettingsPanel";
@@ -91,7 +98,8 @@ function BuilderContent({
     initialPage,
     onSave,
     onPublish,
-    onPreview
+    onPreview,
+    onDirtyChange
 }) {
     const [
         settingsOpen,
@@ -105,12 +113,136 @@ function BuilderContent({
     ] =
         useState(null);
 
+    const [
+        savedSnapshot,
+        setSavedSnapshot
+    ] =
+        useState(
+            () =>
+                createBuilderPageSnapshot(
+                    initialPage
+                )
+        );
+
+    const [
+        lastSavedAt,
+        setLastSavedAt
+    ] =
+        useState(
+            initialPage?.updatedAt ??
+            null
+        );
+
     const builder =
         useBuilder({
             initialPage,
             onSave,
             onPublish,
             onPreview
+        });
+
+    const currentSnapshot =
+        useMemo(
+            () =>
+                createBuilderPageSnapshot(
+                    builder.page
+                ),
+            [
+                builder.page
+            ]
+        );
+
+    const isDirty =
+        currentSnapshot !==
+        savedSnapshot;
+
+    useEffect(() => {
+        setSavedSnapshot(
+            createBuilderPageSnapshot(
+                initialPage
+            )
+        );
+
+        setLastSavedAt(
+            initialPage?.updatedAt ??
+            null
+        );
+    }, [
+        initialPage?.id
+    ]);
+
+    useEffect(() => {
+        onDirtyChange?.(
+            isDirty
+        );
+    }, [
+        isDirty,
+        onDirtyChange
+    ]);
+
+    useEffect(() => {
+        return () => {
+            onDirtyChange?.(
+                false
+            );
+        };
+    }, [
+        onDirtyChange
+    ]);
+
+    async function saveBuilderPage() {
+        const savedPage =
+            await builder.savePage();
+
+        const cleanPage =
+            savedPage ??
+            builder.page;
+
+        setSavedSnapshot(
+            createBuilderPageSnapshot(
+                cleanPage
+            )
+        );
+
+        setLastSavedAt(
+            cleanPage?.updatedAt ??
+            new Date()
+                .toISOString()
+        );
+
+        return cleanPage;
+    }
+
+    async function publishBuilderPage() {
+        const publishedPage =
+            await builder.publishPage();
+
+        const cleanPage =
+            publishedPage ??
+            builder.page;
+
+        setSavedSnapshot(
+            createBuilderPageSnapshot(
+                cleanPage
+            )
+        );
+
+        setLastSavedAt(
+            cleanPage?.updatedAt ??
+            new Date()
+                .toISOString()
+        );
+
+        return cleanPage;
+    }
+
+    const navigationGuard =
+        useUnsavedChangesGuard({
+            active:
+                isDirty,
+
+            onSave:
+                saveBuilderPage
         });
 
     const selectedBlockLabel =
@@ -184,7 +316,8 @@ function BuilderContent({
     useBuilderKeyboardShortcuts({
         enabled:
             !settingsOpen &&
-            !deleteDialogOpen,
+            !deleteDialogOpen &&
+            !navigationGuard.open,
 
         blocks:
             builder.flatBlocks,
@@ -260,10 +393,10 @@ function BuilderContent({
                     builder.redo
                 }
                 onSave={
-                    builder.savePage
+                    saveBuilderPage
                 }
                 onPublish={
-                    builder.publishPage
+                    publishBuilderPage
                 }
                 onPreview={
                     builder.previewPage
@@ -286,6 +419,12 @@ function BuilderContent({
                 isPublishing={
                     builder.isPublishing
                 }
+                isDirty={
+                    isDirty
+                }
+                lastSavedAt={
+                    lastSavedAt
+                }
             />
 
             <div
@@ -293,6 +432,11 @@ function BuilderContent({
                     builder.selectedBlock
                         ? "bp-builder bp-builder--has-selection"
                         : "bp-builder"
+                }
+                data-builder-dirty={
+                    isDirty
+                        ? "true"
+                        : "false"
                 }
             >
                 <Sidebar
@@ -477,6 +621,30 @@ function BuilderContent({
                     confirmDeleteBlock
                 }
             />
+
+            <UnsavedChangesDialog
+                open={
+                    navigationGuard.open
+                }
+                destination={
+                    navigationGuard.pendingDestination
+                }
+                isSaving={
+                    navigationGuard.isSavingBeforeLeave
+                }
+                error={
+                    navigationGuard.saveError
+                }
+                onCancel={
+                    navigationGuard.cancelNavigation
+                }
+                onDiscard={
+                    navigationGuard.discardAndLeave
+                }
+                onSaveAndLeave={
+                    navigationGuard.saveAndLeave
+                }
+            />
         </BuilderEditorProvider>
     );
 }
@@ -487,9 +655,7 @@ export default function Builder(
     return (
         <BuilderViewportProvider>
             <BuilderContent
-                {
-                    ...props
-                }
+                {...props}
             />
         </BuilderViewportProvider>
     );

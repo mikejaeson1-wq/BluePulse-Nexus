@@ -127,6 +127,11 @@ export default function PageEditor() {
         setBuilderRevision
     ] = useState(0);
 
+    const [
+        builderDirty,
+        setBuilderDirty
+    ] = useState(false);
+
     const pageDataMode =
         getPageDataMode();
 
@@ -189,6 +194,10 @@ export default function PageEditor() {
     }
 
     useEffect(() => {
+        setBuilderDirty(
+            false
+        );
+
         loadPage();
     }, [id]);
 
@@ -209,6 +218,10 @@ export default function PageEditor() {
 
             setPage(
                 savedPage
+            );
+
+            setBuilderDirty(
+                false
             );
 
             setMessage(
@@ -247,6 +260,10 @@ export default function PageEditor() {
                 publishedPage
             );
 
+            setBuilderDirty(
+                false
+            );
+
             setMessage(
                 "Seite wurde veröffentlicht."
             );
@@ -268,6 +285,15 @@ export default function PageEditor() {
         if (
             !page ||
             changingStatus
+        ) {
+            return;
+        }
+
+        if (
+            builderDirty &&
+            !globalThis.confirm(
+                "Die aktuelle Builder-Seite enthält ungespeicherte Änderungen. Diese Änderungen beim Wechsel zum Entwurf verwerfen?"
+            )
         ) {
             return;
         }
@@ -297,6 +323,10 @@ export default function PageEditor() {
                 draftPage
             );
 
+            setBuilderDirty(
+                false
+            );
+
             setBuilderRevision(
                 (currentRevision) =>
                     currentRevision + 1
@@ -321,6 +351,15 @@ export default function PageEditor() {
         version
     ) {
         if (
+            builderDirty &&
+            !globalThis.confirm(
+                "Die aktuelle Builder-Seite enthält ungespeicherte Änderungen. Diese Änderungen bei der Wiederherstellung verwerfen?"
+            )
+        ) {
+            return;
+        }
+
+        if (
             !globalThis.confirm(
                 `Version ${version.versionNumber} wirklich wiederherstellen? Der aktuelle Stand bleibt als eigene Version erhalten.`
             )
@@ -331,6 +370,7 @@ export default function PageEditor() {
         setRestoringVersion(
             version.versionNumber
         );
+
         setMessage("");
         setError("");
 
@@ -345,6 +385,10 @@ export default function PageEditor() {
 
             setPage(
                 restoredPage
+            );
+
+            setBuilderDirty(
+                false
             );
 
             setBuilderRevision(
@@ -384,7 +428,7 @@ export default function PageEditor() {
             previewWindow.opener =
                 null;
         } else {
-            navigate(
+            globalThis.location.assign(
                 `/admin/preview/${id}`
             );
         }
@@ -478,6 +522,14 @@ export default function PageEditor() {
                     </span>
 
                     {
+                        builderDirty && (
+                            <span className="badge text-bg-warning">
+                                Ungespeichert
+                            </span>
+                        )
+                    }
+
+                    {
                         page.status ===
                         "published" && (
                             <Button
@@ -494,16 +546,20 @@ export default function PageEditor() {
                         )
                     }
 
-                    <Button
-                        variant="secondary"
-                        onClick={() =>
-                            navigate(
-                                "/admin/pages"
-                            )
-                        }
+                    <span
+                        data-unsaved-navigation="/admin/pages"
                     >
-                        ← Zurück
-                    </Button>
+                        <Button
+                            variant="secondary"
+                            onClick={() =>
+                                navigate(
+                                    "/admin/pages"
+                                )
+                            }
+                        >
+                            ← Zurück
+                        </Button>
+                    </span>
                 </div>
             }
         >
@@ -534,6 +590,9 @@ export default function PageEditor() {
                 }
                 onPreview={
                     handlePreview
+                }
+                onDirtyChange={
+                    setBuilderDirty
                 }
             />
 
