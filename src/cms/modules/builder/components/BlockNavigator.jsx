@@ -9,9 +9,7 @@ import {
     getBlock
 } from "../registry/blockRegistry";
 
-function normalizeText(
-    value
-) {
+function normalizeText(value) {
     return String(
         value ??
         ""
@@ -27,18 +25,13 @@ function truncateText(
             value
         );
 
-    if (
-        text.length <=
+    return text.length <=
         maximumLength
-    ) {
-        return text;
-    }
-
-    return `${text.slice(
-        0,
-        maximumLength -
-            1
-    )}…`;
+        ? text
+        : `${text.slice(
+            0,
+            maximumLength - 1
+        )}…`;
 }
 
 function getBlockDescription(
@@ -113,9 +106,7 @@ function getBlockInformation(
 }
 
 function BlockNavigatorItem({
-    block,
-    index,
-    total,
+    entry,
     selected,
     onSelect
 }) {
@@ -123,12 +114,16 @@ function BlockNavigatorItem({
         useMemo(
             () =>
                 getBlockInformation(
-                    block
+                    entry.block
                 ),
             [
-                block
+                entry.block
             ]
         );
+
+    const indentation =
+        entry.depth *
+        14;
 
     return (
         <button
@@ -138,6 +133,13 @@ function BlockNavigatorItem({
                     ? "builder-block-navigator__item builder-block-navigator__item--selected"
                     : "builder-block-navigator__item"
             }
+            style={{
+                marginLeft:
+                    `${indentation}px`,
+
+                width:
+                    `calc(100% - ${indentation}px)`
+            }}
             aria-current={
                 selected
                     ? "true"
@@ -149,13 +151,13 @@ function BlockNavigatorItem({
             onClick={
                 () =>
                     onSelect?.(
-                        block.id
+                        entry.block.id
                     )
             }
         >
             <span className="builder-block-navigator__position">
                 {
-                    index +
+                    entry.index +
                     1
                 }
             </span>
@@ -172,6 +174,16 @@ function BlockNavigatorItem({
             <span className="builder-block-navigator__content">
                 <span className="builder-block-navigator__name">
                     {
+                        entry.depth >
+                        0 && (
+                            <i
+                                className="bi bi-arrow-return-right"
+                                aria-hidden="true"
+                            />
+                        )
+                    }
+
+                    {
                         information.name
                     }
                 </span>
@@ -184,12 +196,19 @@ function BlockNavigatorItem({
 
                 <span className="builder-block-navigator__metadata">
                     {
+                        entry.depth >
+                        0
+                            ? `${entry.columnLabel} · `
+                            : ""
+                    }
+
+                    {
                         information.type
                     } · Block {
-                        index +
+                        entry.index +
                         1
                     } von {
-                        total
+                        entry.total
                     }
                 </span>
             </span>
@@ -210,6 +229,7 @@ function BlockNavigatorItem({
 
 export default function BlockNavigator({
     blocks = [],
+    entries = null,
     selectedId = null,
     onSelect,
     onClearSelection
@@ -220,25 +240,42 @@ export default function BlockNavigator({
     ] =
         useState(false);
 
-    const normalizedBlocks =
+    const normalizedEntries =
         Array.isArray(
-            blocks
+            entries
         )
-            ? blocks
-            : [];
+            ? entries
+            : (
+                Array.isArray(
+                    blocks
+                )
+                    ? blocks.map(
+                        (
+                            block,
+                            index
+                        ) => ({
+                            block,
+                            depth: 0,
+                            index,
+                            total:
+                                blocks.length,
+                            columnLabel: ""
+                        })
+                    )
+                    : []
+            );
 
     const selectedIndex =
-        normalizedBlocks.findIndex(
-            (block) =>
-                block.id ===
+        normalizedEntries.findIndex(
+            (entry) =>
+                entry.block.id ===
                 selectedId
         );
 
     const selectedPosition =
         selectedIndex >=
         0
-            ? selectedIndex +
-                1
+            ? selectedIndex + 1
             : null;
 
     return (
@@ -272,10 +309,10 @@ export default function BlockNavigator({
                 <div className="builder-block-navigator__header-actions">
                     <span
                         className="builder-block-navigator__count"
-                        title="Anzahl der Blöcke"
+                        title="Anzahl aller Blöcke"
                     >
                         {
-                            normalizedBlocks.length
+                            normalizedEntries.length
                         }
                     </span>
 
@@ -289,11 +326,6 @@ export default function BlockNavigator({
                             collapsed
                                 ? "Block-Navigation öffnen"
                                 : "Block-Navigation schließen"
-                        }
-                        title={
-                            collapsed
-                                ? "Struktur öffnen"
-                                : "Struktur einklappen"
                         }
                         onClick={
                             () =>
@@ -335,7 +367,7 @@ export default function BlockNavigator({
                                             Block {
                                                 selectedPosition
                                             } von {
-                                                normalizedBlocks.length
+                                                normalizedEntries.length
                                             } ausgewählt
                                         </span>
 
@@ -367,7 +399,7 @@ export default function BlockNavigator({
                         </div>
 
                         {
-                            normalizedBlocks.length ===
+                            normalizedEntries.length ===
                             0 ? (
                                 <div className="builder-block-navigator__empty">
                                     <i
@@ -389,27 +421,18 @@ export default function BlockNavigator({
                                     aria-label="Blöcke der aktuellen Seite"
                                 >
                                     {
-                                        normalizedBlocks.map(
-                                            (
-                                                block,
-                                                index
-                                            ) => (
+                                        normalizedEntries.map(
+                                            (entry) => (
                                                 <BlockNavigatorItem
                                                     key={
-                                                        block.id
+                                                        entry.block.id
                                                     }
-                                                    block={
-                                                        block
-                                                    }
-                                                    index={
-                                                        index
-                                                    }
-                                                    total={
-                                                        normalizedBlocks.length
+                                                    entry={
+                                                        entry
                                                     }
                                                     selected={
                                                         selectedId ===
-                                                        block.id
+                                                        entry.block.id
                                                     }
                                                     onSelect={
                                                         onSelect

@@ -9,8 +9,9 @@ import {
     resolveBlockDesignForDevice
 } from "@shared/pages/blockSettings";
 
+const MAXIMUM_NESTING_LEVEL = 8;
+
 function getWrapperClassName(
-    block,
     mode,
     settings
 ) {
@@ -20,15 +21,14 @@ function getWrapperClassName(
     } =
         settings;
 
-    const classes = [
+    return [
         "bp-rendered-block",
 
         `bp-rendered-block--shadow-${design.shadow}`,
 
         `bp-rendered-block--overflow-${design.overflow}`,
 
-        mode ===
-        "editor"
+        mode === "editor"
             ? "bp-rendered-block--editor"
             : "bp-rendered-block--website",
 
@@ -45,39 +45,23 @@ function getWrapperClassName(
             : "",
 
         advanced.classNames
-    ];
-
-    return classes
-        .filter(
-            Boolean
-        )
-        .join(
-            " "
-        );
+    ]
+        .filter(Boolean)
+        .join(" ");
 }
 
-function getWidthValues(
-    layout
-) {
-    switch (
-        layout.width
-    ) {
+function getWidthValues(layout) {
+    switch (layout.width) {
         case "content":
             return {
-                width:
-                    "min(100%, 1200px)",
-
-                maxWidth:
-                    "1200px"
+                width: "min(100%, 1200px)",
+                maxWidth: "1200px"
             };
 
         case "narrow":
             return {
-                width:
-                    "min(100%, 800px)",
-
-                maxWidth:
-                    "800px"
+                width: "min(100%, 800px)",
+                maxWidth: "800px"
             };
 
         case "custom":
@@ -91,57 +75,38 @@ function getWidthValues(
 
         case "fit":
             return {
-                width:
-                    "fit-content",
-
-                maxWidth:
-                    "100%"
+                width: "fit-content",
+                maxWidth: "100%"
             };
 
         case "full":
         default:
             return {
-                width:
-                    "100%",
-
-                maxWidth:
-                    "none"
+                width: "100%",
+                maxWidth: "none"
             };
     }
 }
 
-function getAlignmentValues(
-    alignment
-) {
-    switch (
-        alignment
-    ) {
+function getAlignmentValues(alignment) {
+    switch (alignment) {
         case "left":
             return {
-                marginLeft:
-                    "0",
-
-                marginRight:
-                    "auto"
+                marginLeft: "0",
+                marginRight: "auto"
             };
 
         case "right":
             return {
-                marginLeft:
-                    "auto",
-
-                marginRight:
-                    "0"
+                marginLeft: "auto",
+                marginRight: "0"
             };
 
         case "center":
         default:
             return {
-                marginLeft:
-                    "auto",
-
-                marginRight:
-                    "auto"
+                marginLeft: "auto",
+                marginRight: "auto"
             };
     }
 }
@@ -161,61 +126,39 @@ function getDeviceStyleVariables(
         );
 
     return {
-        [
-            `--bp-block-${device}-width`
-        ]:
+        [`--bp-block-${device}-width`]:
             widthValues.width,
 
-        [
-            `--bp-block-${device}-max-width`
-        ]:
+        [`--bp-block-${device}-max-width`]:
             widthValues.maxWidth,
 
-        [
-            `--bp-block-${device}-margin-left`
-        ]:
+        [`--bp-block-${device}-margin-left`]:
             alignmentValues.marginLeft,
 
-        [
-            `--bp-block-${device}-margin-right`
-        ]:
+        [`--bp-block-${device}-margin-right`]:
             alignmentValues.marginRight,
 
-        [
-            `--bp-block-${device}-margin-top`
-        ]:
+        [`--bp-block-${device}-margin-top`]:
             `${layout.marginTop}px`,
 
-        [
-            `--bp-block-${device}-margin-bottom`
-        ]:
+        [`--bp-block-${device}-margin-bottom`]:
             `${layout.marginBottom}px`,
 
-        [
-            `--bp-block-${device}-padding-top`
-        ]:
+        [`--bp-block-${device}-padding-top`]:
             `${layout.paddingTop}px`,
 
-        [
-            `--bp-block-${device}-padding-right`
-        ]:
+        [`--bp-block-${device}-padding-right`]:
             `${layout.paddingRight}px`,
 
-        [
-            `--bp-block-${device}-padding-bottom`
-        ]:
+        [`--bp-block-${device}-padding-bottom`]:
             `${layout.paddingBottom}px`,
 
-        [
-            `--bp-block-${device}-padding-left`
-        ]:
+        [`--bp-block-${device}-padding-left`]:
             `${layout.paddingLeft}px`
     };
 }
 
-function getWrapperStyle(
-    settings
-) {
+function getWrapperStyle(settings) {
     const {
         design
     } =
@@ -300,12 +243,55 @@ function UnknownBlock({
     );
 }
 
+function NestingLimitReached({
+    mode
+}) {
+    if (
+        mode !== "editor"
+    ) {
+        return null;
+    }
+
+    return (
+        <div className="bp-rendered-block__unknown">
+            <i
+                className="bi bi-diagram-3"
+                aria-hidden="true"
+            />
+
+            <div>
+                <strong>
+                    Maximale Verschachtelung erreicht
+                </strong>
+
+                <span>
+                    Blöcke dürfen höchstens acht Ebenen tief verschachtelt werden.
+                </span>
+            </div>
+        </div>
+    );
+}
+
 export default function BlockRenderer({
     block,
-    mode = "website"
+    mode = "website",
+    nestingLevel = 0
 }) {
     if (!block) {
         return null;
+    }
+
+    if (
+        nestingLevel >
+        MAXIMUM_NESTING_LEVEL
+    ) {
+        return (
+            <NestingLimitReached
+                mode={
+                    mode
+                }
+            />
+        );
     }
 
     const definition =
@@ -336,6 +322,26 @@ export default function BlockRenderer({
     const Component =
         definition.component;
 
+    function renderNestedBlock(
+        nestedBlock,
+        options = {}
+    ) {
+        return (
+            <BlockRenderer
+                block={
+                    nestedBlock
+                }
+                mode={
+                    options.mode ??
+                    mode
+                }
+                nestingLevel={
+                    nestingLevel + 1
+                }
+            />
+        );
+    }
+
     return (
         <div
             id={
@@ -344,7 +350,6 @@ export default function BlockRenderer({
             }
             className={
                 getWrapperClassName(
-                    block,
                     mode,
                     settings
                 )
@@ -367,6 +372,9 @@ export default function BlockRenderer({
             }
             data-block-mode={
                 mode
+            }
+            data-block-nesting-level={
+                nestingLevel
             }
             data-tablet-layout={
                 settings.design
@@ -394,6 +402,12 @@ export default function BlockRenderer({
                 }
                 mode={
                     mode
+                }
+                nestingLevel={
+                    nestingLevel
+                }
+                renderBlock={
+                    renderNestedBlock
                 }
             />
         </div>

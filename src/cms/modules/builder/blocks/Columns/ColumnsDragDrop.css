@@ -1,0 +1,202 @@
+.bp-columns__column--editor {
+    transition:
+        border-color .16s ease,
+        background-color .16s ease,
+        box-shadow .16s ease,
+        transform .16s ease;
+}
+
+.bp-columns__column--editor[data-drag-active="true"] {
+    border-color:
+        rgba(56, 189, 248, .34);
+}
+
+.bp-columns__column--drag-over {
+    background:
+        linear-gradient(
+            145deg,
+            rgba(14, 165, 233, .13),
+            rgba(15, 23, 42, .25)
+        );
+
+    border-color:
+        rgba(56, 189, 248, .8);
+
+    box-shadow:
+        inset 0 0 0 2px
+        rgba(56, 189, 248, .13),
+        0 12px 34px
+        rgba(2, 132, 199, .12);
+
+    transform:
+        translateY(-2px);
+}
+
+.bp-columns__column--drop-disabled {
+    opacity: .62;
+
+    filter:
+        grayscale(.25);
+}
+
+.bp-columns__column-drag-status {
+    min-width: 0;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+
+    margin-left: auto;
+
+    padding:
+        4px 6px;
+
+    color: #7dd3fc;
+
+    background:
+        rgba(14, 165, 233, .09);
+
+    border:
+        1px solid
+        rgba(56, 189, 248, .16);
+
+    border-radius: 6px;
+
+    font-size: 7px;
+    font-weight: 800;
+
+    white-space: nowrap;
+}
+
+.bp-columns__column--drag-over
+.bp-columns__column-drag-status {
+    color: #f0f9ff;
+
+    background:
+        rgba(2, 132, 199, .32);
+
+    border-color:
+        rgba(125, 211, 252, .36);
+}
+
+.bp-columns__nested-editor {
+    touch-action: manipulation;
+
+    transition:
+        border-color .16s ease,
+        background-color .16s ease,
+        box-shadow .16s ease,
+        opacity .16s ease;
+}
+
+.bp-columns__nested-editor--dragging {
+    background:
+        rgba(14, 165, 233, .12);
+
+    border-color:
+        rgba(56, 189, 248, .58);
+
+    box-shadow:
+        0 18px 46px
+        rgba(2, 6, 23, .52);
+}
+
+.bp-columns__nested-editor--dragging
+.bp-editor-overlay {
+    cursor: grabbing;
+}
+
+.bp-columns__nested-editor
+.bp-block-toolbar__button[aria-label="Block ziehen"] {
+    cursor: grab;
+
+    touch-action: none;
+}
+
+.bp-columns__nested-editor--dragging
+.bp-block-toolbar__button[aria-label="Block ziehen"] {
+    cursor: grabbing;
+}
+
+.bp-columns__drop-message {
+    min-height: 34px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+
+    margin-top: 9px;
+
+    padding:
+        7px 9px;
+
+    color: #64748b;
+
+    background:
+        rgba(2, 6, 23, .24);
+
+    border:
+        1px dashed
+        rgba(56, 189, 248, .18);
+
+    border-radius: 8px;
+
+    font-size: 8px;
+    font-weight: 750;
+
+    pointer-events: none;
+
+    transition:
+        color .16s ease,
+        background-color .16s ease,
+        border-color .16s ease;
+}
+
+.bp-columns__drop-message i {
+    color: #38bdf8;
+}
+
+.bp-columns__drop-message--active {
+    color: #e0f2fe;
+
+    background:
+        rgba(14, 165, 233, .15);
+
+    border-color:
+        rgba(125, 211, 252, .55);
+}
+
+.bp-columns__column--drag-over
+.bp-columns__empty {
+    color: #7dd3fc;
+}
+
+.bp-columns__column--drag-over
+.bp-columns__empty-icon {
+    color: #f0f9ff;
+
+    background:
+        rgba(2, 132, 199, .34);
+
+    border-color:
+        rgba(125, 211, 252, .48);
+
+    transform:
+        scale(1.08);
+}
+
+.bp-columns__column--drag-over
+.bp-columns__empty strong {
+    color: #f0f9ff;
+}
+
+@media (
+    prefers-reduced-motion: reduce
+) {
+    .bp-columns__column--editor,
+    .bp-columns__nested-editor,
+    .bp-columns__drop-message {
+        transition: none;
+    }
+}

@@ -7,6 +7,10 @@ import {
 } from "@cms/modules/builder/blocks/Hero";
 
 import {
+    definition as Columns
+} from "@cms/modules/builder/blocks/Columns";
+
+import {
     definition as Section
 } from "@cms/modules/builder/blocks/Section";
 
@@ -44,6 +48,7 @@ import {
 
 const blocks = [
     Hero,
+    Columns,
     Section,
     Divider,
     Spacer,

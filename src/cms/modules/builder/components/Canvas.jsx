@@ -11,14 +11,12 @@ import {
 import {
     DndContext,
     PointerSensor,
-    closestCenter,
     useSensor,
     useSensors
 } from "@dnd-kit/core";
 
 import {
     SortableContext,
-    arrayMove,
     verticalListSortingStrategy
 } from "@dnd-kit/sortable";
 
@@ -29,6 +27,11 @@ import {
     useBuilderViewport
 } from "../context/BuilderViewportContext";
 
+import {
+    builderCollisionDetection,
+    moveBlockTreeByDrag
+} from "../utils/builderDragDrop";
+
 import BuilderLivePreview from "./BuilderLivePreview";
 import BuilderViewportToolbar from "./BuilderViewportToolbar";
 import SortableBlock from "./SortableBlock";
@@ -36,126 +39,59 @@ import SortableBlock from "./SortableBlock";
 const STORAGE_KEY =
     "bluepulse.builder.viewport.v1";
 
-const MINIMUM_ZOOM =
-    25;
+const MINIMUM_ZOOM = 25;
+const MAXIMUM_ZOOM = 100;
+const ZOOM_STEP = 5;
 
-const MAXIMUM_ZOOM =
-    100;
-
-const ZOOM_STEP =
-    5;
-
-const VIEWPORT_PADDING =
-    28;
-
-const VIEWPORT_VERTICAL_SPACE =
-    92;
+const VIEWPORT_PADDING = 28;
+const VIEWPORT_VERTICAL_SPACE = 92;
 
 const VIEWPORTS = [
     {
-        id:
-            "desktop",
-
-        label:
-            "Desktop",
-
-        icon:
-            "bi-display",
-
-        width:
-            1440,
-
-        height:
-            900,
-
-        browserHeight:
-            44,
-
-        defaultZoom:
-            45,
-
-        description:
-            "Großer Bildschirm"
+        id: "desktop",
+        label: "Desktop",
+        icon: "bi-display",
+        width: 1440,
+        height: 900,
+        browserHeight: 44,
+        defaultZoom: 45,
+        description: "Großer Bildschirm"
     },
-
     {
-        id:
-            "tablet",
-
-        label:
-            "Tablet",
-
-        icon:
-            "bi-tablet-landscape",
-
-        width:
-            834,
-
-        height:
-            1112,
-
-        browserHeight:
-            0,
-
-        defaultZoom:
-            70,
-
-        description:
-            "Tablet Hochformat"
+        id: "tablet",
+        label: "Tablet",
+        icon: "bi-tablet-landscape",
+        width: 834,
+        height: 1112,
+        browserHeight: 0,
+        defaultZoom: 70,
+        description: "Tablet Hochformat"
     },
-
     {
-        id:
-            "mobile",
-
-        label:
-            "Mobil",
-
-        icon:
-            "bi-phone",
-
-        width:
-            390,
-
-        height:
-            844,
-
-        browserHeight:
-            0,
-
-        defaultZoom:
-            90,
-
-        description:
-            "Smartphone"
+        id: "mobile",
+        label: "Mobil",
+        icon: "bi-phone",
+        width: 390,
+        height: 844,
+        browserHeight: 0,
+        defaultZoom: 90,
+        description: "Smartphone"
     }
 ];
 
 const DEFAULT_PREFERENCES = {
-    activeViewport:
-        "desktop",
-
-    canvasMode:
-        "edit",
-
-    autoFit:
-        true,
+    activeViewport: "desktop",
+    canvasMode: "edit",
+    autoFit: true,
 
     zoomLevels: {
-        desktop:
-            45,
-
-        tablet:
-            70,
-
-        mobile:
-            90
+        desktop: 45,
+        tablet: 70,
+        mobile: 90
     }
 };
 
-function isValidViewport(
-    viewportId
-) {
+function isValidViewport(viewportId) {
     return VIEWPORTS.some(
         (viewport) =>
             viewport.id ===
@@ -163,13 +99,9 @@ function isValidViewport(
     );
 }
 
-function clampZoom(
-    value
-) {
+function clampZoom(value) {
     const numericValue =
-        Number(
-            value
-        );
+        Number(value);
 
     if (
         !Number.isFinite(
@@ -192,13 +124,9 @@ function clampZoom(
     );
 }
 
-function clampFitZoom(
-    value
-) {
+function clampFitZoom(value) {
     const numericValue =
-        Number(
-            value
-        );
+        Number(value);
 
     if (
         !Number.isFinite(
@@ -224,9 +152,7 @@ function clampFitZoom(
     );
 }
 
-function normalizePreferences(
-    value
-) {
+function normalizePreferences(value) {
     const activeViewport =
         isValidViewport(
             value?.activeViewport
@@ -259,7 +185,6 @@ function normalizePreferences(
 
     return {
         activeViewport,
-
         canvasMode,
 
         autoFit:
@@ -299,9 +224,7 @@ function loadPreferences() {
                 storedValue
             )
         );
-    } catch (
-        error
-    ) {
+    } catch (error) {
         console.error(
             "Die Builder-Ansicht konnte nicht geladen werden.",
             error
@@ -311,9 +234,7 @@ function loadPreferences() {
     }
 }
 
-function savePreferences(
-    preferences
-) {
+function savePreferences(preferences) {
     if (
         typeof globalThis
             .localStorage ===
@@ -330,9 +251,7 @@ function savePreferences(
                     preferences
                 )
             );
-    } catch (
-        error
-    ) {
+    } catch (error) {
         console.error(
             "Die Builder-Ansicht konnte nicht gespeichert werden.",
             error
@@ -340,9 +259,7 @@ function savePreferences(
     }
 }
 
-function getPreviewPath(
-    page
-) {
+function getPreviewPath(page) {
     const slug =
         String(
             page?.slug ??
@@ -449,11 +366,8 @@ export default function Canvas({
         setAvailableSize
     ] =
         useState({
-            width:
-                0,
-
-            height:
-                0
+            width: 0,
+            height: 0
         });
 
     const [
@@ -468,8 +382,7 @@ export default function Canvas({
                 PointerSensor,
                 {
                     activationConstraint: {
-                        distance:
-                            6
+                        distance: 6
                     }
                 }
             )
@@ -498,12 +411,10 @@ export default function Canvas({
         );
 
     const zoom =
-        preferences
-            .zoomLevels[
-                currentViewport.id
-            ] ??
-        currentViewport
-            .defaultZoom;
+        preferences.zoomLevels[
+            currentViewport.id
+        ] ??
+        currentViewport.defaultZoom;
 
     const scale =
         zoom /
@@ -565,9 +476,7 @@ export default function Canvas({
                 };
 
                 setAvailableSize(
-                    (
-                        currentSize
-                    ) => {
+                    (currentSize) => {
                         if (
                             currentSize.width ===
                                 nextSize.width &&
@@ -612,9 +521,7 @@ export default function Canvas({
         }
 
         setPreferences(
-            (
-                currentPreferences
-            ) => ({
+            (currentPreferences) => ({
                 ...currentPreferences,
 
                 activeViewport:
@@ -652,10 +559,9 @@ export default function Canvas({
             "function"
         ) {
             const observer =
-                new globalThis
-                    .ResizeObserver(
-                        measureAvailableSize
-                    );
+                new globalThis.ResizeObserver(
+                    measureAvailableSize
+                );
 
             observer.observe(
                 viewportElement
@@ -701,9 +607,7 @@ export default function Canvas({
             );
 
         setPreferences(
-            (
-                currentPreferences
-            ) => {
+            (currentPreferences) => {
                 const currentZoom =
                     currentPreferences
                         .zoomLevels[
@@ -791,9 +695,7 @@ export default function Canvas({
         );
 
         setPreferences(
-            (
-                currentPreferences
-            ) => ({
+            (currentPreferences) => ({
                 ...currentPreferences,
 
                 activeViewport:
@@ -806,9 +708,7 @@ export default function Canvas({
         canvasMode
     ) {
         setPreferences(
-            (
-                currentPreferences
-            ) => ({
+            (currentPreferences) => ({
                 ...currentPreferences,
 
                 canvasMode:
@@ -820,17 +720,12 @@ export default function Canvas({
         );
     }
 
-    function changeZoom(
-        nextZoom
-    ) {
+    function changeZoom(nextZoom) {
         setPreferences(
-            (
-                currentPreferences
-            ) => ({
+            (currentPreferences) => ({
                 ...currentPreferences,
 
-                autoFit:
-                    false,
+                autoFit: false,
 
                 zoomLevels: {
                     ...currentPreferences
@@ -849,13 +744,10 @@ export default function Canvas({
 
     function resetZoom() {
         setPreferences(
-            (
-                currentPreferences
-            ) => ({
+            (currentPreferences) => ({
                 ...currentPreferences,
 
-                autoFit:
-                    false,
+                autoFit: false,
 
                 zoomLevels: {
                     ...currentPreferences
@@ -873,9 +765,7 @@ export default function Canvas({
 
     function toggleAutoFit() {
         setPreferences(
-            (
-                currentPreferences
-            ) => {
+            (currentPreferences) => {
                 const nextAutoFit =
                     !currentPreferences
                         .autoFit;
@@ -883,9 +773,7 @@ export default function Canvas({
                 if (!nextAutoFit) {
                     return {
                         ...currentPreferences,
-
-                        autoFit:
-                            false
+                        autoFit: false
                     };
                 }
 
@@ -898,8 +786,7 @@ export default function Canvas({
                 return {
                     ...currentPreferences,
 
-                    autoFit:
-                        true,
+                    autoFit: true,
 
                     zoomLevels: {
                         ...currentPreferences
@@ -929,9 +816,7 @@ export default function Canvas({
 
             await canvasRef.current
                 ?.requestFullscreen();
-        } catch (
-        error
-        ) {
+        } catch (error) {
             console.error(
                 "Der Vollbildmodus konnte nicht geändert werden.",
                 error
@@ -939,52 +824,21 @@ export default function Canvas({
         }
     }
 
-    function handleDragEnd(
-        event
-    ) {
-        const {
-            active,
-            over
-        } =
-            event;
-
-        if (
-            !over ||
-            active.id ===
-            over.id
-        ) {
-            return;
-        }
-
-        const oldIndex =
-            blocks.findIndex(
-                (block) =>
-                    block.id ===
-                    active.id
-            );
-
-        const newIndex =
-            blocks.findIndex(
-                (block) =>
-                    block.id ===
-                    over.id
+    function handleDragEnd(event) {
+        const result =
+            moveBlockTreeByDrag(
+                blocks,
+                event
             );
 
         if (
-            oldIndex ===
-                -1 ||
-            newIndex ===
-                -1
+            !result.moved
         ) {
             return;
         }
 
         onMove?.(
-            arrayMove(
-                blocks,
-                oldIndex,
-                newIndex
-            )
+            result.blocks
         );
     }
 
@@ -998,11 +852,16 @@ export default function Canvas({
             typeof target?.closest ===
                 "function"
                 ? target.closest(
-                    "[data-builder-block-id]"
+                    [
+                        "[data-builder-block-id]",
+                        "[data-builder-nested-block-id]"
+                    ].join(",")
                 )
                 : null;
 
-        if (clickedBlock) {
+        if (
+            clickedBlock
+        ) {
             return;
         }
 
@@ -1024,18 +883,13 @@ export default function Canvas({
                         ? "bp-builder-canvas--fullscreen"
                         : "",
 
-                    preferences
-                        .canvasMode ===
+                    preferences.canvasMode ===
                     "preview"
                         ? "bp-builder-canvas--preview"
                         : "bp-builder-canvas--edit"
                 ]
-                    .filter(
-                        Boolean
-                    )
-                    .join(
-                        " "
-                    )
+                    .filter(Boolean)
+                    .join(" ")
             }
         >
             <BuilderViewportToolbar
@@ -1046,8 +900,7 @@ export default function Canvas({
                     currentViewport.id
                 }
                 canvasMode={
-                    preferences
-                        .canvasMode
+                    preferences.canvasMode
                 }
                 zoom={
                     zoom
@@ -1097,8 +950,7 @@ export default function Canvas({
                     <span>
                         <i
                             className={
-                                preferences
-                                    .canvasMode ===
+                                preferences.canvasMode ===
                                 "preview"
                                     ? "bi bi-eye"
                                     : "bi bi-pencil-square"
@@ -1107,8 +959,7 @@ export default function Canvas({
                         />
 
                         {
-                            preferences
-                                .canvasMode ===
+                            preferences.canvasMode ===
                             "preview"
                                 ? "Responsive Website-Vorschau"
                                 : "Bearbeitbare Live-Ansicht"
@@ -1121,9 +972,9 @@ export default function Canvas({
                         } · {
                             zoom
                         } %
+
                         {
-                            preferences
-                                .autoFit
+                            preferences.autoFit
                                 ? " · Eingepasst"
                                 : ""
                         }
@@ -1132,8 +983,7 @@ export default function Canvas({
 
                 <div
                     className={
-                        preferences
-                            .canvasMode ===
+                        preferences.canvasMode ===
                         "preview"
                             ? "bp-builder-viewport__shell bp-builder-viewport__shell--preview"
                             : "bp-builder-viewport__shell bp-builder-viewport__shell--edit"
@@ -1153,29 +1003,22 @@ export default function Canvas({
 
                                 `bp-builder-viewport__frame--${currentViewport.id}`,
 
-                                preferences
-                                    .canvasMode ===
+                                preferences.canvasMode ===
                                 "preview"
                                     ? "bp-builder-viewport__frame--preview"
                                     : "bp-builder-viewport__frame--edit"
                             ]
-                                .filter(
-                                    Boolean
-                                )
-                                .join(
-                                    " "
-                                )
+                                .filter(Boolean)
+                                .join(" ")
                         }
                         data-viewport={
                             currentViewport.id
                         }
                         data-canvas-mode={
-                            preferences
-                                .canvasMode
+                            preferences.canvasMode
                         }
                         data-auto-fit={
-                            preferences
-                                .autoFit
+                            preferences.autoFit
                         }
                         style={{
                             width:
@@ -1185,8 +1028,7 @@ export default function Canvas({
                                 `${currentViewport.height}px`,
 
                             height:
-                                preferences
-                                    .canvasMode ===
+                                preferences.canvasMode ===
                                 "preview"
                                     ? `${currentViewport.height}px`
                                     : undefined,
@@ -1219,8 +1061,7 @@ export default function Canvas({
 
                             <span className="bp-builder-viewport__browser-mode">
                                 {
-                                    preferences
-                                        .canvasMode ===
+                                    preferences.canvasMode ===
                                     "preview"
                                         ? "Live"
                                         : "Editor"
@@ -1229,18 +1070,15 @@ export default function Canvas({
                         </div>
 
                         {
-                            preferences
-                                .canvasMode ===
+                            preferences.canvasMode ===
                             "preview" ? (
                                 <BuilderLivePreview
                                     page={{
                                         ...page,
-
                                         blocks
                                     }}
                                     width={
-                                        currentViewport
-                                            .width
+                                        currentViewport.width
                                     }
                                     height={
                                         previewContentHeight
@@ -1292,7 +1130,7 @@ export default function Canvas({
                                                         sensors
                                                     }
                                                     collisionDetection={
-                                                        closestCenter
+                                                        builderCollisionDetection
                                                     }
                                                     onDragEnd={
                                                         handleDragEnd

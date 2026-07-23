@@ -12,6 +12,10 @@ import {
 } from "../context/BuilderViewportContext";
 
 import {
+    BuilderEditorProvider
+} from "../context/BuilderEditorContext";
+
+import {
     getBlock
 } from "../registry/blockRegistry";
 
@@ -26,60 +30,59 @@ import PropertiesPanel from "./PropertiesPanel";
 import PageHeader from "./PageHeader";
 import PageSettingsPanel from "./PageSettingsPanel";
 
-function getBlockName(
-    block
-) {
+function getBlockName(block) {
     if (!block) {
         return "Block";
     }
 
-    const definition =
+    return (
         getBlock(
             block.type
-        );
-
-    return (
-        definition?.name ??
+        )?.name ??
         block.type ??
         "Block"
     );
 }
 
-function getBlockType(
-    block
-) {
+function getBlockType(block) {
     if (!block) {
         return "block";
     }
 
-    const definition =
+    return (
         getBlock(
             block.type
-        );
-
-    return (
-        definition?.type ??
+        )?.type ??
         block.type ??
         "block"
     );
 }
 
 function getSelectedBlockLabel(
-    selectedBlock
+    selectedEntry
 ) {
-    if (!selectedBlock) {
+    if (
+        !selectedEntry?.block
+    ) {
         return "Kein Block ausgewählt";
     }
 
     const blockName =
         getBlockName(
-            selectedBlock
+            selectedEntry.block
         );
 
     const blockType =
         getBlockType(
-            selectedBlock
+            selectedEntry.block
         );
+
+    if (
+        selectedEntry.depth >
+        0
+    ) {
+        return `${blockName} · ${blockType} · ${selectedEntry.columnLabel}`;
+    }
 
     return `${blockName} · ${blockType}`;
 }
@@ -112,47 +115,27 @@ function BuilderContent({
 
     const selectedBlockLabel =
         getSelectedBlockLabel(
-            builder.selectedBlock
+            builder.selectedEntry
         );
 
-    const pendingDeleteBlock =
+    const pendingDeleteEntry =
         useMemo(
             () =>
-                builder.blocks.find(
-                    (block) =>
-                        block.id ===
+                builder.blockEntries.find(
+                    (entry) =>
+                        entry.block.id ===
                         pendingDeleteId
                 ) ??
                 null,
             [
-                builder.blocks,
+                builder.blockEntries,
                 pendingDeleteId
             ]
         );
 
-    const pendingDeleteIndex =
-        useMemo(
-            () =>
-                builder.blocks.findIndex(
-                    (block) =>
-                        block.id ===
-                        pendingDeleteId
-                ),
-            [
-                builder.blocks,
-                pendingDeleteId
-            ]
-        );
-
-    const pendingDeleteName =
-        getBlockName(
-            pendingDeleteBlock
-        );
-
-    const pendingDeleteType =
-        getBlockType(
-            pendingDeleteBlock
-        );
+    const pendingDeleteBlock =
+        pendingDeleteEntry?.block ??
+        null;
 
     const deleteDialogOpen =
         Boolean(
@@ -163,9 +146,9 @@ function BuilderContent({
         blockId
     ) {
         const blockExists =
-            builder.blocks.some(
-                (block) =>
-                    block.id ===
+            builder.blockEntries.some(
+                (entry) =>
+                    entry.block.id ===
                     blockId
             );
 
@@ -186,18 +169,12 @@ function BuilderContent({
 
     function confirmDeleteBlock() {
         if (
-            !pendingDeleteBlock
+            pendingDeleteBlock
         ) {
-            setPendingDeleteId(
-                null
+            builder.deleteBlock(
+                pendingDeleteBlock.id
             );
-
-            return;
         }
-
-        builder.deleteBlock(
-            pendingDeleteBlock.id
-        );
 
         setPendingDeleteId(
             null
@@ -210,7 +187,7 @@ function BuilderContent({
             !deleteDialogOpen,
 
         blocks:
-            builder.blocks,
+            builder.flatBlocks,
 
         selectedId:
             builder.selectedId,
@@ -243,8 +220,35 @@ function BuilderContent({
             builder.redo
     });
 
+    const editorContextValue = {
+        selectedId:
+            builder.selectedId,
+
+        onSelectBlock:
+            builder.setSelectedId,
+
+        onRequestDeleteBlock:
+            requestDeleteBlock,
+
+        onDuplicateBlock:
+            builder.duplicateBlock,
+
+        onMoveBlockUp:
+            builder.moveBlockUp,
+
+        onMoveBlockDown:
+            builder.moveBlockDown,
+
+        onAddBlockToColumn:
+            builder.addBlockToColumn
+    };
+
     return (
-        <>
+        <BuilderEditorProvider
+            value={
+                editorContextValue
+            }
+        >
             <PageHeader
                 page={
                     builder.page
@@ -373,6 +377,9 @@ function BuilderContent({
                             blocks={
                                 builder.blocks
                             }
+                            entries={
+                                builder.blockEntries
+                            }
                             selectedId={
                                 builder.selectedId
                             }
@@ -392,7 +399,7 @@ function BuilderContent({
                                 builder.selectedBlock
                             }
                             blocks={
-                                builder.blocks
+                                builder.flatBlocks
                             }
                             selectedId={
                                 builder.selectedId
@@ -444,20 +451,24 @@ function BuilderContent({
                     deleteDialogOpen
                 }
                 blockName={
-                    pendingDeleteName
+                    getBlockName(
+                        pendingDeleteBlock
+                    )
                 }
                 blockType={
-                    pendingDeleteType
+                    getBlockType(
+                        pendingDeleteBlock
+                    )
                 }
                 position={
-                    pendingDeleteIndex >=
-                    0
-                        ? pendingDeleteIndex +
+                    pendingDeleteEntry
+                        ? pendingDeleteEntry.index +
                             1
                         : 1
                 }
                 total={
-                    builder.blocks.length
+                    pendingDeleteEntry?.total ??
+                    1
                 }
                 onCancel={
                     cancelDeleteBlock
@@ -466,7 +477,7 @@ function BuilderContent({
                     confirmDeleteBlock
                 }
             />
-        </>
+        </BuilderEditorProvider>
     );
 }
 

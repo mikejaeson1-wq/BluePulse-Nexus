@@ -12,9 +12,17 @@ import {
     createBlock
 } from "../models/BlockModel";
 
-function clonePage(
-    page
-) {
+import {
+    appendBlockToColumn,
+    duplicateBlockInTree,
+    findBlockTreeEntry,
+    getBlockTreeEntries,
+    moveBlockInTree,
+    removeBlockFromTree,
+    updateBlockInTree
+} from "../utils/blockTree";
+
+function cloneValue(value) {
     if (
         typeof globalThis
             .structuredClone ===
@@ -22,27 +30,38 @@ function clonePage(
     ) {
         return globalThis
             .structuredClone(
-                page
+                value
             );
     }
 
     return JSON.parse(
-        JSON.stringify(
-            page
-        )
+        JSON.stringify(value)
     );
 }
 
 function getInitialPage(
     initialPage
 ) {
-    if (initialPage) {
-        return clonePage(
+    return initialPage
+        ? cloneValue(
             initialPage
-        );
-    }
+        )
+        : createBuilderPage();
+}
 
-    return createBuilderPage();
+function touchPage(
+    page,
+    blocks
+) {
+    return {
+        ...page,
+
+        updatedAt:
+            new Date()
+                .toISOString(),
+
+        blocks
+    };
 }
 
 export default function useBuilder({
@@ -102,8 +121,13 @@ export default function useBuilder({
             nextPage
         ]);
 
-        setHistoryIndex(0);
-        setSelectedId(null);
+        setHistoryIndex(
+            0
+        );
+
+        setSelectedId(
+            null
+        );
     }, [
         initialPage?.id
     ]);
@@ -114,12 +138,11 @@ export default function useBuilder({
         const nextHistory =
             history.slice(
                 0,
-                historyIndex +
-                1
+                historyIndex + 1
             );
 
         nextHistory.push(
-            clonePage(
+            cloneValue(
                 nextPage
             )
         );
@@ -129,8 +152,7 @@ export default function useBuilder({
         );
 
         setHistoryIndex(
-            nextHistory.length -
-            1
+            nextHistory.length - 1
         );
     }
 
@@ -148,7 +170,7 @@ export default function useBuilder({
                     ) =>
                         index ===
                         historyIndex
-                            ? clonePage(
+                            ? cloneValue(
                                 nextPage
                             )
                             : historyPage
@@ -169,12 +191,14 @@ export default function useBuilder({
             updatedPage ===
             page
         ) {
-            return;
+            return false;
         }
 
         commit(
             updatedPage
         );
+
+        return true;
     }
 
     function updatePageDetails(
@@ -223,53 +247,102 @@ export default function useBuilder({
         updatePage(
             (
                 currentPage
-            ) => ({
-                ...currentPage,
-
-                updatedAt:
-                    new Date()
-                        .toISOString(),
-
-                blocks: [
-                    ...currentPage
-                        .blocks,
-
-                    block
-                ]
-            })
+            ) =>
+                touchPage(
+                    currentPage,
+                    [
+                        ...currentPage.blocks,
+                        block
+                    ]
+                )
         );
 
         setSelectedId(
             block.id
         );
+
+        return block;
+    }
+
+    function addBlockToColumn(
+        parentBlockId,
+        columnId,
+        definition
+    ) {
+        const block =
+            createBlock(
+                definition
+            );
+
+        const changed =
+            updatePage(
+                (
+                    currentPage
+                ) => {
+                    const nextBlocks =
+                        appendBlockToColumn(
+                            currentPage.blocks,
+                            parentBlockId,
+                            columnId,
+                            block
+                        );
+
+                    if (
+                        nextBlocks ===
+                        currentPage.blocks
+                    ) {
+                        return currentPage;
+                    }
+
+                    return touchPage(
+                        currentPage,
+                        nextBlocks
+                    );
+                }
+            );
+
+        if (!changed) {
+            return null;
+        }
+
+        setSelectedId(
+            block.id
+        );
+
+        return block;
     }
 
     function updateBlock(
         updatedBlock
     ) {
+        if (
+            !updatedBlock?.id
+        ) {
+            return;
+        }
+
         updatePage(
             (
                 currentPage
-            ) => ({
-                ...currentPage,
+            ) => {
+                const nextBlocks =
+                    updateBlockInTree(
+                        currentPage.blocks,
+                        updatedBlock
+                    );
 
-                updatedAt:
-                    new Date()
-                        .toISOString(),
+                if (
+                    nextBlocks ===
+                    currentPage.blocks
+                ) {
+                    return currentPage;
+                }
 
-                blocks:
-                    currentPage
-                        .blocks
-                        .map(
-                            (
-                                block
-                            ) =>
-                                block.id ===
-                                updatedBlock.id
-                                    ? updatedBlock
-                                    : block
-                        )
-            })
+                return touchPage(
+                    currentPage,
+                    nextBlocks
+                );
+            }
         );
     }
 
@@ -279,24 +352,25 @@ export default function useBuilder({
         updatePage(
             (
                 currentPage
-            ) => ({
-                ...currentPage,
+            ) => {
+                const nextBlocks =
+                    removeBlockFromTree(
+                        currentPage.blocks,
+                        id
+                    );
 
-                updatedAt:
-                    new Date()
-                        .toISOString(),
+                if (
+                    nextBlocks ===
+                    currentPage.blocks
+                ) {
+                    return currentPage;
+                }
 
-                blocks:
-                    currentPage
-                        .blocks
-                        .filter(
-                            (
-                                block
-                            ) =>
-                                block.id !==
-                                id
-                        )
-            })
+                return touchPage(
+                    currentPage,
+                    nextBlocks
+                );
+            }
         );
 
         setSelectedId(
@@ -307,51 +381,46 @@ export default function useBuilder({
     function duplicateBlock(
         id
     ) {
-        const originalBlock =
-            page.blocks.find(
-                (
-                    block
-                ) =>
-                    block.id ===
-                    id
-            );
-
-        if (!originalBlock) {
-            return;
-        }
-
-        const duplicatedBlock =
-            clonePage(
-                originalBlock
-            );
-
-        duplicatedBlock.id =
-            globalThis.crypto
-                ?.randomUUID?.() ??
-            `block-${Date.now()}`;
+        let duplicatedBlock =
+            null;
 
         updatePage(
             (
                 currentPage
-            ) => ({
-                ...currentPage,
+            ) => {
+                const result =
+                    duplicateBlockInTree(
+                        currentPage.blocks,
+                        id
+                    );
 
-                updatedAt:
-                    new Date()
-                        .toISOString(),
+                duplicatedBlock =
+                    result.duplicatedBlock;
 
-                blocks: [
-                    ...currentPage
-                        .blocks,
+                if (
+                    !duplicatedBlock ||
+                    result.blocks ===
+                    currentPage.blocks
+                ) {
+                    return currentPage;
+                }
 
-                    duplicatedBlock
-                ]
-            })
+                return touchPage(
+                    currentPage,
+                    result.blocks
+                );
+            }
         );
 
-        setSelectedId(
-            duplicatedBlock.id
-        );
+        if (
+            duplicatedBlock
+        ) {
+            setSelectedId(
+                duplicatedBlock.id
+            );
+        }
+
+        return duplicatedBlock;
     }
 
     function moveBlockUp(
@@ -361,50 +430,24 @@ export default function useBuilder({
             (
                 currentPage
             ) => {
-                const blocks = [
-                    ...currentPage
-                        .blocks
-                ];
-
-                const index =
-                    blocks.findIndex(
-                        (
-                            block
-                        ) =>
-                            block.id ===
-                            id
+                const nextBlocks =
+                    moveBlockInTree(
+                        currentPage.blocks,
+                        id,
+                        -1
                     );
 
                 if (
-                    index <=
-                    0
+                    nextBlocks ===
+                    currentPage.blocks
                 ) {
                     return currentPage;
                 }
 
-                [
-                    blocks[index],
-                    blocks[
-                        index -
-                        1
-                    ]
-                ] = [
-                    blocks[
-                        index -
-                        1
-                    ],
-                    blocks[index]
-                ];
-
-                return {
-                    ...currentPage,
-
-                    updatedAt:
-                        new Date()
-                            .toISOString(),
-
-                    blocks
-                };
+                return touchPage(
+                    currentPage,
+                    nextBlocks
+                );
             }
         );
     }
@@ -416,53 +459,24 @@ export default function useBuilder({
             (
                 currentPage
             ) => {
-                const blocks = [
-                    ...currentPage
-                        .blocks
-                ];
-
-                const index =
-                    blocks.findIndex(
-                        (
-                            block
-                        ) =>
-                            block.id ===
-                            id
+                const nextBlocks =
+                    moveBlockInTree(
+                        currentPage.blocks,
+                        id,
+                        1
                     );
 
                 if (
-                    index ===
-                        -1 ||
-                    index >=
-                        blocks.length -
-                        1
+                    nextBlocks ===
+                    currentPage.blocks
                 ) {
                     return currentPage;
                 }
 
-                [
-                    blocks[index],
-                    blocks[
-                        index +
-                        1
-                    ]
-                ] = [
-                    blocks[
-                        index +
-                        1
-                    ],
-                    blocks[index]
-                ];
-
-                return {
-                    ...currentPage,
-
-                    updatedAt:
-                        new Date()
-                            .toISOString(),
-
-                    blocks
-                };
+                return touchPage(
+                    currentPage,
+                    nextBlocks
+                );
             }
         );
     }
@@ -470,18 +484,22 @@ export default function useBuilder({
     function moveBlocks(
         blocks
     ) {
+        if (
+            !Array.isArray(
+                blocks
+            )
+        ) {
+            return;
+        }
+
         updatePage(
             (
                 currentPage
-            ) => ({
-                ...currentPage,
-
-                updatedAt:
-                    new Date()
-                        .toISOString(),
-
-                blocks
-            })
+            ) =>
+                touchPage(
+                    currentPage,
+                    blocks
+                )
         );
     }
 
@@ -497,8 +515,7 @@ export default function useBuilder({
             (
                 currentIndex
             ) =>
-                currentIndex -
-                1
+                currentIndex - 1
         );
 
         setSelectedId(
@@ -509,8 +526,7 @@ export default function useBuilder({
     function redo() {
         if (
             historyIndex >=
-            history.length -
-            1
+            history.length - 1
         ) {
             return;
         }
@@ -519,8 +535,7 @@ export default function useBuilder({
             (
                 currentIndex
             ) =>
-                currentIndex +
-                1
+                currentIndex + 1
         );
 
         setSelectedId(
@@ -543,7 +558,7 @@ export default function useBuilder({
         try {
             const savedPage =
                 await onSave(
-                    clonePage(
+                    cloneValue(
                         page
                     )
                 );
@@ -554,8 +569,10 @@ export default function useBuilder({
                 );
             }
 
-            return savedPage ??
-                page;
+            return (
+                savedPage ??
+                page
+            );
         } finally {
             setIsSaving(
                 false
@@ -590,7 +607,7 @@ export default function useBuilder({
             const publishedPage =
                 onPublish
                     ? await onPublish(
-                        clonePage(
+                        cloneValue(
                             nextPage
                         )
                     )
@@ -601,8 +618,10 @@ export default function useBuilder({
                 nextPage
             );
 
-            return publishedPage ??
-                nextPage;
+            return (
+                publishedPage ??
+                nextPage
+            );
         } finally {
             setIsPublishing(
                 false
@@ -613,7 +632,7 @@ export default function useBuilder({
     async function previewPage() {
         if (onPreview) {
             return onPreview(
-                clonePage(
+                cloneValue(
                     page
                 )
             );
@@ -627,22 +646,45 @@ export default function useBuilder({
         return page;
     }
 
-    const selectedBlock =
+    const blockEntries =
         useMemo(
             () =>
-                page.blocks.find(
-                    (
-                        block
-                    ) =>
-                        block.id ===
-                        selectedId
-                ) ??
-                null,
+                getBlockTreeEntries(
+                    page.blocks
+                ),
+            [
+                page.blocks
+            ]
+        );
+
+    const flatBlocks =
+        useMemo(
+            () =>
+                blockEntries.map(
+                    (entry) =>
+                        entry.block
+                ),
+            [
+                blockEntries
+            ]
+        );
+
+    const selectedEntry =
+        useMemo(
+            () =>
+                findBlockTreeEntry(
+                    page.blocks,
+                    selectedId
+                ),
             [
                 page.blocks,
                 selectedId
             ]
         );
+
+    const selectedBlock =
+        selectedEntry?.block ??
+        null;
 
     return {
         page,
@@ -650,7 +692,14 @@ export default function useBuilder({
         blocks:
             page.blocks,
 
+        blockEntries,
+
+        flatBlocks,
+
         selectedId,
+
+        selectedEntry,
+
         selectedBlock,
 
         canUndo:
@@ -659,27 +708,40 @@ export default function useBuilder({
 
         canRedo:
             historyIndex <
-            history.length -
-            1,
+            history.length - 1,
 
         isSaving,
+
         isPublishing,
 
         addBlock,
+
+        addBlockToColumn,
+
         updateBlock,
+
         updatePageDetails,
+
         deleteBlock,
+
         duplicateBlock,
+
         moveBlockUp,
+
         moveBlockDown,
+
         moveBlocks,
 
         savePage,
+
         publishPage,
+
         previewPage,
 
         undo,
+
         redo,
+
         setSelectedId
     };
 }

@@ -76,6 +76,11 @@ export default function BlockToolbar({
     onMoveUp,
     onMoveDown
 }) {
+    const hasDragHandle =
+        Boolean(
+            dragHandleProps
+        );
+
     return (
         <div
             className="bp-block-toolbar"
@@ -87,18 +92,24 @@ export default function BlockToolbar({
                 }
             }
         >
-            <ToolbarButton
-                icon="bi-grip-vertical"
-                label="Block ziehen"
-                dragHandleProps={
-                    dragHandleProps
-                }
-            />
+            {
+                hasDragHandle && (
+                    <>
+                        <ToolbarButton
+                            icon="bi-grip-vertical"
+                            label="Block ziehen"
+                            dragHandleProps={
+                                dragHandleProps
+                            }
+                        />
 
-            <span
-                className="bp-block-toolbar__separator"
-                aria-hidden="true"
-            />
+                        <span
+                            className="bp-block-toolbar__separator"
+                            aria-hidden="true"
+                        />
+                    </>
+                )
+            }
 
             <ToolbarButton
                 icon="bi-arrow-up"
