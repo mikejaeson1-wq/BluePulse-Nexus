@@ -11,12 +11,14 @@
   Security-Header und begrenzte Docker-Logs
 - Phase 14D: reproduzierbare Erstbereitstellung, Produktionsprüfung und
   Betriebsdokumentation
+- Phase 15: verschlüsselte Restic-Snapshots für Datenbank, Medien und
+  Konfiguration, automatische Aufbewahrung, täglicher systemd-Timer,
+  abgesicherte Komplettwiederherstellung und praktischer Restore-Test
 
 ## Als Nächstes
 
-- Phase 15: verschlüsselte Backups, Aufbewahrung, Wiederherstellung und
-  Restore-Test
 - Phase 16: Inhalte einpflegen, Staging-Abnahme, DNS-Umschaltung und Launch
 
-Ein VPS wird erst benötigt, wenn Phase 15 abgeschlossen ist und die Inhalte für
-die Abnahme bereitstehen.
+Ein VPS wird erst benötigt, wenn die Inhalte für die Abnahme bereitstehen. Die
+Produktions- und Backup-Architektur kann bis dahin lokal vollständig geprüft
+werden.

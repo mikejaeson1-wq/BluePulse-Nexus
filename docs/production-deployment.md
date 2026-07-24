@@ -1,8 +1,9 @@
 # BluePulse Nexus – Produktion und VPS-Vorbereitung
 
-Diese Anleitung deckt Phase 14 vollständig ab. Die lokale Docker-Umgebung aus
-Phase 14A bleibt unverändert nutzbar. Der tatsächliche VPS-Start erfolgt erst
-nach Phase 15, wenn Backups und Wiederherstellung geprüft sind.
+Diese Anleitung deckt die Produktionsbereitstellung aus Phase 14 ab. Die
+verschlüsselten Backups und die Wiederherstellung aus Phase 15 sind in
+[`backup-and-restore.md`](backup-and-restore.md) beschrieben. Die lokale
+Docker-Umgebung aus Phase 14A bleibt unverändert nutzbar.
 
 ## 1. Architektur
 
@@ -117,6 +118,7 @@ Produktionskonfiguration erzeugen:
 ```bash
 chmod +x scripts/*.sh
 ./scripts/initialize-production-env.sh
+./scripts/initialize-backup-env.sh
 ```
 
 Danach `.env.production` prüfen. Insbesondere:
@@ -141,21 +143,26 @@ Die Erstbereitstellung erfolgt mit:
 Der Ablauf:
 
 1. prüft die Produktionskonfiguration,
-2. validiert Docker Compose,
-3. baut die Images frisch,
-4. validiert Caddy innerhalb des Web-Containers,
-5. startet alle Dienste,
-6. wartet auf gesunde Container,
-7. zeigt den Containerstatus.
+2. prüft die Backup-Konfiguration und den separat gespeicherten Schlüssel,
+3. validiert Docker Compose,
+4. baut Anwendungs- und Backup-Images frisch,
+5. validiert Caddy innerhalb des Web-Containers,
+6. startet alle Dienste,
+7. wartet auf gesunde Container,
+8. zeigt den Containerstatus.
 
 Danach:
 
 ```bash
 ./scripts/verify-production-stack.sh
+./scripts/backup-production.sh
+./scripts/verify-backup-production.sh
 ```
 
 Die Prüfung kontrolliert Website, API, PostgreSQL-Verbindung, `robots.txt`,
-Sitemap, CMS-Route, HTTPS und den HSTS-Sicherheitsheader.
+Sitemap, CMS-Route, HTTPS und den HSTS-Sicherheitsheader. Der zusätzliche
+Backup-Durchlauf erstellt den ersten verschlüsselten Snapshot und restauriert
+ihn praktisch in eine temporäre Datenbank.
 
 ## 7. Betriebskommandos
 
@@ -194,6 +201,8 @@ Produktionsbetrieb nicht verwendet werden.
 - HSTS, MIME-Schutz, Frame-Schutz, Referrer- und Berechtigungsrichtlinie
 - rotierende Docker-Logs mit maximal fünf Dateien zu je 10 MB pro Dienst
 - keine Geheimnisse im Repository
+- verschlüsselte Komplettsnapshots mit separat verwahrtem Schlüssel
+- automatische Aufbewahrung und praktisch geprüfte Wiederherstellung
 
 ## 9. Abschlusskriterien von Phase 14
 
@@ -207,5 +216,6 @@ Phase 14 gilt als abgeschlossen, wenn:
 - HTTPS, Persistenz und sichere Cookies vorbereitet sind,
 - Erstbereitstellung und Produktionsprüfung dokumentiert sind.
 
-Der nächste Schritt ist Phase 15: automatische, verschlüsselte Backups mit
-Aufbewahrungsregeln sowie ein praktisch geprüfter Restore.
+Phase 15 ergänzt diese Produktionsbasis um automatische, verschlüsselte
+Backups. Der nächste Projektschritt ist Phase 16: Inhalte, Staging-Abnahme,
+DNS-Umschaltung und Launch.

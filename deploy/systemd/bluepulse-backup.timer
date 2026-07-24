@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily BluePulse Nexus backup
+
+[Timer]
+OnCalendar=*-*-* 03:15:00 Europe/Berlin
+RandomizedDelaySec=30m
+Persistent=true
+Unit=bluepulse-backup.service
+
+[Install]
+WantedBy=timers.target

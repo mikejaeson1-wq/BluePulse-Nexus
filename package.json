@@ -42,7 +42,16 @@
     "production:down": "docker compose --env-file .env.production -f compose.production.yaml down",
     "production:ps": "docker compose --env-file .env.production -f compose.production.yaml ps",
     "production:logs": "docker compose --env-file .env.production -f compose.production.yaml logs -f --tail=200",
-    "production:create-admin": "docker compose --env-file .env.production -f compose.production.yaml exec api node src/auth/createInitialAdmin.js"
+    "production:create-admin": "docker compose --env-file .env.production -f compose.production.yaml exec api node src/auth/createInitialAdmin.js",
+    "backup:env": "powershell -ExecutionPolicy Bypass -File .\\scripts\\initialize-backup-env.ps1",
+    "backup:env:check": "node ./scripts/validate-backup-env.mjs",
+    "backup:config": "npm run backup:env:check && docker compose --env-file .env.docker --env-file .env.backup -f compose.local.yaml -f compose.backup.yaml config",
+    "backup:build": "npm run backup:env:check && docker compose --env-file .env.docker --env-file .env.backup -f compose.local.yaml -f compose.backup.yaml build backup",
+    "backup:create": "npm run backup:env:check && docker compose --env-file .env.docker --env-file .env.backup -f compose.local.yaml -f compose.backup.yaml run --rm backup backup",
+    "backup:list": "npm run backup:env:check && docker compose --env-file .env.docker --env-file .env.backup -f compose.local.yaml -f compose.backup.yaml run --rm backup snapshots",
+    "backup:check": "npm run backup:env:check && docker compose --env-file .env.docker --env-file .env.backup -f compose.local.yaml -f compose.backup.yaml run --rm backup check",
+    "backup:restore:test": "npm run backup:env:check && docker compose --env-file .env.docker --env-file .env.backup -f compose.local.yaml -f compose.backup.yaml run --rm backup restore-test latest",
+    "backup:recover:config": "npm run backup:env:check && docker compose --env-file .env.docker --env-file .env.backup -f compose.local.yaml -f compose.backup.yaml run --rm backup recover-config latest"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

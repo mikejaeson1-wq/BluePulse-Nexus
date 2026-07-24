@@ -33,6 +33,7 @@ coverage
 !.env.example
 !.env.docker.example
 !.env.production.example
+!.env.backup.example
 
 *.local
 !docker/Caddyfile.local
@@ -85,3 +86,5 @@ Thumbs.db
 .env.*.local
 
 apps/api/storage/
+backups/
+.secrets/

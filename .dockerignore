@@ -16,11 +16,14 @@ coverage
 .env.*
 !.env.example
 !.env.docker.example
+!.env.backup.example
 **/.env
 **/.env.*
 
 apps/api/storage
 **/storage/media
+backups
+.secrets
 
 logs
 *.log

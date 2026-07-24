@@ -1,0 +1,16 @@
+[Unit]
+Description=BluePulse Nexus encrypted backup
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/bluepulse-nexus
+ExecStart=/opt/bluepulse-nexus/scripts/backup-production.sh
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+NoNewPrivileges=true
+PrivateTmp=true
+TimeoutStartSec=2h

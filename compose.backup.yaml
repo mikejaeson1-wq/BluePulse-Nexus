@@ -1,0 +1,109 @@
+services:
+  backup:
+    image: bluepulse-nexus-backup:phase15
+    build:
+      context: .
+      dockerfile: docker/backup.Dockerfile
+    environment:
+      TZ: ${TZ:-Europe/Berlin}
+      PGHOST: database
+      PGPORT: "5432"
+      PGDATABASE: ${POSTGRES_DB:?POSTGRES_DB fehlt}
+      PGUSER: ${POSTGRES_USER:?POSTGRES_USER fehlt}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD fehlt}
+      RESTIC_REPOSITORY: /repository
+      RESTIC_PASSWORD_FILE: /run/secrets/restic_password
+      RESTIC_CACHE_DIR: /work/restic-cache
+      BACKUP_HOSTNAME: ${BACKUP_HOSTNAME:-bluepulse-nexus}
+      BACKUP_KEEP_DAILY: ${BACKUP_KEEP_DAILY:-7}
+      BACKUP_KEEP_WEEKLY: ${BACKUP_KEEP_WEEKLY:-5}
+      BACKUP_KEEP_MONTHLY: ${BACKUP_KEEP_MONTHLY:-12}
+      BACKUP_KEEP_YEARLY: ${BACKUP_KEEP_YEARLY:-3}
+      BACKUP_CHECK_AFTER_BACKUP: ${BACKUP_CHECK_AFTER_BACKUP:-true}
+    volumes:
+      - type: bind
+        source: ${BACKUP_REPOSITORY_PATH:?BACKUP_REPOSITORY_PATH fehlt}
+        target: /repository
+        bind:
+          create_host_path: true
+      - type: bind
+        source: ${BACKUP_RECOVERY_PATH:?BACKUP_RECOVERY_PATH fehlt}
+        target: /recovery
+        bind:
+          create_host_path: true
+      - type: bind
+        source: ${BACKUP_SOURCE_ENV_FILE:?BACKUP_SOURCE_ENV_FILE fehlt}
+        target: /source/config/environment
+        read_only: true
+      - type: volume
+        source: bluepulse_media_data
+        target: /source/media
+        read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+      - /work:rw,noexec,nosuid,size=1g
+    depends_on:
+      database:
+        condition: service_healthy
+    secrets:
+      - restic_password
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    restart: "no"
+    networks:
+      - bluepulse_backend
+
+  restore:
+    image: bluepulse-nexus-backup:phase15
+    build:
+      context: .
+      dockerfile: docker/backup.Dockerfile
+    environment:
+      TZ: ${TZ:-Europe/Berlin}
+      PGHOST: database
+      PGPORT: "5432"
+      PGDATABASE: ${POSTGRES_DB:?POSTGRES_DB fehlt}
+      PGUSER: ${POSTGRES_USER:?POSTGRES_USER fehlt}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD fehlt}
+      RESTIC_REPOSITORY: /repository
+      RESTIC_PASSWORD_FILE: /run/secrets/restic_password
+      RESTIC_CACHE_DIR: /work/restic-cache
+      BACKUP_HOSTNAME: ${BACKUP_HOSTNAME:-bluepulse-nexus}
+    volumes:
+      - type: bind
+        source: ${BACKUP_REPOSITORY_PATH:?BACKUP_REPOSITORY_PATH fehlt}
+        target: /repository
+        bind:
+          create_host_path: true
+      - type: bind
+        source: ${BACKUP_RECOVERY_PATH:?BACKUP_RECOVERY_PATH fehlt}
+        target: /recovery
+        bind:
+          create_host_path: true
+      - type: volume
+        source: bluepulse_media_data
+        target: /restore-root/source/media
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+      - /work:rw,noexec,nosuid,size=1g
+      - /restore-root/source:rw,noexec,nosuid
+    depends_on:
+      database:
+        condition: service_healthy
+    secrets:
+      - restic_password
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    restart: "no"
+    networks:
+      - bluepulse_backend
+
+secrets:
+  restic_password:
+    file: ${RESTIC_PASSWORD_FILE_HOST:?RESTIC_PASSWORD_FILE_HOST fehlt}
