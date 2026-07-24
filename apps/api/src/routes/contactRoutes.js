@@ -5,6 +5,10 @@ import {
 } from "../contact/contactRateLimiter.js";
 
 import {
+    sendContactNotificationEmail
+} from "../contact/contactEmailService.js";
+
+import {
     CONTACT_MESSAGE_STATUSES,
     createContactMessage,
     deleteContactMessage,
@@ -217,6 +221,62 @@ function applyRateLimitHeaders(
     );
 }
 
+async function notifyContactMailbox(
+    request,
+    contactMessage
+) {
+    try {
+        const emailResult =
+            await sendContactNotificationEmail(
+                contactMessage
+            );
+
+        if (
+            emailResult.skipped
+        ) {
+            request.log.info(
+                {
+                    contactMessageId:
+                        contactMessage.id,
+
+                    emailReason:
+                        emailResult.reason
+                },
+                "Die Kontaktanfrage wurde gespeichert; die E-Mail-Benachrichtigung ist deaktiviert."
+            );
+
+            return;
+        }
+
+        request.log.info(
+            {
+                contactMessageId:
+                    contactMessage.id,
+
+                emailMessageId:
+                    emailResult.messageId,
+
+                emailAccepted:
+                    emailResult.accepted
+            },
+            "E-Mail-Benachrichtigung für die Kontaktanfrage wurde versendet."
+        );
+    } catch (
+        emailError
+    ) {
+        request.log.error(
+            {
+                err:
+                    emailError,
+
+                contactMessageId:
+                    contactMessage.id
+            },
+            "Die Kontaktanfrage wurde gespeichert, aber die E-Mail-Benachrichtigung konnte nicht versendet werden."
+        );
+    }
+}
+
 export default async function contactRoutes(
     fastify
 ) {
@@ -321,6 +381,11 @@ export default async function contactRoutes(
                                 .duplicateWindowSeconds
                     }
                 );
+
+            await notifyContactMailbox(
+                request,
+                contactMessage
+            );
 
             return reply
                 .status(201)

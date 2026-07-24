@@ -89,6 +89,19 @@ function normalizeBoolean(
     return fallback;
 }
 
+function normalizeUrl(
+    value,
+    fallback
+) {
+    return normalizeText(
+        value,
+        fallback
+    ).replace(
+        /\/+$/,
+        ""
+    );
+}
+
 const nodeEnvironment =
     normalizeText(
         process.env.NODE_ENV,
@@ -106,6 +119,12 @@ const mediaStorageDirectory =
                 .MEDIA_STORAGE_DIR,
             "./storage/media"
         )
+    );
+
+const mailUser =
+    normalizeText(
+        process.env.MAIL_USER,
+        ""
     );
 
 export const runtimeConfig =
@@ -140,6 +159,12 @@ export const runtimeConfig =
             normalizeText(
                 process.env.APP_VERSION,
                 "0.3.0-alpha.0"
+            ),
+
+        publicUrl:
+            normalizeUrl(
+                process.env.APP_PUBLIC_URL,
+                "http://127.0.0.1:5173"
             ),
 
         logLevel:
@@ -282,6 +307,7 @@ export const runtimeConfig =
                     {
                         minimum:
                             10 * 1000,
+
                         maximum:
                             24 *
                             60 *
@@ -308,6 +334,111 @@ export const runtimeConfig =
                     production
                         ? "change-this-contact-ip-hash-secret"
                         : "bluepulse-contact-development-secret"
+                )
+        },
+
+        email: {
+            enabled:
+                normalizeBoolean(
+                    process.env.MAIL_ENABLED,
+                    false
+                ),
+
+            host:
+                normalizeText(
+                    process.env.MAIL_HOST,
+                    "smtp.gmail.com"
+                ),
+
+            port:
+                normalizeInteger(
+                    process.env.MAIL_PORT,
+                    465,
+                    {
+                        minimum: 1,
+                        maximum: 65535
+                    }
+                ),
+
+            secure:
+                normalizeBoolean(
+                    process.env.MAIL_SECURE,
+                    true
+                ),
+
+            user:
+                mailUser,
+
+            password:
+                normalizeText(
+                    process.env.MAIL_PASSWORD,
+                    ""
+                ),
+
+            fromName:
+                normalizeText(
+                    process.env.MAIL_FROM_NAME,
+                    "BluePulse Tierschutz"
+                ),
+
+            fromAddress:
+                normalizeText(
+                    process.env.MAIL_FROM_ADDRESS,
+                    mailUser
+                ),
+
+            contactNotificationTo:
+                normalizeText(
+                    process.env
+                        .CONTACT_NOTIFICATION_TO,
+                    "bluepulsekontakt@gmail.com"
+                ),
+
+            contactSubjectPrefix:
+                normalizeText(
+                    process.env
+                        .CONTACT_NOTIFICATION_SUBJECT_PREFIX,
+                    "[BluePulse Kontakt]"
+                ),
+
+            tlsRejectUnauthorized:
+                normalizeBoolean(
+                    process.env
+                        .MAIL_TLS_REJECT_UNAUTHORIZED,
+                    true
+                ),
+
+            connectionTimeoutMilliseconds:
+                normalizeInteger(
+                    process.env
+                        .MAIL_CONNECTION_TIMEOUT_MS,
+                    10000,
+                    {
+                        minimum: 1000,
+                        maximum: 120000
+                    }
+                ),
+
+            greetingTimeoutMilliseconds:
+                normalizeInteger(
+                    process.env
+                        .MAIL_GREETING_TIMEOUT_MS,
+                    10000,
+                    {
+                        minimum: 1000,
+                        maximum: 120000
+                    }
+                ),
+
+            socketTimeoutMilliseconds:
+                normalizeInteger(
+                    process.env
+                        .MAIL_SOCKET_TIMEOUT_MS,
+                    20000,
+                    {
+                        minimum: 1000,
+                        maximum: 300000
+                    }
                 )
         }
     });
