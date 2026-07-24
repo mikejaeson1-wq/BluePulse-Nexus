@@ -223,3 +223,24 @@ Mindestens vierteljährlich und nach größeren Änderungen:
 
 Der dokumentierte Restore-Test gilt erst als erfolgreich, wenn er mit Exitcode
 0 endet und ausdrücklich `Restore-Test erfolgreich` meldet.
+
+## 10. Einmalige Übernahme des Stands vor Phase 14
+
+Falls neben dem aktuellen Stack noch der alte Container
+`bluepulse-nexus-postgres` und der lokale Ordner
+`apps/api/storage/media` vorhanden sind, können diese Altdaten einmalig
+übernommen werden:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\recover-legacy-stack.ps1
+```
+
+Der Helfer arbeitet nur, wenn der neue Medienbestand vollständig leer ist. Er
+sichert vorher beide Datenbanken und den lokalen Medienordner unter
+`backups/recovery`, verlangt die Eingabe `MIGRATE_LEGACY_DATA`, übernimmt den
+vollständigen alten Datenbankstand und die Mediendateien und führt danach
+Docker-Prüfung, verschlüsseltes Backup und Restore-Test aus.
+
+Der alte Container und das alte Volume werden absichtlich nicht entfernt.
+Beides darf erst nach manueller Kontrolle der Website und des CMS gelöscht
+werden.
