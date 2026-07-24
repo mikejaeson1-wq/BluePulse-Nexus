@@ -17,7 +17,7 @@ export const DEFAULT_LEGAL_SETUP =
             "",
 
         representatives:
-            "Jeannine Kellermann\nDoreen Hoffmann",
+            "Holger Fischer\nDoreen Hoffmann",
 
         email:
             "bluepulsekontakt@gmail.com",
