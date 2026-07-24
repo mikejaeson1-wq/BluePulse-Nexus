@@ -46,6 +46,10 @@ import {
     definition as Stats
 } from "@cms/modules/builder/blocks/Stats";
 
+import {
+    definition as LegalDocument
+} from "@cms/modules/builder/blocks/LegalDocument";
+
 const blocks = [
     Hero,
     Columns,
@@ -57,7 +61,8 @@ const blocks = [
     CardGrid,
     Image,
     CallToAction,
-    Stats
+    Stats,
+    LegalDocument
 ];
 
 blocks.forEach(

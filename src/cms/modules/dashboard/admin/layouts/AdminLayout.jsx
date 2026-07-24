@@ -126,6 +126,22 @@ const NAVIGATION_ITEMS = [
     },
     {
         to:
+            "/admin/legal",
+
+        end:
+            true,
+
+        icon:
+            "bi-journal-check",
+
+        label:
+            "Rechtsseiten",
+
+        roles:
+            CONTENT_ROLES
+    },
+    {
+        to:
             "/admin/home-layout",
 
         end:

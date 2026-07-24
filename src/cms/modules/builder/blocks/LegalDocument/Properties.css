@@ -1,0 +1,115 @@
+.legal-properties{
+    display:grid;
+    gap:15px;
+}
+
+.legal-properties__header{
+    padding-bottom:13px;
+    border-bottom:1px solid rgba(148,163,184,.1);
+}
+
+.legal-properties__header>span{
+    color:#38bdf8;
+    font-size:9px;
+    font-weight:850;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+}
+
+.legal-properties__header h3{
+    margin:4px 0 6px;
+    color:#f8fafc;
+    font-size:16px;
+}
+
+.legal-properties__header p{
+    margin:0;
+    color:#64748b;
+    font-size:10px;
+    line-height:1.5;
+}
+
+.legal-properties__field,
+.legal-properties__section label{
+    display:grid;
+    gap:6px;
+}
+
+.legal-properties__field>span,
+.legal-properties__section label>span{
+    color:#94a3b8;
+    font-size:9px;
+    font-weight:750;
+    text-transform:uppercase;
+}
+
+.legal-properties__sections{
+    display:grid;
+    gap:12px;
+}
+
+.legal-properties__section{
+    display:grid;
+    gap:12px;
+    padding:13px;
+    border:1px solid rgba(148,163,184,.1);
+    border-radius:11px;
+    background:rgba(2,6,23,.28);
+}
+
+.legal-properties__section>header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+}
+
+.legal-properties__section>header strong{
+    color:#cbd5e1;
+    font-size:10px;
+}
+
+.legal-properties__section>header div{
+    display:flex;
+    gap:5px;
+}
+
+.legal-properties__section>header button{
+    width:28px;
+    height:28px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid rgba(148,163,184,.1);
+    border-radius:7px;
+    background:rgba(148,163,184,.05);
+    color:#94a3b8;
+    cursor:pointer;
+}
+
+.legal-properties__section>header button:disabled{
+    opacity:.3;
+    cursor:not-allowed;
+}
+
+.legal-properties__section>header .legal-properties__delete{
+    border-color:rgba(248,113,113,.16);
+    background:rgba(239,68,68,.07);
+    color:#fca5a5;
+}
+
+.legal-properties__add{
+    min-height:38px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    border:1px dashed rgba(56,189,248,.28);
+    border-radius:9px;
+    background:rgba(14,165,233,.06);
+    color:#bae6fd;
+    font:inherit;
+    font-size:10px;
+    font-weight:750;
+    cursor:pointer;
+}

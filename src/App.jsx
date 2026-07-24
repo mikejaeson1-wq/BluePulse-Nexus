@@ -32,6 +32,7 @@ import PageTrash from "@cms/modules/dashboard/admin/pages/PageTrash";
 import PageEditor from "@cms/modules/dashboard/admin/pages/PageEditor";
 import ContactInbox from "@cms/modules/dashboard/admin/pages/ContactInbox";
 import SeoLegalCenter from "@cms/modules/dashboard/admin/pages/SeoLegalCenter";
+import LegalPageSetup from "@cms/modules/dashboard/admin/pages/LegalPageSetup";
 import HomeLayout from "@cms/modules/dashboard/admin/pages/HomeLayout";
 import FooterSettings from "@cms/modules/dashboard/admin/pages/FooterSettings";
 import Media from "@cms/modules/dashboard/admin/pages/Media";
@@ -230,6 +231,19 @@ export default function App() {
                             }
                         >
                             <SeoLegalCenter />
+                        </RoleRoute>
+                    }
+                />
+
+                <Route
+                    path="legal"
+                    element={
+                        <RoleRoute
+                            roles={
+                                CONTENT_ROLES
+                            }
+                        >
+                            <LegalPageSetup />
                         </RoleRoute>
                     }
                 />
