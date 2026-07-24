@@ -13,11 +13,49 @@ export default function WebsiteRenderer({
         return null;
     }
 
-    const blocks = Array.isArray(
-        page.blocks
-    )
-        ? page.blocks
-        : [];
+    const blocks =
+        Array.isArray(
+            page.blocks
+        )
+            ? page.blocks
+            : [];
+
+    const renderedBlocks =
+        blocks.map(
+            (
+                block
+            ) => (
+                <BlockRenderer
+                    key={
+                        block.id
+                    }
+                    block={
+                        block
+                    }
+                    mode={
+                        mode
+                    }
+                />
+            )
+        );
+
+    if (
+        mode ===
+        "editor"
+    ) {
+        return (
+            <ThemeContext.Provider
+                value={
+                    page.theme ??
+                    defaultTheme
+                }
+            >
+                {
+                    renderedBlocks
+                }
+            </ThemeContext.Provider>
+        );
+    }
 
     return (
         <ThemeContext.Provider
@@ -26,15 +64,21 @@ export default function WebsiteRenderer({
                 defaultTheme
             }
         >
-            {
-                blocks.map(block => (
-                    <BlockRenderer
-                        key={block.id}
-                        block={block}
-                        mode={mode}
-                    />
-                ))
-            }
+            <main
+                id="main-content"
+                className="bp-rendered-page"
+                tabIndex={-1}
+                aria-label={
+                    mode ===
+                    "preview"
+                        ? "Seitenvorschau"
+                        : undefined
+                }
+            >
+                {
+                    renderedBlocks
+                }
+            </main>
         </ThemeContext.Provider>
     );
 }

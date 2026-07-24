@@ -1,44 +1,99 @@
-import { useLayoutEffect } from "react";
+import {
+    useLayoutEffect
+} from "react";
+
 import gsap from "gsap";
 
-export default function useReveal(ref, options = {}) {
+function prefersReducedMotion() {
+    return Boolean(
+        globalThis.window
+            ?.matchMedia?.(
+                "(prefers-reduced-motion: reduce)"
+            )
+            .matches
+    );
+}
 
+export default function useReveal(
+    ref,
+    options = {}
+) {
     useLayoutEffect(() => {
+        const element =
+            ref.current;
 
-        if (!ref.current) return;
+        if (!element) {
+            return undefined;
+        }
 
-        gsap.set(ref.current, {
+        if (
+            prefersReducedMotion()
+        ) {
+            gsap.set(
+                element,
+                {
+                    opacity:
+                        1,
 
-            opacity: 1,
-            y: 0
+                    y:
+                        0,
 
-        });
+                    clearProps:
+                        "transform"
+                }
+            );
 
-        const animation = gsap.fromTo(
+            return () => {
+                gsap.killTweensOf(
+                    element
+                );
+            };
+        }
 
-            ref.current,
-
+        gsap.set(
+            element,
             {
+                opacity:
+                    1,
 
-                opacity: 0,
-                y: options.y ?? 60
-
-            },
-
-            {
-
-                opacity: 1,
-                y: 0,
-                duration: options.duration ?? 1,
-                delay: options.delay ?? 0,
-                ease: "power3.out"
-
+                y:
+                    0
             }
-
         );
 
-        return () => animation.kill();
+        const animation =
+            gsap.fromTo(
+                element,
+                {
+                    opacity:
+                        0,
 
+                    y:
+                        options.y ??
+                        60
+                },
+                {
+                    opacity:
+                        1,
+
+                    y:
+                        0,
+
+                    duration:
+                        options.duration ??
+                        1,
+
+                    delay:
+                        options.delay ??
+                        0,
+
+                    ease:
+                        "power3.out"
+                }
+            );
+
+        return () => {
+            animation.kill();
+        };
     }, []);
-
 }

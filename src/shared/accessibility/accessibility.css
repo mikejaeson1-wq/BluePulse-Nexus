@@ -1,0 +1,102 @@
+.bp-skip-link{
+    position:fixed;
+    top:12px;
+    left:16px;
+    z-index:20000;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-height:44px;
+    padding:10px 16px;
+    border:2px solid #f8fafc;
+    border-radius:10px;
+    background:#020617;
+    color:#f8fafc;
+    font-size:.95rem;
+    font-weight:800;
+    text-decoration:none;
+    box-shadow:0 12px 36px rgba(0,0,0,.45);
+    transform:translateY(-180%);
+    transition:transform .18s ease;
+}
+
+.bp-skip-link:focus,
+.bp-skip-link:focus-visible{
+    color:#f8fafc;
+    transform:translateY(0);
+}
+
+.bp-screen-reader-only{
+    position:absolute !important;
+    width:1px !important;
+    height:1px !important;
+    margin:-1px !important;
+    padding:0 !important;
+    overflow:hidden !important;
+    clip:rect(0 0 0 0) !important;
+    clip-path:inset(50%) !important;
+    border:0 !important;
+    white-space:nowrap !important;
+}
+
+:where(
+    a,
+    button,
+    input,
+    select,
+    textarea,
+    summary,
+    [role="button"],
+    [tabindex]:not([tabindex="-1"])
+):focus-visible{
+    outline:3px solid #facc15;
+    outline-offset:3px;
+}
+
+main[tabindex="-1"]:focus,
+section[tabindex="-1"]:focus,
+article[tabindex="-1"]:focus{
+    outline:none;
+}
+
+::selection{
+    background:#0ea5e9;
+    color:#ffffff;
+}
+
+@media(prefers-reduced-motion:reduce){
+    html{
+        scroll-behavior:auto !important;
+    }
+
+    *,
+    *::before,
+    *::after{
+        scroll-behavior:auto !important;
+        animation-duration:.01ms !important;
+        animation-iteration-count:1 !important;
+        transition-duration:.01ms !important;
+        transition-delay:0ms !important;
+    }
+}
+
+@media(forced-colors:active){
+    .bp-skip-link{
+        border:2px solid ButtonText;
+        background:Canvas;
+        color:CanvasText;
+    }
+
+    :where(
+        a,
+        button,
+        input,
+        select,
+        textarea,
+        summary,
+        [role="button"],
+        [tabindex]:not([tabindex="-1"])
+    ):focus-visible{
+        outline:3px solid Highlight;
+    }
+}
