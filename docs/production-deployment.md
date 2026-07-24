@@ -5,6 +5,9 @@ verschlüsselten Backups und die Wiederherstellung aus Phase 15 sind in
 [`backup-and-restore.md`](backup-and-restore.md) beschrieben. Die lokale
 Docker-Umgebung aus Phase 14A bleibt unverändert nutzbar.
 
+Die konkrete Staging-Abnahme, Inhaltsprüfung und DNS-Umschaltung aus Phase 16
+steht in [`phase-16-launch.md`](phase-16-launch.md).
+
 ## 1. Architektur
 
 Der Produktionsstack besteht aus drei Diensten:
@@ -217,5 +220,5 @@ Phase 14 gilt als abgeschlossen, wenn:
 - Erstbereitstellung und Produktionsprüfung dokumentiert sind.
 
 Phase 15 ergänzt diese Produktionsbasis um automatische, verschlüsselte
-Backups. Der nächste Projektschritt ist Phase 16: Inhalte, Staging-Abnahme,
-DNS-Umschaltung und Launch.
+Backups. Phase 16 ergänzt das automatische Inhaltsaudit, die Staging-Abnahme
+und die abgesicherte DNS-Umschaltung.

@@ -210,10 +210,10 @@ const siteContentDefaults = {
 
         formTitle: "Nachricht senden",
         formDescription:
-            "Fülle das Formular aus. Anschließend öffnet sich dein E-Mail-Programm mit einer vorbereiteten Nachricht.",
-        submitLabel: "E-Mail vorbereiten",
+            "Fülle das Formular aus. Deine Nachricht wird sicher übermittelt und im geschützten BluePulse-Kontaktpostfach gespeichert.",
+        submitLabel: "Nachricht senden",
         privacyText:
-            "Beim Absenden wird dein E-Mail-Programm geöffnet. Deine Eingaben werden nicht auf dieser Website gespeichert.",
+            "Deine Angaben werden zur Bearbeitung deiner Anfrage gespeichert. Weitere Informationen findest du in der Datenschutzerklärung.",
 
         channels: [
             {

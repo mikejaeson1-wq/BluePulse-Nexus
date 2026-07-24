@@ -14,11 +14,21 @@
 - Phase 15: verschlüsselte Restic-Snapshots für Datenbank, Medien und
   Konfiguration, automatische Aufbewahrung, täglicher systemd-Timer,
   abgesicherte Komplettwiederherstellung und praktischer Restore-Test
+- Phase 16A: automatisches Launch-Audit für Inhalte, Rechtsseiten, Medien,
+  Navigation, Footer, SEO und Administratorzugang; lokaler Ein-Durchlauf mit
+  Tests, Build, verschlüsseltem Abnahme-Snapshot und Restore-Test
+- Phase 16B: reproduzierbare Staging-Übernahme auf den VPS,
+  Produktions-Abnahme, abgesicherte DNS-Umschaltung und dokumentiertes
+  Rollback
 
-## Als Nächstes
+## Operative Freigabe
 
-- Phase 16: Inhalte einpflegen, Staging-Abnahme, DNS-Umschaltung und Launch
+- finale vereins- und providerspezifische Pflichtangaben einpflegen
+- VPS buchen und `neu.blue-pulse.de` zur Staging-Abnahme bereitstellen
+- Abnahme dokumentieren und `blue-pulse.de` kontrolliert umschalten
 
-Ein VPS wird erst benötigt, wenn die Inhalte für die Abnahme bereitstehen. Die
-Produktions- und Backup-Architektur kann bis dahin lokal vollständig geprüft
+Der gesamte Ablauf steht in
+[`phase-16-launch.md`](phase-16-launch.md). Der Codeanteil der Roadmap ist
+damit abgeschlossen. Die operative Freigabe benötigt echte Vereinsangaben,
+VPS-IP und STRATO-Zugriff und kann deshalb nicht im Repository simuliert
 werden.
