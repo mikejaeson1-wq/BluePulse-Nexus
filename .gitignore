@@ -32,8 +32,10 @@ coverage
 .env.*
 !.env.example
 !.env.docker.example
+!.env.production.example
 
 *.local
+!docker/Caddyfile.local
 
 # ==========================================================
 # Cache
