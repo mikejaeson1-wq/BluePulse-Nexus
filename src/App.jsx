@@ -6,6 +6,7 @@ import {
 
 import Home from "@website/pages/Home";
 import Contact from "@website/pages/Contact";
+import NotFound from "@website/pages/NotFound";
 import PublishedPage from "@website/pages/PublishedPage";
 
 import LoginPage from "@cms/modules/auth/pages/LoginPage";
@@ -44,6 +45,12 @@ import NavigationSync from "@cms/modules/dashboard/admin/pages/NavigationSync";
 import PagePreview from "@cms/modules/pages/pages/PagePreview";
 import WebsiteSectionEditor from "@cms/modules/pages/pages/WebsiteSectionEditor";
 
+import SeoBoundary from "@shared/seo/SeoBoundary";
+
+import {
+    ADMIN_SEO_PAGE
+} from "@shared/seo/siteSeo";
+
 const CONTENT_ROLES = [
     CMS_ROLES.ADMINISTRATOR,
     CMS_ROLES.EDITOR
@@ -77,6 +84,24 @@ function AdminFallback() {
     );
 }
 
+function AdminSeo({
+    children
+}) {
+    return (
+        <SeoBoundary
+            page={
+                ADMIN_SEO_PAGE
+            }
+            structuredData={[]}
+            structuredDataScope="admin"
+        >
+            {
+                children
+            }
+        </SeoBoundary>
+    );
+}
+
 export default function App() {
     return (
         <Routes>
@@ -97,31 +122,37 @@ export default function App() {
             <Route
                 path="/admin/login"
                 element={
-                    <LoginPage />
+                    <AdminSeo>
+                        <LoginPage />
+                    </AdminSeo>
                 }
             />
 
             <Route
                 path="/admin/preview/:id"
                 element={
-                    <ProtectedRoute>
-                        <RoleRoute
-                            roles={
-                                CONTENT_ROLES
-                            }
-                        >
-                            <PagePreview />
-                        </RoleRoute>
-                    </ProtectedRoute>
+                    <AdminSeo>
+                        <ProtectedRoute>
+                            <RoleRoute
+                                roles={
+                                    CONTENT_ROLES
+                                }
+                            >
+                                <PagePreview />
+                            </RoleRoute>
+                        </ProtectedRoute>
+                    </AdminSeo>
                 }
             />
 
             <Route
                 path="/admin"
                 element={
-                    <ProtectedRoute>
-                        <AdminLayout />
-                    </ProtectedRoute>
+                    <AdminSeo>
+                        <ProtectedRoute>
+                            <AdminLayout />
+                        </ProtectedRoute>
+                    </AdminSeo>
                 }
             >
                 <Route
@@ -351,10 +382,7 @@ export default function App() {
             <Route
                 path="*"
                 element={
-                    <Navigate
-                        to="/"
-                        replace
-                    />
+                    <NotFound />
                 }
             />
         </Routes>

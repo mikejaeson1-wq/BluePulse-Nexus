@@ -1,10 +1,10 @@
 import {
     useEffect,
+    useMemo,
     useState
 } from "react";
 
 import {
-    Navigate,
     useParams
 } from "react-router-dom";
 
@@ -17,6 +17,13 @@ import {
 import {
     applyPageDocumentMetadata
 } from "@shared/pages/documentMetadata";
+
+import {
+    applyStructuredData,
+    createWebPageStructuredData
+} from "@shared/seo/structuredData";
+
+import NotFound from "./NotFound";
 
 export default function PublishedPage() {
     const {
@@ -42,6 +49,20 @@ export default function PublishedPage() {
     ] =
         useState("");
 
+    const structuredData =
+        useMemo(
+            () =>
+                page?.status ===
+                "published"
+                    ? createWebPageStructuredData(
+                        page
+                    )
+                    : null,
+            [
+                page
+            ]
+        );
+
     useEffect(() => {
         let active =
             true;
@@ -51,7 +72,9 @@ export default function PublishedPage() {
                 true
             );
 
-            setError("");
+            setError(
+                ""
+            );
 
             try {
                 const loadedPage =
@@ -114,11 +137,27 @@ export default function PublishedPage() {
             return undefined;
         }
 
-        return applyPageDocumentMetadata(
-            page
-        );
+        const cleanupMetadata =
+            applyPageDocumentMetadata(
+                page
+            );
+
+        const cleanupStructuredData =
+            applyStructuredData(
+                structuredData,
+                {
+                    scope:
+                        "published-page"
+                }
+            );
+
+        return () => {
+            cleanupStructuredData();
+            cleanupMetadata();
+        };
     }, [
-        page
+        page,
+        structuredData
     ]);
 
     if (loading) {
@@ -153,10 +192,7 @@ export default function PublishedPage() {
         "published"
     ) {
         return (
-            <Navigate
-                to="/"
-                replace
-            />
+            <NotFound />
         );
     }
 
