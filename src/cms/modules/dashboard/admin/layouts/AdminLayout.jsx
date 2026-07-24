@@ -142,6 +142,22 @@ const NAVIGATION_ITEMS = [
     },
     {
         to:
+            "/admin/accessibility",
+
+        end:
+            true,
+
+        icon:
+            "bi-universal-access-circle",
+
+        label:
+            "Barrierefreiheit",
+
+        roles:
+            CONTENT_ROLES
+    },
+    {
+        to:
             "/admin/home-layout",
 
         end:

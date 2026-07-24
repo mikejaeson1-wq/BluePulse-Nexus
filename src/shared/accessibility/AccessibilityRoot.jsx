@@ -90,7 +90,7 @@ function prefersReducedMotion() {
             ?.matchMedia?.(
                 "(prefers-reduced-motion: reduce)"
             )
-            .matches
+            ?.matches
     );
 }
 
@@ -165,6 +165,12 @@ export default function AccessibilityRoot({
     }
 
     useEffect(() => {
+        const isFirstRoute =
+            firstRoute.current;
+
+        firstRoute.current =
+            false;
+
         const frameId =
             globalThis.window
                 ?.requestAnimationFrame?.(
@@ -173,7 +179,7 @@ export default function AccessibilityRoot({
                     }
                 );
 
-        const timeoutId =
+        const announcementTimeoutId =
             globalThis.window
                 ?.setTimeout?.(
                     () => {
@@ -191,29 +197,6 @@ export default function AccessibilityRoot({
                     180
                 );
 
-        if (
-            firstRoute.current
-        ) {
-            firstRoute.current =
-                false;
-
-            return () => {
-                if (frameId) {
-                    globalThis.window
-                        ?.cancelAnimationFrame?.(
-                            frameId
-                        );
-                }
-
-                if (timeoutId) {
-                    globalThis.window
-                        ?.clearTimeout?.(
-                            timeoutId
-                        );
-                }
-            };
-        }
-
         const focusTimeoutId =
             globalThis.window
                 ?.setTimeout?.(
@@ -228,6 +211,10 @@ export default function AccessibilityRoot({
                                 hashTarget
                             );
 
+                            return;
+                        }
+
+                        if (isFirstRoute) {
                             return;
                         }
 
@@ -253,10 +240,12 @@ export default function AccessibilityRoot({
                     );
             }
 
-            if (timeoutId) {
+            if (
+                announcementTimeoutId
+            ) {
                 globalThis.window
                     ?.clearTimeout?.(
-                        timeoutId
+                        announcementTimeoutId
                     );
             }
 

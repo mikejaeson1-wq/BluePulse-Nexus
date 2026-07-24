@@ -33,6 +33,7 @@ import PageEditor from "@cms/modules/dashboard/admin/pages/PageEditor";
 import ContactInbox from "@cms/modules/dashboard/admin/pages/ContactInbox";
 import SeoLegalCenter from "@cms/modules/dashboard/admin/pages/SeoLegalCenter";
 import LegalPageSetup from "@cms/modules/dashboard/admin/pages/LegalPageSetup";
+import AccessibilityDiagnostics from "@cms/modules/dashboard/admin/pages/AccessibilityDiagnostics";
 import HomeLayout from "@cms/modules/dashboard/admin/pages/HomeLayout";
 import FooterSettings from "@cms/modules/dashboard/admin/pages/FooterSettings";
 import Media from "@cms/modules/dashboard/admin/pages/Media";
@@ -244,6 +245,19 @@ export default function App() {
                             }
                         >
                             <LegalPageSetup />
+                        </RoleRoute>
+                    }
+                />
+
+                <Route
+                    path="accessibility"
+                    element={
+                        <RoleRoute
+                            roles={
+                                CONTENT_ROLES
+                            }
+                        >
+                            <AccessibilityDiagnostics />
                         </RoleRoute>
                     }
                 />
