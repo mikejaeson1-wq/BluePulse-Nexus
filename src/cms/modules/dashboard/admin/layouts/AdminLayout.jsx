@@ -110,6 +110,22 @@ const NAVIGATION_ITEMS = [
     },
     {
         to:
+            "/admin/seo",
+
+        end:
+            true,
+
+        icon:
+            "bi-search-heart",
+
+        label:
+            "SEO & Recht",
+
+        roles:
+            CONTENT_ROLES
+    },
+    {
+        to:
             "/admin/home-layout",
 
         end:
@@ -295,7 +311,9 @@ export default function AdminLayout() {
         useMemo(
             () =>
                 NAVIGATION_ITEMS.filter(
-                    (item) =>
+                    (
+                        item
+                    ) =>
                         item.roles.includes(
                             user?.role
                         )
@@ -311,7 +329,9 @@ export default function AdminLayout() {
                 user?.role
             )
         ) {
-            setContactUnread(0);
+            setContactUnread(
+                0
+            );
 
             return undefined;
         }
@@ -331,7 +351,9 @@ export default function AdminLayout() {
                 }
             } catch {
                 if (active) {
-                    setContactUnread(0);
+                    setContactUnread(
+                        0
+                    );
                 }
             }
         }
@@ -398,7 +420,9 @@ export default function AdminLayout() {
                 >
                     {
                         visibleNavigationItems.map(
-                            (item) => {
+                            (
+                                item
+                            ) => {
                                 const badgeValue =
                                     getBadgeValue(
                                         item
@@ -406,27 +430,41 @@ export default function AdminLayout() {
 
                                 return (
                                     <NavLink
-                                        key={item.to}
-                                        to={item.to}
-                                        end={item.end}
+                                        key={
+                                            item.to
+                                        }
+                                        to={
+                                            item.to
+                                        }
+                                        end={
+                                            item.end
+                                        }
                                     >
                                         <i
-                                            className={`bi ${item.icon}`}
+                                            className={
+                                                `bi ${item.icon}`
+                                            }
                                             aria-hidden="true"
                                         />
 
                                         <span className="bp-nav__label">
-                                            {item.label}
+                                            {
+                                                item.label
+                                            }
                                         </span>
 
                                         {
-                                            badgeValue > 0 && (
+                                            badgeValue >
+                                            0 && (
                                                 <span
                                                     className="bp-nav__badge"
-                                                    aria-label={`${badgeValue} ungelesene Kontaktanfragen`}
+                                                    aria-label={
+                                                        `${badgeValue} ungelesene Kontaktanfragen`
+                                                    }
                                                 >
                                                     {
-                                                        badgeValue > 99
+                                                        badgeValue >
+                                                        99
                                                             ? "99+"
                                                             : badgeValue
                                                     }
@@ -470,8 +508,12 @@ export default function AdminLayout() {
                     <button
                         type="button"
                         className="bp-user__logout"
-                        disabled={loggingOut}
-                        onClick={logout}
+                        disabled={
+                            loggingOut
+                        }
+                        onClick={
+                            logout
+                        }
                         aria-label="Abmelden"
                         title={
                             loggingOut

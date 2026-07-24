@@ -22,6 +22,7 @@ import {
 } from "./database/database.js";
 
 import apiRoutes from "./routes/index.js";
+import seoRoutes from "./routes/seoRoutes.js";
 
 export function buildApp({
     logger,
@@ -81,9 +82,14 @@ export function buildApp({
         multipart,
         {
             limits: {
-                files: 1,
-                fields: 20,
-                parts: 21,
+                files:
+                    1,
+
+                fields:
+                    20,
+
+                parts:
+                    21,
 
                 fileSize:
                     runtimeConfig
@@ -142,6 +148,10 @@ export function buildApp({
     );
 
     fastify.register(
+        seoRoutes
+    );
+
+    fastify.register(
         apiRoutes,
         {
             prefix:
@@ -157,7 +167,8 @@ export function buildApp({
             return reply
                 .status(404)
                 .send({
-                    statusCode: 404,
+                    statusCode:
+                        404,
 
                     error:
                         "Not Found",

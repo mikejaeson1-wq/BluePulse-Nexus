@@ -1,6 +1,18 @@
-import { defineConfig } from "vite";
+import {
+    defineConfig
+} from "vite";
+
 import react from "@vitejs/plugin-react";
+
 import path from "path";
+
+const API_PROXY = {
+    target:
+        "http://127.0.0.1:3001",
+
+    changeOrigin:
+        true
+};
 
 export default defineConfig({
     plugins: [
@@ -43,23 +55,27 @@ export default defineConfig({
 
     server: {
         proxy: {
-            "/api": {
-                target:
-                    "http://127.0.0.1:3001",
+            "/api":
+                API_PROXY,
 
-                changeOrigin: true
-            }
+            "/robots.txt":
+                API_PROXY,
+
+            "/sitemap.xml":
+                API_PROXY
         }
     },
 
     preview: {
         proxy: {
-            "/api": {
-                target:
-                    "http://127.0.0.1:3001",
+            "/api":
+                API_PROXY,
 
-                changeOrigin: true
-            }
+            "/robots.txt":
+                API_PROXY,
+
+            "/sitemap.xml":
+                API_PROXY
         }
     }
 });
